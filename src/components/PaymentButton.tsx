@@ -10,9 +10,10 @@ interface PaymentButtonProps {
   amount: number;
   disabled?: boolean;
   onSuccess?: () => void;
+  className?: string;
 }
 
-const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess }: PaymentButtonProps) => {
+const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, className }: PaymentButtonProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +49,7 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess }: Payme
     <Button
       onClick={handlePayment}
       disabled={disabled || loading}
-      className="w-full bg-green-600 hover:bg-green-700"
+      className={className || "w-full bg-green-600 hover:bg-green-700"}
     >
       {loading ? (
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
