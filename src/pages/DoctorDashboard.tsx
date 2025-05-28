@@ -70,10 +70,10 @@ const DoctorDashboard = () => {
 
       setVacationPosts(postsData || []);
 
-      // Fetch bookings count
+      // Fetch bookings count - include created_at for monthly earnings calculation
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('vacation_bookings')
-        .select('status, total_amount')
+        .select('status, total_amount, created_at')
         .eq('doctor_id', user.id);
 
       if (bookingsError) throw bookingsError;
