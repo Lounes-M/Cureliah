@@ -1,20 +1,27 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Euro, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { VacationBooking, VacationPost, Profile, DoctorProfile } from '@/types/database';
+import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
 import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
 
+interface DoctorInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+  bio?: string;
+  experience_years?: number;
+}
+
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
-  doctor_profile: Profile & { doctor_profile: DoctorProfile };
+  doctor_info: DoctorInfo | null;
 }
 
 const EstablishmentBookingManagement = () => {
@@ -47,22 +54,57 @@ const EstablishmentBookingManagement = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First, get the bookings with vacation posts
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('vacation_bookings')
         .select(`
           *,
-          vacation_post:vacation_posts(*),
-          doctor_profile:profiles!vacation_bookings_doctor_id_fkey(
-            *,
-            doctor_profile:doctor_profiles(*)
-          )
+          vacation_post:vacation_posts(*)
         `)
         .eq('establishment_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (bookingsError) throw bookingsError;
 
-      setBookings(data as BookingWithDetails[] || []);
+      // Then, get doctor information separately
+      const doctorIds = bookingsData?.map(booking => booking.doctor_id) || [];
+      
+      let doctorData: any[] = [];
+      if (doctorIds.length > 0) {
+        // Get basic profile info
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', doctorIds);
+
+        if (profilesError) {
+          console.warn('Error fetching doctor profiles:', profilesError);
+        }
+
+        // Get doctor-specific info
+        const { data: doctorProfiles, error: doctorProfilesError } = await supabase
+          .from('doctor_profiles')
+          .select('id, bio, experience_years')
+          .in('id', doctorIds);
+
+        if (doctorProfilesError) {
+          console.warn('Error fetching doctor detailed profiles:', doctorProfilesError);
+        }
+
+        // Combine profile data
+        doctorData = (profiles || []).map(profile => ({
+          ...profile,
+          ...(doctorProfiles || []).find(dp => dp.id === profile.id)
+        }));
+      }
+
+      // Combine the data
+      const combinedBookings = bookingsData?.map(booking => ({
+        ...booking,
+        doctor_info: doctorData.find(doc => doc.id === booking.doctor_id) || null
+      })) || [];
+
+      setBookings(combinedBookings as BookingWithDetails[]);
     } catch (error: any) {
       console.error('Error fetching bookings:', error);
       toast({
@@ -118,7 +160,7 @@ const EstablishmentBookingManagement = () => {
       isOpen: true,
       bookingId: booking.id,
       receiverId: booking.doctor_id,
-      receiverName: `Dr. ${booking.doctor_profile?.first_name} ${booking.doctor_profile?.last_name}`,
+      receiverName: `Dr. ${booking.doctor_info?.first_name} ${booking.doctor_info?.last_name}`,
       receiverType: 'doctor'
     });
   };
@@ -293,7 +335,7 @@ const BookingCard = ({
           <div>
             <CardTitle className="text-lg">{booking.vacation_post.title}</CardTitle>
             <CardDescription className="mt-1">
-              Dr. {booking.doctor_profile?.first_name} {booking.doctor_profile?.last_name}
+              Dr. {booking.doctor_info?.first_name} {booking.doctor_info?.last_name}
             </CardDescription>
           </div>
           <div className="flex flex-col space-y-2">
@@ -329,7 +371,12 @@ const BookingCard = ({
           <div className="space-y-2">
             <div className="flex items-center text-sm">
               <User className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_post.speciality}</span>
+              <span>
+                {booking.doctor_info?.experience_years ? 
+                  `${booking.doctor_info.experience_years} années d'expérience` : 
+                  'Expérience non spécifiée'
+                }
+              </span>
             </div>
             {booking.total_amount && (
               <div className="flex items-center text-sm font-medium">

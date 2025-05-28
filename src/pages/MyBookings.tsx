@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,32 +10,34 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import { getSpecialityInfo } from '@/utils/specialities';
 
+interface VacationPost {
+  id: string;
+  title: string;
+  description: string;
+  speciality: string;
+  start_date: string;
+  end_date: string;
+  hourly_rate: number;
+  location: string;
+  requirements: string;
+}
+
 interface Booking {
   id: string;
   status: string;
   message: string;
   created_at: string;
-  vacation_posts: {
-    id: string;
-    title: string;
-    description: string;
-    speciality: string;
-    start_date: string;
-    end_date: string;
-    hourly_rate: number;
-    location: string;
-    requirements: string;
-  };
-  doctor_profiles?: {
+  vacation_posts: VacationPost;
+  doctor_info?: {
     bio: string;
     experience_years: number;
   };
-  establishment_profiles?: {
+  establishment_info?: {
     name: string;
     establishment_type: string;
     city: string;
   };
-  profiles?: {
+  user_info?: {
     first_name: string;
     last_name: string;
   };
@@ -62,34 +63,83 @@ const MyBookings = () => {
     if (!user || !profile) return;
 
     try {
-      let query = supabase
-        .from('vacation_bookings')
-        .select(`
-          *,
-          vacation_posts(*),
-          doctor_profiles(bio, experience_years),
-          establishment_profiles(name, establishment_type, city),
-          profiles(first_name, last_name)
-        `)
-        .order('created_at', { ascending: false });
+      let bookingsData: any[] = [];
 
-      // Filter based on user type
       if (profile.user_type === 'doctor') {
-        query = query.eq('doctor_id', user.id);
+        // For doctors, get bookings with establishment info
+        const { data: doctorBookings, error: doctorError } = await supabase
+          .from('vacation_bookings')
+          .select(`
+            *,
+            vacation_posts(*)
+          `)
+          .eq('doctor_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (doctorError) throw doctorError;
+
+        // Get establishment info separately
+        const establishmentIds = doctorBookings?.map(b => b.establishment_id) || [];
+        
+        let establishmentProfiles: any[] = [];
+        if (establishmentIds.length > 0) {
+          const { data: establishments } = await supabase
+            .from('establishment_profiles')
+            .select('id, name, establishment_type, city')
+            .in('id', establishmentIds);
+          
+          establishmentProfiles = establishments || [];
+        }
+
+        bookingsData = doctorBookings?.map(booking => ({
+          ...booking,
+          establishment_info: establishmentProfiles.find(est => est.id === booking.establishment_id)
+        })) || [];
+
       } else {
-        query = query.eq('establishment_id', user.id);
+        // For establishments, get bookings with doctor info
+        const { data: establishmentBookings, error: establishmentError } = await supabase
+          .from('vacation_bookings')
+          .select(`
+            *,
+            vacation_posts(*)
+          `)
+          .eq('establishment_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (establishmentError) throw establishmentError;
+
+        // Get doctor info separately
+        const doctorIds = establishmentBookings?.map(b => b.doctor_id) || [];
+        
+        let doctorProfiles: any[] = [];
+        let userProfiles: any[] = [];
+        
+        if (doctorIds.length > 0) {
+          const { data: doctors } = await supabase
+            .from('doctor_profiles')
+            .select('id, bio, experience_years')
+            .in('id', doctorIds);
+          
+          const { data: users } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', doctorIds);
+          
+          doctorProfiles = doctors || [];
+          userProfiles = users || [];
+        }
+
+        bookingsData = establishmentBookings?.map(booking => ({
+          ...booking,
+          doctor_info: doctorProfiles.find(doc => doc.id === booking.doctor_id),
+          user_info: userProfiles.find(user => user.id === booking.doctor_id)
+        })) || [];
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Error fetching bookings:', error);
-        throw error;
-      }
-
-      setBookings(data || []);
+      setBookings(bookingsData);
     } catch (error: any) {
-      console.error('Error in fetchBookings:', error);
+      console.error('Error fetching bookings:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -232,21 +282,21 @@ const MyBookings = () => {
                         </CardDescription>
                         
                         {/* Show partner info */}
-                        {profile?.user_type === 'doctor' && booking.establishment_profiles && (
+                        {profile?.user_type === 'doctor' && booking.establishment_info && (
                           <div className="flex items-center text-sm text-gray-700 mb-2">
                             <Building className="w-4 h-4 mr-2" />
                             <span>
-                              <strong>Établissement :</strong> {booking.establishment_profiles.name}
-                              {booking.establishment_profiles.city && ` - ${booking.establishment_profiles.city}`}
+                              <strong>Établissement :</strong> {booking.establishment_info.name}
+                              {booking.establishment_info.city && ` - ${booking.establishment_info.city}`}
                             </span>
                           </div>
                         )}
                         
-                        {profile?.user_type === 'establishment' && booking.profiles && (
+                        {profile?.user_type === 'establishment' && booking.user_info && (
                           <div className="flex items-center text-sm text-gray-700 mb-2">
                             <User className="w-4 h-4 mr-2" />
                             <span>
-                              <strong>Médecin :</strong> Dr. {booking.profiles.first_name} {booking.profiles.last_name}
+                              <strong>Médecin :</strong> Dr. {booking.user_info.first_name} {booking.user_info.last_name}
                             </span>
                           </div>
                         )}
