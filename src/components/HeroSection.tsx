@@ -1,8 +1,31 @@
 
 import { Button } from "@/components/ui/button";
 import { User, Building2, Calendar, Clock } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDoctorClick = () => {
+    if (user) {
+      // TODO: Navigate to doctor dashboard
+      console.log('Navigate to doctor dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const handleEstablishmentClick = () => {
+    if (user) {
+      // TODO: Navigate to establishment dashboard
+      console.log('Navigate to establishment dashboard');
+    } else {
+      navigate('/auth');
+    }
+  };
+
   return (
     <section className="bg-gradient-to-br from-medical-blue-light via-white to-medical-green-light min-h-[80vh] flex items-center">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -23,18 +46,20 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
               <Button 
                 size="lg" 
+                onClick={handleDoctorClick}
                 className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <User className="w-5 h-5 mr-2" />
-                Je suis médecin
+                {user ? 'Mon espace médecin' : 'Je suis médecin'}
               </Button>
               <Button 
                 variant="outline" 
                 size="lg"
+                onClick={handleEstablishmentClick}
                 className="border-medical-green text-medical-green hover:bg-medical-green hover:text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Building2 className="w-5 h-5 mr-2" />
-                Je suis un établissement
+                {user ? 'Mon espace établissement' : 'Je suis un établissement'}
               </Button>
             </div>
 

@@ -1,10 +1,33 @@
 
 import { Button } from "@/components/ui/button";
-import { User, Building2, Menu } from "lucide-react";
+import { User, Building2, Menu, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté(e) avec succès.",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la déconnexion",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
@@ -35,14 +58,28 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button variant="outline" className="flex items-center space-x-2">
-              <Building2 className="w-4 h-4" />
-              <span>Espace Établissement</span>
-            </Button>
-            <Button className="bg-medical-blue hover:bg-medical-blue-dark flex items-center space-x-2">
-              <User className="w-4 h-4" />
-              <span>Espace Médecin</span>
-            </Button>
+            {user ? (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600">
+                  Bonjour, {profile?.first_name || user.email}
+                </span>
+                <Button variant="outline" onClick={handleSignOut} className="flex items-center space-x-2">
+                  <LogOut className="w-4 h-4" />
+                  <span>Déconnexion</span>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => navigate('/auth')} className="flex items-center space-x-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>Espace Établissement</span>
+                </Button>
+                <Button onClick={() => navigate('/auth')} className="bg-medical-blue hover:bg-medical-blue-dark flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>Espace Médecin</span>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -71,14 +108,28 @@ const Header = () => {
                 FAQ
               </a>
               <div className="flex flex-col space-y-2 pt-3">
-                <Button variant="outline" className="w-full">
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Espace Établissement
-                </Button>
-                <Button className="w-full bg-medical-blue hover:bg-medical-blue-dark">
-                  <User className="w-4 h-4 mr-2" />
-                  Espace Médecin
-                </Button>
+                {user ? (
+                  <>
+                    <span className="text-sm text-gray-600 mb-2">
+                      Bonjour, {profile?.first_name || user.email}
+                    </span>
+                    <Button variant="outline" onClick={handleSignOut} className="w-full">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => navigate('/auth')} className="w-full">
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Espace Établissement
+                    </Button>
+                    <Button onClick={() => navigate('/auth')} className="w-full bg-medical-blue hover:bg-medical-blue-dark">
+                      <User className="w-4 h-4 mr-2" />
+                      Espace Médecin
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
