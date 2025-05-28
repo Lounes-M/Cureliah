@@ -131,6 +131,68 @@ export type Database = {
           },
         ]
       }
+      chat_group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_groups: {
+        Row: {
+          booking_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       doctor_profiles: {
         Row: {
           avatar_url: string | null
@@ -287,7 +349,13 @@ export type Database = {
           booking_id: string
           content: string
           created_at: string
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          group_id: string | null
           id: string
+          message_type: string
+          read_at: string | null
           receiver_id: string
           sender_id: string
         }
@@ -295,7 +363,13 @@ export type Database = {
           booking_id: string
           content: string
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          group_id?: string | null
           id?: string
+          message_type?: string
+          read_at?: string | null
           receiver_id: string
           sender_id: string
         }
@@ -303,7 +377,13 @@ export type Database = {
           booking_id?: string
           content?: string
           created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          group_id?: string | null
           id?: string
+          message_type?: string
+          read_at?: string | null
           receiver_id?: string
           sender_id?: string
         }
@@ -315,7 +395,47 @@ export type Database = {
             referencedRelation: "vacation_bookings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "chat_groups"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_frequency: string
+          email_on_booking_update: boolean
+          email_on_message: boolean
+          email_on_review: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_frequency?: string
+          email_on_booking_update?: boolean
+          email_on_message?: boolean
+          email_on_review?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_frequency?: string
+          email_on_booking_update?: boolean
+          email_on_message?: boolean
+          email_on_review?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -600,6 +720,33 @@ export type Database = {
           },
         ]
       }
+      user_presence: {
+        Row: {
+          created_at: string
+          id: string
+          last_seen: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_seen?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_seen?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -743,7 +890,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      mark_message_read: {
+        Args: { message_id: string }
+        Returns: undefined
+      }
+      update_user_presence: {
+        Args: { status_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

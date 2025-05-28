@@ -32,6 +32,27 @@ export type NotificationType =
   | 'warning' 
   | 'error'
 
+export type MessageType = 
+  | 'text' 
+  | 'file' 
+  | 'voice' 
+  | 'image'
+
+export type UserStatus = 
+  | 'online' 
+  | 'offline' 
+  | 'away'
+
+export type EmailFrequency = 
+  | 'immediate' 
+  | 'daily' 
+  | 'weekly' 
+  | 'never'
+
+export type ChatRole = 
+  | 'admin' 
+  | 'member'
+
 export interface Profile {
   id: string
   user_type: UserType
@@ -114,11 +135,55 @@ export interface Notification {
 
 export interface Message {
   id: string
-  booking_id: string
+  booking_id?: string
+  group_id?: string
   sender_id: string
-  receiver_id: string
+  receiver_id?: string
   content: string
+  message_type: MessageType
+  file_url?: string
+  file_name?: string
+  file_size?: number
+  read_at?: string
   created_at: string
+}
+
+export interface UserPresence {
+  id: string
+  user_id: string
+  status: UserStatus
+  last_seen: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatGroup {
+  id: string
+  name: string
+  description?: string
+  created_by: string
+  booking_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ChatGroupMember {
+  id: string
+  group_id: string
+  user_id: string
+  joined_at: string
+  role: ChatRole
+}
+
+export interface NotificationPreferences {
+  id: string
+  user_id: string
+  email_on_message: boolean
+  email_on_booking_update: boolean
+  email_on_review: boolean
+  email_frequency: EmailFrequency
+  created_at: string
+  updated_at: string
 }
 
 export interface Review {

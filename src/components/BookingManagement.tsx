@@ -7,9 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useUserPresence } from '@/hooks/useUserPresence';
 import MessagingModal from './MessagingModal';
 import BookingStatusWorkflow from './BookingStatusWorkflow';
 import BookingTimeline from './BookingTimeline';
+import OnlineStatusIndicator from './OnlineStatusIndicator';
 
 interface EstablishmentInfo {
   id: string;
@@ -33,6 +35,7 @@ interface BookingWithDetails extends VacationBooking {
 const BookingManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { getUserStatus } = useUserPresence();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
@@ -260,6 +263,7 @@ const BookingManagement = () => {
                     getStatusText={getStatusText}
                     getPaymentStatusColor={getPaymentStatusColor}
                     getPaymentStatusText={getPaymentStatusText}
+                    getUserStatus={getUserStatus}
                   />
                 ))}
               </div>
@@ -288,6 +292,7 @@ const BookingManagement = () => {
                     getStatusText={getStatusText}
                     getPaymentStatusColor={getPaymentStatusColor}
                     getPaymentStatusText={getPaymentStatusText}
+                    getUserStatus={getUserStatus}
                   />
                 ))}
               </div>
@@ -311,6 +316,7 @@ const BookingManagement = () => {
                     getStatusText={getStatusText}
                     getPaymentStatusColor={getPaymentStatusColor}
                     getPaymentStatusText={getPaymentStatusText}
+                    getUserStatus={getUserStatus}
                   />
                 ))}
               </div>
@@ -341,6 +347,7 @@ interface BookingCardProps {
   getStatusText: (status: string) => string;
   getPaymentStatusColor: (status: string | null) => string;
   getPaymentStatusText: (status: string | null) => string;
+  getUserStatus: (userId: string) => any;
 }
 
 const BookingCard = ({
@@ -352,18 +359,24 @@ const BookingCard = ({
   getStatusColor,
   getStatusText,
   getPaymentStatusColor,
-  getPaymentStatusText
+  getPaymentStatusText,
+  getUserStatus
 }: BookingCardProps) => {
   const establishmentName = booking.establishment_info?.name || 
                           `${booking.user_info?.first_name || ''} ${booking.user_info?.last_name || ''}`.trim() || 
                           'Établissement';
+
+  const establishmentStatus = getUserStatus(booking.establishment_id);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <CardTitle className="text-lg">{booking.vacation_post?.title || 'Vacation'}</CardTitle>
+            <div className="flex items-center space-x-3 mb-1">
+              <CardTitle className="text-lg">{booking.vacation_post?.title || 'Vacation'}</CardTitle>
+              <OnlineStatusIndicator status={establishmentStatus} size="sm" />
+            </div>
             <CardDescription className="mt-1">
               Demande de {establishmentName}
             </CardDescription>

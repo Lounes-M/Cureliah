@@ -47,6 +47,23 @@ export function useMessages(bookingId?: string) {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `booking_id=eq.${bookingId}`
+        },
+        (payload) => {
+          const updatedMessage = payload.new as Message;
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === updatedMessage.id ? updatedMessage : msg
+            )
+          );
+        }
+      )
       .subscribe();
 
     return () => {
@@ -96,7 +113,8 @@ export function useMessages(bookingId?: string) {
           booking_id: bookingId,
           sender_id: user.id,
           receiver_id: receiverId,
-          content: content.trim()
+          content: content.trim(),
+          message_type: 'text'
         })
         .select(`
           *,
@@ -125,10 +143,23 @@ export function useMessages(bookingId?: string) {
     }
   };
 
+  const markMessageAsRead = async (messageId: string) => {
+    try {
+      const { error } = await supabase.rpc('mark_message_read', {
+        message_id: messageId
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('Error marking message as read:', error);
+    }
+  };
+
   return {
     messages,
     loading,
     sendMessage,
+    markMessageAsRead,
     refetch: fetchMessages
   };
 }
