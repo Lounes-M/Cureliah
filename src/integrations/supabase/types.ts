@@ -47,6 +47,36 @@ export type Database = {
           },
         ]
       }
+      admin_roles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          permissions: Json | null
+          revoked_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permissions?: Json | null
+          revoked_at?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permissions?: Json | null
+          revoked_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           booking_id: string | null
@@ -289,9 +319,12 @@ export type Database = {
       }
       notifications: {
         Row: {
+          action_url: string | null
           created_at: string
           id: string
           message: string
+          metadata: Json | null
+          priority: string | null
           read_at: string | null
           related_booking_id: string | null
           title: string
@@ -299,9 +332,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_url?: string | null
           created_at?: string
           id?: string
           message: string
+          metadata?: Json | null
+          priority?: string | null
           read_at?: string | null
           related_booking_id?: string | null
           title: string
@@ -309,9 +345,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_url?: string | null
           created_at?: string
           id?: string
           message?: string
+          metadata?: Json | null
+          priority?: string | null
           read_at?: string | null
           related_booking_id?: string | null
           title?: string
@@ -429,9 +468,14 @@ export type Database = {
           created_at: string
           doctor_id: string
           establishment_id: string
+          helpful_count: number | null
           id: string
           rating: number
+          response: string | null
+          response_date: string | null
+          reviewer_type: string | null
           updated_at: string
+          verified: boolean | null
         }
         Insert: {
           booking_id: string
@@ -439,9 +483,14 @@ export type Database = {
           created_at?: string
           doctor_id: string
           establishment_id: string
+          helpful_count?: number | null
           id?: string
           rating: number
+          response?: string | null
+          response_date?: string | null
+          reviewer_type?: string | null
           updated_at?: string
+          verified?: boolean | null
         }
         Update: {
           booking_id?: string
@@ -449,9 +498,14 @@ export type Database = {
           created_at?: string
           doctor_id?: string
           establishment_id?: string
+          helpful_count?: number | null
           id?: string
           rating?: number
+          response?: string | null
+          response_date?: string | null
+          reviewer_type?: string | null
           updated_at?: string
+          verified?: boolean | null
         }
         Relationships: [
           {
@@ -473,6 +527,56 @@ export type Database = {
             columns: ["establishment_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_payments: {
+        Row: {
+          amount: number
+          booking_id: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          payment_method_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_payment_intent_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          booking_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_payment_intent_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "vacation_bookings"
             referencedColumns: ["id"]
           },
         ]

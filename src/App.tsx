@@ -1,38 +1,43 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/hooks/useAuth';
-import { Toaster } from '@/components/ui/toaster';
-import Index from '@/pages/Index';
-import Auth from '@/pages/Auth';
-import DoctorDashboard from '@/pages/DoctorDashboard';
-import EstablishmentDashboard from '@/pages/EstablishmentDashboard';
-import ProfileComplete from '@/pages/ProfileComplete';
-import CreateVacation from '@/pages/CreateVacation';
-import VacationSearch from '@/pages/VacationSearch';
-import MyBookings from '@/pages/MyBookings';
-import NotFound from '@/pages/NotFound';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import DoctorDashboard from "./pages/DoctorDashboard";
+import EstablishmentDashboard from "./pages/EstablishmentDashboard";
+import CreateVacation from "./pages/CreateVacation";
+import VacationSearch from "./pages/VacationSearch";
+import MyBookings from "./pages/MyBookings";
+import ProfileComplete from "./pages/ProfileComplete";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import NotFound from "./pages/NotFound";
 
-function App() {
-  return (
-    <Router>
-      <AuthProvider>
-        <div className="min-h-screen bg-white">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/profile/complete" element={<ProfileComplete />} />
-            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-            <Route path="/doctor/create-vacation" element={<CreateVacation />} />
-            <Route path="/establishment/dashboard" element={<EstablishmentDashboard />} />
-            <Route path="/search" element={<VacationSearch />} />
-            <Route path="/bookings" element={<MyBookings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-        <Toaster />
-      </AuthProvider>
-    </Router>
-  );
-}
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/establishment/dashboard" element={<EstablishmentDashboard />} />
+          <Route path="/doctor/create-vacation" element={<CreateVacation />} />
+          <Route path="/search" element={<VacationSearch />} />
+          <Route path="/bookings" element={<MyBookings />} />
+          <Route path="/profile/complete" element={<ProfileComplete />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

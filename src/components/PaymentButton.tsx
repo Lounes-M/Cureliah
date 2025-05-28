@@ -9,19 +9,20 @@ interface PaymentButtonProps {
   bookingId: string;
   amount: number;
   disabled?: boolean;
-  className?: string;
+  onSuccess?: () => void;
 }
 
-const PaymentButton = ({ bookingId, amount, disabled = false, className = "" }: PaymentButtonProps) => {
-  const [loading, setLoading] = useState(false);
+const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess }: PaymentButtonProps) => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handlePayment = async () => {
+    if (disabled || loading) return;
+
     setLoading(true);
-    
     try {
       const { data, error } = await supabase.functions.invoke('create-payment', {
-        body: { bookingId }
+        body: { bookingId, amount }
       });
 
       if (error) throw error;
@@ -29,14 +30,13 @@ const PaymentButton = ({ bookingId, amount, disabled = false, className = "" }: 
       if (data?.url) {
         // Open Stripe checkout in a new tab
         window.open(data.url, '_blank');
-      } else {
-        throw new Error('Invalid payment URL received');
+        onSuccess?.();
       }
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
         title: "Erreur de paiement",
-        description: error.message || "Impossible d'initier le paiement",
+        description: "Impossible d'initier le paiement. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
@@ -48,14 +48,14 @@ const PaymentButton = ({ bookingId, amount, disabled = false, className = "" }: 
     <Button
       onClick={handlePayment}
       disabled={disabled || loading}
-      className={className}
+      className="w-full bg-green-600 hover:bg-green-700"
     >
       {loading ? (
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
       ) : (
         <CreditCard className="w-4 h-4 mr-2" />
       )}
-      {loading ? 'Traitement...' : `Payer ${amount.toFixed(2)}€`}
+      {loading ? 'Traitement...' : `Payer ${amount}€`}
     </Button>
   );
 };
