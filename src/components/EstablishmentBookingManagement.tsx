@@ -3,9 +3,9 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, User, Check, X, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, Euro, User, MessageCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { VacationBooking, VacationPost, Profile, EstablishmentProfile } from '@/types/database';
+import { VacationBooking, VacationPost, Profile, DoctorProfile } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
@@ -13,10 +13,10 @@ import PaymentButton from './PaymentButton';
 
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
-  establishment_profile: Profile & { establishment_profile: EstablishmentProfile };
+  doctor_profile: Profile & { doctor_profile: DoctorProfile };
 }
 
-const BookingManagement = () => {
+const EstablishmentBookingManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -32,7 +32,7 @@ const BookingManagement = () => {
     bookingId: '',
     receiverId: '',
     receiverName: '',
-    receiverType: 'establishment'
+    receiverType: 'doctor'
   });
 
   useEffect(() => {
@@ -50,12 +50,12 @@ const BookingManagement = () => {
         .select(`
           *,
           vacation_post:vacation_posts(*),
-          establishment_profile:profiles!vacation_bookings_establishment_id_fkey(
+          doctor_profile:profiles!vacation_bookings_doctor_id_fkey(
             *,
-            establishment_profile:establishment_profiles(*)
+            doctor_profile:doctor_profiles(*)
           )
         `)
-        .eq('doctor_id', user.id)
+        .eq('establishment_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -70,37 +70,6 @@ const BookingManagement = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const updateBookingStatus = async (bookingId: string, status: string) => {
-    try {
-      const { error } = await supabase
-        .from('vacation_bookings')
-        .update({ status })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-
-      setBookings(prev => 
-        prev.map(booking => 
-          booking.id === bookingId 
-            ? { ...booking, status: status as any }
-            : booking
-        )
-      );
-
-      toast({
-        title: "Succès",
-        description: `Réservation ${status === 'booked' ? 'acceptée' : 'refusée'} avec succès`,
-      });
-    } catch (error: any) {
-      console.error('Error updating booking status:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour la réservation",
-        variant: "destructive"
-      });
     }
   };
 
@@ -146,9 +115,9 @@ const BookingManagement = () => {
     setMessagingModal({
       isOpen: true,
       bookingId: booking.id,
-      receiverId: booking.establishment_id,
-      receiverName: booking.establishment_profile?.establishment_profile?.name || 'Établissement',
-      receiverType: 'establishment'
+      receiverId: booking.doctor_id,
+      receiverName: `Dr. ${booking.doctor_profile?.first_name} ${booking.doctor_profile?.last_name}`,
+      receiverType: 'doctor'
     });
   };
 
@@ -163,9 +132,9 @@ const BookingManagement = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Gestion des Réservations</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Mes Réservations</h2>
         <Badge variant="outline">
-          {bookings.filter(b => b.status === 'pending').length} en attente
+          {bookings.filter(b => b.status === 'booked').length} actives
         </Badge>
       </div>
 
@@ -177,7 +146,7 @@ const BookingManagement = () => {
               Aucune réservation
             </h3>
             <p className="text-gray-600">
-              Les demandes de réservation apparaîtront ici
+              Vos réservations apparaîtront ici
             </p>
           </CardContent>
         </Card>
@@ -192,7 +161,7 @@ const BookingManagement = () => {
                       {booking.vacation_post.title}
                     </CardTitle>
                     <CardDescription className="mt-1">
-                      Demande de {booking.establishment_profile?.establishment_profile?.name || 'Établissement'}
+                      Dr. {booking.doctor_profile?.first_name} {booking.doctor_profile?.last_name}
                     </CardDescription>
                   </div>
                   <div className="flex flex-col space-y-2">
@@ -228,14 +197,12 @@ const BookingManagement = () => {
                   <div className="space-y-2">
                     <div className="flex items-center text-sm">
                       <User className="w-4 h-4 text-gray-400 mr-2" />
-                      <span>
-                        {booking.establishment_profile?.establishment_profile?.establishment_type || 'Type non spécifié'}
-                      </span>
+                      <span>{booking.vacation_post.speciality}</span>
                     </div>
                     {booking.total_amount && (
                       <div className="flex items-center text-sm font-medium">
                         <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                        <span>Total estimé: {booking.total_amount}€</span>
+                        <span>Total: {booking.total_amount}€</span>
                       </div>
                     )}
                   </div>
@@ -244,58 +211,25 @@ const BookingManagement = () => {
                 {booking.message && (
                   <div className="bg-gray-50 p-3 rounded-lg mb-4">
                     <p className="text-sm text-gray-700">
-                      <strong>Message:</strong> {booking.message}
+                      <strong>Votre message:</strong> {booking.message}
                     </p>
                   </div>
                 )}
 
-                {booking.status === 'pending' && (
-                  <div className="flex space-x-3">
-                    <Button
-                      onClick={() => updateBookingStatus(booking.id, 'booked')}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Check className="w-4 h-4 mr-2" />
-                      Accepter
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => updateBookingStatus(booking.id, 'cancelled')}
-                      className="border-red-300 text-red-600 hover:bg-red-50"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Refuser
-                    </Button>
-                    <Button variant="outline" onClick={() => openMessaging(booking)}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Message
-                    </Button>
-                  </div>
-                )}
-
-                {booking.status === 'booked' && (
-                  <div className="flex space-x-3">
-                    <Button variant="outline" onClick={() => openMessaging(booking)}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Contacter l'établissement
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => updateBookingStatus(booking.id, 'completed')}
-                    >
-                      Marquer comme terminé
-                    </Button>
-                  </div>
-                )}
-
-                {(booking.status === 'cancelled' || booking.status === 'completed') && (
-                  <div className="flex space-x-3">
-                    <Button variant="outline" onClick={() => openMessaging(booking)}>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Voir les messages
-                    </Button>
-                  </div>
-                )}
+                <div className="flex space-x-3">
+                  <Button variant="outline" onClick={() => openMessaging(booking)}>
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Contacter le médecin
+                  </Button>
+                  
+                  {booking.status === 'booked' && booking.payment_status !== 'paid' && booking.total_amount && (
+                    <PaymentButton
+                      bookingId={booking.id}
+                      amount={booking.total_amount}
+                      className="bg-medical-green hover:bg-medical-green-dark"
+                    />
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -314,4 +248,4 @@ const BookingManagement = () => {
   );
 };
 
-export default BookingManagement;
+export default EstablishmentBookingManagement;

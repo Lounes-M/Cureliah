@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Building2, Calendar, Users, Euro } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { VacationPost, EstablishmentProfile, VacationBooking } from '@/types/database';
 import Header from '@/components/Header';
 import { useToast } from '@/hooks/use-toast';
+import EstablishmentBookingManagement from '@/components/EstablishmentBookingManagement';
 
 const EstablishmentDashboard = () => {
   const { user, profile } = useAuth();
@@ -200,28 +202,37 @@ const EstablishmentDashboard = () => {
               <Euro className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">€8,950</div>
+              <div className="text-2xl font-bold">
+                €{myBookings
+                  .filter(b => b.payment_status === 'paid')
+                  .reduce((sum, b) => sum + (b.total_amount || 0), 0)
+                  .toLocaleString()}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Rechercher par spécialité, lieu..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </div>
+        <Tabs defaultValue="vacations" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="vacations">Vacations Disponibles</TabsTrigger>
+            <TabsTrigger value="bookings">Mes Réservations</TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Vacations Disponibles</h2>
+          <TabsContent value="vacations">
+            <div className="mb-6">
+              <div className="flex items-center space-x-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Rechercher par spécialité, lieu..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
             {filteredVacations.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
@@ -287,8 +298,12 @@ const EstablishmentDashboard = () => {
                 ))}
               </div>
             )}
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="bookings">
+            <EstablishmentBookingManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
