@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -113,16 +112,15 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-      // Upload to Supabase Storage
+      // Upload to Supabase Storage with progress simulation
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(fileName, selectedFile, {
-          onUploadProgress: (progress) => {
-            setUploadProgress((progress.loaded / progress.total) * 100);
-          }
-        });
+        .upload(fileName, selectedFile);
 
       if (uploadError) throw uploadError;
+
+      // Simulate progress for user feedback
+      setUploadProgress(100);
 
       // Save document metadata to database
       const { error: dbError } = await supabase
@@ -170,12 +168,12 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
       a.download = document.name;
-      document.body.appendChild(a);
+      window.document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error('Error downloading document:', error);
