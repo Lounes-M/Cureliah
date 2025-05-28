@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,9 @@ import { VacationPost, DoctorProfile } from '@/types/database';
 import UserNavigation from '@/components/UserNavigation';
 import BookingManagement from '@/components/BookingManagement';
 import StatsCard from '@/components/StatsCard';
-import RecentVacations from '@/components/RecentVacations';
+import VacationCard from '@/components/VacationCard';
+import ProfileCompletion from '@/components/ProfileCompletion';
+import ActivityFeed from '@/components/ActivityFeed';
 import { useToast } from '@/hooks/use-toast';
 
 const DoctorDashboard = () => {
@@ -70,7 +73,7 @@ const DoctorDashboard = () => {
 
       setVacationPosts(postsData || []);
 
-      // Fetch bookings count - include created_at for monthly earnings calculation
+      // Fetch bookings count
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('vacation_bookings')
         .select('status, total_amount, created_at')
@@ -111,26 +114,6 @@ const DoctorDashboard = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'bg-green-100 text-green-800';
-      case 'booked': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-yellow-100 text-yellow-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'available': return 'Disponible';
-      case 'booked': return 'Réservé';
-      case 'completed': return 'Terminé';
-      case 'cancelled': return 'Annulé';
-      default: return 'En attente';
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -154,22 +137,6 @@ const DoctorDashboard = () => {
             Gérez vos disponibilités et suivez vos vacations
           </p>
         </div>
-
-        {!doctorProfile && (
-          <Card className="mb-8 border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="text-yellow-800">Complétez votre profil</CardTitle>
-              <CardDescription className="text-yellow-700">
-                Complétez votre profil médecin pour commencer à publier des vacations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/profile/complete')}>
-                Compléter mon profil
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -213,18 +180,62 @@ const DoctorDashboard = () => {
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Recent Vacations */}
-          <div className="lg:col-span-2">
-            <RecentVacations
-              vacations={vacationPosts}
-              title="Vacations Récentes"
-              emptyMessage="Aucune vacation publiée"
-              onViewAll={() => navigate('/doctor/dashboard')}
-              showActions={false}
-            />
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Vacations Récentes</CardTitle>
+                  <Button 
+                    onClick={() => navigate('/vacation/create')}
+                    disabled={!doctorProfile}
+                    className="bg-medical-blue hover:bg-medical-blue-dark"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nouvelle Vacation
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {vacationPosts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Aucune vacation publiée
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Commencez par publier votre première vacation
+                    </p>
+                    <Button 
+                      onClick={() => navigate('/vacation/create')}
+                      disabled={!doctorProfile}
+                    >
+                      Publier une vacation
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {vacationPosts.slice(0, 3).map((vacation) => (
+                      <VacationCard
+                        key={vacation.id}
+                        vacation={vacation}
+                        showActions={false}
+                      />
+                    ))}
+                    {vacationPosts.length > 3 && (
+                      <Button variant="outline" className="w-full">
+                        Voir toutes les vacations ({vacationPosts.length})
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Right Column - Quick Actions */}
+          {/* Right Column - Sidebar */}
           <div className="space-y-6">
+            <ProfileCompletion />
+            
             <Card>
               <CardHeader>
                 <CardTitle>Actions Rapides</CardTitle>
@@ -248,6 +259,8 @@ const DoctorDashboard = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            <ActivityFeed />
 
             {/* Performance Card */}
             <Card>
@@ -291,80 +304,17 @@ const DoctorDashboard = () => {
             </TabsList>
 
             <TabsContent value="vacations" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Mes Vacations</h2>
-              <Button 
-                onClick={() => navigate('/vacation/create')}
-                disabled={!doctorProfile}
-                className="bg-medical-blue hover:bg-medical-blue-dark"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Vacation
-              </Button>
-            </div>
-
-            <div className="grid gap-6">
-              {vacationPosts.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Aucune vacation publiée
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Commencez par publier votre première vacation
-                    </p>
-                    <Button 
-                      onClick={() => navigate('/vacation/create')}
-                      disabled={!doctorProfile}
-                    >
-                      Publier une vacation
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : (
-                vacationPosts.map((post) => (
-                  <Card key={post.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-lg">{post.title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {post.description}
-                          </CardDescription>
-                        </div>
-                        <Badge className={getStatusColor(post.status)}>
-                          {getStatusText(post.status)}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div className="flex items-center">
-                          <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                          <span>
-                            {new Date(post.start_date).toLocaleDateString('fr-FR')} - 
-                            {new Date(post.end_date).toLocaleDateString('fr-FR')}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                          <span>{post.location || 'Non spécifié'}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                          <span>{post.hourly_rate}€/h</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Badge variant="outline">{post.speciality}</Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          </TabsContent>
+              <div className="grid gap-6">
+                {vacationPosts.map((vacation) => (
+                  <VacationCard
+                    key={vacation.id}
+                    vacation={vacation}
+                    showActions={true}
+                    isEstablishment={false}
+                  />
+                ))}
+              </div>
+            </TabsContent>
 
             <TabsContent value="bookings">
               <BookingManagement />

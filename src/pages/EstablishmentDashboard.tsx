@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +12,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { VacationPost, EstablishmentProfile, VacationBooking } from '@/types/database';
 import UserNavigation from '@/components/UserNavigation';
 import StatsCard from '@/components/StatsCard';
-import RecentVacations from '@/components/RecentVacations';
+import VacationCard from '@/components/VacationCard';
+import AdvancedFilters from '@/components/AdvancedFilters';
+import ProfileCompletion from '@/components/ProfileCompletion';
+import ActivityFeed from '@/components/ActivityFeed';
 import { useToast } from '@/hooks/use-toast';
 import EstablishmentBookingManagement from '@/components/EstablishmentBookingManagement';
 
@@ -21,6 +25,7 @@ const EstablishmentDashboard = () => {
   const { toast } = useToast();
   const [establishmentProfile, setEstablishmentProfile] = useState<EstablishmentProfile | null>(null);
   const [availableVacations, setAvailableVacations] = useState<VacationPost[]>([]);
+  const [filteredVacations, setFilteredVacations] = useState<VacationPost[]>([]);
   const [myBookings, setMyBookings] = useState<VacationBooking[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -38,6 +43,10 @@ const EstablishmentDashboard = () => {
 
     fetchEstablishmentData();
   }, [user, profile]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, availableVacations]);
 
   const fetchEstablishmentData = async () => {
     if (!user) return;
@@ -89,6 +98,67 @@ const EstablishmentDashboard = () => {
     }
   };
 
+  const applyFilters = () => {
+    let filtered = availableVacations;
+
+    if (searchTerm) {
+      filtered = filtered.filter(vacation =>
+        vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vacation.speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredVacations(filtered);
+  };
+
+  const handleFiltersChange = (filters: any) => {
+    let filtered = availableVacations;
+
+    // Apply search term
+    if (searchTerm) {
+      filtered = filtered.filter(vacation =>
+        vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vacation.speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply specialty filter
+    if (filters.speciality) {
+      filtered = filtered.filter(vacation => vacation.speciality === filters.speciality);
+    }
+
+    // Apply location filter
+    if (filters.location) {
+      filtered = filtered.filter(vacation =>
+        vacation.location?.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    // Apply hourly rate filter
+    filtered = filtered.filter(vacation =>
+      vacation.hourly_rate >= filters.hourlyRateMin &&
+      vacation.hourly_rate <= filters.hourlyRateMax
+    );
+
+    // Apply date range filter
+    if (filters.dateRange?.from && filters.dateRange?.to) {
+      filtered = filtered.filter(vacation => {
+        const vacationStart = new Date(vacation.start_date);
+        const vacationEnd = new Date(vacation.end_date);
+        return vacationStart >= filters.dateRange.from && vacationEnd <= filters.dateRange.to;
+      });
+    }
+
+    setFilteredVacations(filtered);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilteredVacations(availableVacations);
+  };
+
   const bookVacation = async (vacationPostId: string) => {
     if (!user) return;
 
@@ -120,12 +190,6 @@ const EstablishmentDashboard = () => {
     }
   };
 
-  const filteredVacations = availableVacations.filter(vacation =>
-    vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vacation.speciality.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const monthlyBudget = myBookings
     .filter(b => b.payment_status === 'paid')
     .reduce((sum, b) => sum + (b.total_amount || 0), 0);
@@ -153,22 +217,6 @@ const EstablishmentDashboard = () => {
             Trouvez et réservez des médecins pour vos vacations
           </p>
         </div>
-
-        {!establishmentProfile && (
-          <Card className="mb-8 border-yellow-200 bg-yellow-50">
-            <CardHeader>
-              <CardTitle className="text-yellow-800">Complétez votre profil</CardTitle>
-              <CardDescription className="text-yellow-700">
-                Complétez votre profil établissement pour commencer à réserver des vacations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate('/profile/complete')}>
-                Compléter mon profil
-              </Button>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -206,36 +254,41 @@ const EstablishmentDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Search and Results */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Column - Search and Filters */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* Search Bar */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Rechercher par spécialité, lieu, médecin..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Advanced Filters */}
+            <AdvancedFilters
+              onFiltersChange={handleFiltersChange}
+              onClearFilters={clearFilters}
+            />
+
+            {/* Results */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Search className="w-5 h-5 mr-2" />
-                  Rechercher des Médecins
+                <CardTitle>
+                  Médecins Disponibles ({filteredVacations.length})
                 </CardTitle>
                 <CardDescription>
                   Trouvez le médecin parfait pour vos besoins
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Rechercher par spécialité, lieu..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtres
-                  </Button>
-                </div>
-
                 {filteredVacations.length === 0 ? (
                   <div className="text-center py-12">
                     <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -248,43 +301,14 @@ const EstablishmentDashboard = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {filteredVacations.slice(0, 5).map((vacation) => (
-                      <div key={vacation.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="font-semibold text-lg">{vacation.title}</h4>
-                            <p className="text-gray-600 text-sm">{vacation.description}</p>
-                          </div>
-                          <Button 
-                            onClick={() => bookVacation(vacation.id)}
-                            disabled={!establishmentProfile}
-                            className="bg-medical-green hover:bg-medical-green-dark"
-                          >
-                            Réserver
-                          </Button>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            <span>
-                              {new Date(vacation.start_date).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Badge variant="outline">{vacation.speciality}</Badge>
-                          </div>
-                          <div className="flex items-center">
-                            <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                            <span>{vacation.hourly_rate}€/h</span>
-                          </div>
-                          {vacation.location && (
-                            <div className="flex items-center">
-                              <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                              <span className="truncate">{vacation.location}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    {filteredVacations.map((vacation) => (
+                      <VacationCard
+                        key={vacation.id}
+                        vacation={vacation}
+                        onBook={bookVacation}
+                        showActions={true}
+                        isEstablishment={true}
+                      />
                     ))}
                   </div>
                 )}
@@ -292,8 +316,10 @@ const EstablishmentDashboard = () => {
             </Card>
           </div>
 
-          {/* Right Column - Quick Actions and Recent Bookings */}
+          {/* Right Column - Sidebar */}
           <div className="space-y-6">
+            <ProfileCompletion />
+            
             <Card>
               <CardHeader>
                 <CardTitle>Actions Rapides</CardTitle>
@@ -316,6 +342,8 @@ const EstablishmentDashboard = () => {
                 </Button>
               </CardContent>
             </Card>
+
+            <ActivityFeed />
 
             <Card>
               <CardHeader>
@@ -356,89 +384,17 @@ const EstablishmentDashboard = () => {
             </TabsList>
 
             <TabsContent value="search">
-              <div className="mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      placeholder="Rechercher par spécialité, lieu..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Button variant="outline">
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filtres
-                  </Button>
-                </div>
+              <div className="grid gap-4">
+                {filteredVacations.map((vacation) => (
+                  <VacationCard
+                    key={vacation.id}
+                    vacation={vacation}
+                    onBook={bookVacation}
+                    showActions={true}
+                    isEstablishment={true}
+                  />
+                ))}
               </div>
-
-              {filteredVacations.length === 0 ? (
-                <Card>
-                  <CardContent className="text-center py-12">
-                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Aucune vacation disponible
-                    </h3>
-                    <p className="text-gray-600">
-                      Aucune vacation ne correspond à vos critères de recherche
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-4">
-                  {filteredVacations.map((vacation) => (
-                    <Card key={vacation.id} className="hover:shadow-md transition-shadow">
-                      <CardHeader>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="text-lg">{vacation.title}</CardTitle>
-                            <CardDescription className="mt-1">
-                              {vacation.description}
-                            </CardDescription>
-                          </div>
-                          <Button 
-                            onClick={() => bookVacation(vacation.id)}
-                            disabled={!establishmentProfile}
-                            className="bg-medical-green hover:bg-medical-green-dark"
-                          >
-                            Réserver
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                            <span>
-                              {new Date(vacation.start_date).toLocaleDateString('fr-FR')} - 
-                              {new Date(vacation.end_date).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                          <div className="flex items-center">
-                            <Badge variant="outline">{vacation.speciality}</Badge>
-                          </div>
-                          <div className="flex items-center">
-                            <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                            <span>{vacation.hourly_rate}€/h</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">{vacation.location || 'Lieu non spécifié'}</span>
-                          </div>
-                        </div>
-                        {vacation.requirements && (
-                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                            <p className="text-sm text-gray-700">
-                              <strong>Exigences:</strong> {vacation.requirements}
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
             </TabsContent>
 
             <TabsContent value="bookings">
