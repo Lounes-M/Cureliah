@@ -27,23 +27,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return
     
     try {
+      console.log('Fetching profile for user:', user.id)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
       
-      if (error) throw error
-      setProfile(data)
+      if (error) {
+        console.error('Error fetching profile:', error)
+        if (error.code !== 'PGRST116') { // PGRST116 means no rows returned
+          throw error
+        }
+      } else {
+        console.log('Profile fetched successfully:', data)
+        setProfile(data)
+      }
     } catch (error) {
       console.error('Error fetching profile:', error)
     }
   }
 
   useEffect(() => {
+    console.log('Setting up auth state listener')
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id)
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -62,12 +73,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.id)
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log('Cleaning up auth subscription')
+      subscription.unsubscribe()
+    }
   }, [])
 
   // Update fetchProfile when user changes
@@ -78,28 +93,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user])
 
   const signUp = async (email: string, password: string, userData: { first_name: string; last_name: string; user_type: string }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userData
-      }
-    })
-    return { data, error }
+    console.log('SignUp called with:', { email, userData })
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      })
+      
+      console.log('Supabase signUp response:', { data, error })
+      return { data, error }
+    } catch (error) {
+      console.error('Unexpected error in signUp:', error)
+      return { data: null, error }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    return { data, error }
+    console.log('SignIn called with email:', email)
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      
+      console.log('Supabase signIn response:', { data, error })
+      return { data, error }
+    } catch (error) {
+      console.error('Unexpected error in signIn:', error)
+      return { data: null, error }
+    }
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-    setProfile(null)
+    console.log('SignOut called')
+    
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('SignOut error:', error)
+        throw error
+      }
+      setProfile(null)
+      console.log('SignOut successful')
+    } catch (error) {
+      console.error('Error during signOut:', error)
+      throw error
+    }
   }
 
   const value = {

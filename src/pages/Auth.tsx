@@ -34,6 +34,13 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('Starting signup process with data:', { 
+      email: signUpData.email,
+      userType: signUpData.userType,
+      firstName: signUpData.firstName,
+      lastName: signUpData.lastName
+    })
+    
     if (signUpData.password !== signUpData.confirmPassword) {
       toast({
         title: "Erreur",
@@ -43,10 +50,20 @@ const Auth = () => {
       return
     }
 
+    if (signUpData.password.length < 6) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe doit contenir au moins 6 caractères",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsLoading(true)
     
     try {
-      const { error } = await signUp(
+      console.log('Calling signUp function...')
+      const { data, error } = await signUp(
         signUpData.email,
         signUpData.password,
         {
@@ -56,27 +73,50 @@ const Auth = () => {
         }
       )
 
+      console.log('SignUp response:', { data, error })
+
       if (error) {
+        console.error('SignUp error:', error)
         if (error.message.includes('already registered')) {
           toast({
             title: "Erreur",
             description: "Un compte avec cette adresse email existe déjà",
             variant: "destructive"
           })
+        } else if (error.message.includes('Invalid email')) {
+          toast({
+            title: "Erreur",
+            description: "Adresse email invalide",
+            variant: "destructive"
+          })
         } else {
-          throw error
+          toast({
+            title: "Erreur",
+            description: error.message || "Une erreur est survenue lors de la création du compte",
+            variant: "destructive"
+          })
         }
       } else {
+        console.log('Account created successfully')
         toast({
           title: "Compte créé !",
           description: "Votre compte a été créé avec succès. Vous pouvez maintenant vous connecter.",
         })
-        navigate('/')
+        // Clear the form
+        setSignUpData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          firstName: '',
+          lastName: '',
+          userType: 'doctor'
+        })
       }
     } catch (error: any) {
+      console.error('Unexpected error during signup:', error)
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création du compte",
+        description: error.message || "Une erreur inattendue est survenue",
         variant: "destructive"
       })
     } finally {
@@ -86,12 +126,17 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    console.log('Starting signin process with email:', signInData.email)
     setIsLoading(true)
     
     try {
-      const { error } = await signIn(signInData.email, signInData.password)
+      const { data, error } = await signIn(signInData.email, signInData.password)
+
+      console.log('SignIn response:', { data, error })
 
       if (error) {
+        console.error('SignIn error:', error)
         if (error.message.includes('Invalid login credentials')) {
           toast({
             title: "Erreur",
@@ -99,9 +144,14 @@ const Auth = () => {
             variant: "destructive"
           })
         } else {
-          throw error
+          toast({
+            title: "Erreur",
+            description: error.message || "Une erreur est survenue lors de la connexion",
+            variant: "destructive"
+          })
         }
       } else {
+        console.log('Signed in successfully')
         toast({
           title: "Connexion réussie !",
           description: "Vous êtes maintenant connecté(e).",
@@ -109,6 +159,7 @@ const Auth = () => {
         navigate('/')
       }
     } catch (error: any) {
+      console.error('Unexpected error during signin:', error)
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la connexion",
@@ -157,6 +208,7 @@ const Auth = () => {
                       value={signInData.email}
                       onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                       required
+                      placeholder="votre@email.com"
                     />
                   </div>
                   <div className="space-y-2">
@@ -167,6 +219,7 @@ const Auth = () => {
                       value={signInData.password}
                       onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                       required
+                      placeholder="Votre mot de passe"
                     />
                   </div>
                   <Button 
@@ -189,6 +242,7 @@ const Auth = () => {
                         value={signUpData.firstName}
                         onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
                         required
+                        placeholder="Jean"
                       />
                     </div>
                     <div className="space-y-2">
@@ -198,6 +252,7 @@ const Auth = () => {
                         value={signUpData.lastName}
                         onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
                         required
+                        placeholder="Dupont"
                       />
                     </div>
                   </div>
@@ -233,6 +288,7 @@ const Auth = () => {
                       value={signUpData.email}
                       onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                       required
+                      placeholder="votre@email.com"
                     />
                   </div>
 
@@ -245,6 +301,7 @@ const Auth = () => {
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
                       minLength={6}
+                      placeholder="Au moins 6 caractères"
                     />
                   </div>
 
@@ -257,6 +314,7 @@ const Auth = () => {
                       onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
                       required
                       minLength={6}
+                      placeholder="Répétez votre mot de passe"
                     />
                   </div>
 
