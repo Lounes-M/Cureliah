@@ -120,7 +120,9 @@ const ReviewsRatings = ({ doctorId, bookingId, canReview = false }: ReviewsRatin
   const getRatingDistribution = () => {
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
     reviews.forEach(review => {
-      distribution[review.rating as keyof typeof distribution]++;
+      if (review.rating >= 1 && review.rating <= 5) {
+        distribution[review.rating as keyof typeof distribution]++;
+      }
     });
     return distribution;
   };
@@ -183,12 +185,12 @@ const ReviewsRatings = ({ doctorId, bookingId, canReview = false }: ReviewsRatin
                     <div
                       className="bg-yellow-400 h-2 rounded-full"
                       style={{
-                        width: `${reviews.length > 0 ? (distribution[rating.toString() as keyof typeof distribution] / reviews.length) * 100 : 0}%`
+                        width: `${reviews.length > 0 ? (distribution[rating as keyof typeof distribution] / reviews.length) * 100 : 0}%`
                       }}
                     />
                   </div>
                   <span className="text-sm text-gray-600 w-8">
-                    {distribution[rating.toString() as keyof typeof distribution]}
+                    {distribution[rating as keyof typeof distribution]}
                   </span>
                 </div>
               ))}
