@@ -99,37 +99,55 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
 
     setUploading(true);
     try {
-      // Create document record first
+      // Create unique file path
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `documents/${fileName}`;
+
+      // Upload file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Create document record
       const documentData = {
         user_id: user.id,
         booking_id: bookingId || null,
         name: file.name,
-        file_path: `documents/${user.id}/${Date.now()}_${file.name}`,
+        file_path: filePath,
         file_type: file.type,
         file_size: file.size,
         category: selectedCategory,
         status: 'pending'
       };
 
-      const { data, error } = await supabase
+      const { error: dbError } = await supabase
         .from('documents')
-        .insert(documentData)
-        .select()
-        .single();
+        .insert(documentData);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       toast({
-        title: "Document ajouté",
-        description: "Le document a été ajouté avec succès",
+        title: "Document téléchargé",
+        description: "Le document a été téléchargé avec succès et est en attente de validation",
       });
 
       fetchDocuments();
     } catch (error: any) {
       console.error('Error uploading document:', error);
+      
+      // Clean up file if database insert failed
+      if (error.message?.includes('insert')) {
+        const fileName = `${user.id}/${Date.now()}.${file.name.split('.').pop()}`;
+        const filePath = `documents/${fileName}`;
+        await supabase.storage.from('documents').remove([filePath]);
+      }
+
       toast({
-        title: "Erreur d'upload",
-        description: "Impossible d'ajouter le document",
+        title: "Erreur de téléchargement",
+        description: "Impossible de télécharger le document",
         variant: "destructive"
       });
     } finally {
@@ -138,14 +156,54 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
     }
   };
 
-  const deleteDocument = async (documentId: string) => {
+  const downloadDocument = async (document: Document) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase.storage
         .from('documents')
-        .delete()
-        .eq('id', documentId);
+        .download(document.file_path);
 
       if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = document.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Téléchargement démarré",
+        description: "Le document est en cours de téléchargement",
+      });
+    } catch (error: any) {
+      console.error('Error downloading document:', error);
+      toast({
+        title: "Erreur de téléchargement",
+        description: "Impossible de télécharger le document",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteDocument = async (document: Document) => {
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([document.file_path]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('documents')
+        .delete()
+        .eq('id', document.id);
+
+      if (dbError) throw dbError;
 
       toast({
         title: "Document supprimé",
@@ -218,7 +276,7 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
                   <div className="flex flex-col items-center space-y-2">
                     <Upload className="w-8 h-8 text-gray-400" />
                     <span className="text-sm text-gray-600">
-                      Cliquer pour ajouter un document
+                      {uploading ? 'Téléchargement en cours...' : 'Cliquer pour ajouter un document'}
                     </span>
                   </div>
                   <Input
@@ -267,11 +325,19 @@ const DocumentManagement = ({ bookingId, readonly = false }: DocumentManagementP
                       {statusLabels[doc.status as keyof typeof statusLabels]}
                     </Badge>
                     
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadDocument(doc)}
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                    
                     {!readonly && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => deleteDocument(doc.id)}
+                        onClick={() => deleteDocument(doc)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

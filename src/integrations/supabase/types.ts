@@ -250,6 +250,7 @@ export type Database = {
           file_type: string
           id: string
           name: string
+          status: string
           updated_at: string
           user_id: string
         }
@@ -262,6 +263,7 @@ export type Database = {
           file_type: string
           id?: string
           name: string
+          status?: string
           updated_at?: string
           user_id: string
         }
@@ -274,6 +276,7 @@ export type Database = {
           file_type?: string
           id?: string
           name?: string
+          status?: string
           updated_at?: string
           user_id?: string
         }
