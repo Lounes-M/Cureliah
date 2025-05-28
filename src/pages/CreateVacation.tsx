@@ -20,7 +20,7 @@ const CreateVacation = () => {
       navigate('/auth');
       return;
     }
-  }, [user, profile]);
+  }, [user, profile, navigate]);
 
   if (initialLoading) {
     return (
