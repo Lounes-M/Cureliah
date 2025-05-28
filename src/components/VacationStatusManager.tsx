@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -109,7 +108,7 @@ const VacationStatusManager = ({
         bookingId={bookingId}
         targetId={partnerId}
         targetName={partnerName}
-        isDoctor={!isDoctor}
+        targetType={isDoctor ? 'establishment' : 'doctor'}
         onReviewSubmitted={() => setShowReviewForm(false)}
       />
     );
