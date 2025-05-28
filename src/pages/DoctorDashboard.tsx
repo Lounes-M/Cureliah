@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import StatsCard from '@/components/StatsCard';
 import BookingManagement from '@/components/BookingManagement';
+import InteractiveCalendar from '@/components/InteractiveCalendar';
 
 interface DashboardStats {
   totalVacations: number;
@@ -188,6 +189,11 @@ const DoctorDashboard = () => {
             trend={stats.completedMissions > 0 ? { value: 5, label: "ce mois" } : undefined}
             description="Avec succès"
           />
+        </div>
+
+        {/* Calendar */}
+        <div className="mb-8">
+          <InteractiveCalendar />
         </div>
 
         {/* Recent Activity */}

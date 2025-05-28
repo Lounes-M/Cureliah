@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import StatsCard from '@/components/StatsCard';
 import EstablishmentBookingManagement from '@/components/EstablishmentBookingManagement';
+import InteractiveCalendar from '@/components/InteractiveCalendar';
 
 interface DashboardStats {
   totalBookings: number;
@@ -192,6 +193,11 @@ const EstablishmentDashboard = () => {
             trend={stats.totalBookings > 0 ? { value: 15, label: "toutes périodes" } : undefined}
             description="Toutes périodes"
           />
+        </div>
+
+        {/* Calendar */}
+        <div className="mb-8">
+          <InteractiveCalendar />
         </div>
 
         {/* Recent Activity */}
