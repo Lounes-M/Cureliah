@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Plus, Clock, MapPin, Euro } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, Plus, Clock, MapPin, Euro, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { VacationPost, DoctorProfile } from '@/types/database';
 import Header from '@/components/Header';
+import BookingManagement from '@/components/BookingManagement';
 import { useToast } from '@/hooks/use-toast';
 
 const DoctorDashboard = () => {
@@ -17,6 +19,11 @@ const DoctorDashboard = () => {
   const { toast } = useToast();
   const [doctorProfile, setDoctorProfile] = useState<DoctorProfile | null>(null);
   const [vacationPosts, setVacationPosts] = useState<VacationPost[]>([]);
+  const [bookingsCount, setBookingsCount] = useState({
+    pending: 0,
+    booked: 0,
+    total: 0
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,6 +67,24 @@ const DoctorDashboard = () => {
       if (postsError) throw postsError;
 
       setVacationPosts(postsData || []);
+
+      // Fetch bookings count
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('vacation_bookings')
+        .select('status')
+        .eq('doctor_id', user.id);
+
+      if (bookingsError) throw bookingsError;
+
+      const counts = bookingsData?.reduce((acc, booking) => {
+        acc.total++;
+        if (booking.status === 'pending') acc.pending++;
+        if (booking.status === 'booked') acc.booked++;
+        return acc;
+      }, { pending: 0, booked: 0, total: 0 }) || { pending: 0, booked: 0, total: 0 };
+
+      setBookingsCount(counts);
+
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -156,13 +181,14 @@ const DoctorDashboard = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Réservées</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Réservations</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {vacationPosts.filter(p => p.status === 'booked').length}
-              </div>
+              <div className="text-2xl font-bold">{bookingsCount.total}</div>
+              <p className="text-xs text-muted-foreground">
+                {bookingsCount.pending} en attente
+              </p>
             </CardContent>
           </Card>
 
@@ -177,79 +203,99 @@ const DoctorDashboard = () => {
           </Card>
         </div>
 
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Mes Vacations</h2>
-          <Button 
-            onClick={() => navigate('/vacation/create')}
-            disabled={!doctorProfile}
-            className="bg-medical-blue hover:bg-medical-blue-dark"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvelle Vacation
-          </Button>
-        </div>
+        <Tabs defaultValue="vacations" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="vacations">Mes Vacations</TabsTrigger>
+            <TabsTrigger value="bookings">
+              Réservations 
+              {bookingsCount.pending > 0 && (
+                <Badge variant="destructive" className="ml-2">
+                  {bookingsCount.pending}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="grid gap-6">
-          {vacationPosts.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Aucune vacation publiée
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Commencez par publier votre première vacation
-                </p>
-                <Button 
-                  onClick={() => navigate('/vacation/create')}
-                  disabled={!doctorProfile}
-                >
-                  Publier une vacation
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            vacationPosts.map((post) => (
-              <Card key={post.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{post.title}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {post.description}
-                      </CardDescription>
-                    </div>
-                    <Badge className={getStatusColor(post.status)}>
-                      {getStatusText(post.status)}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                      <span>
-                        {new Date(post.start_date).toLocaleDateString('fr-FR')} - 
-                        {new Date(post.end_date).toLocaleDateString('fr-FR')}
-                      </span>
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                      <span>{post.location || 'Non spécifié'}</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                      <span>{post.hourly_rate}€/h</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Badge variant="outline">{post.speciality}</Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+          <TabsContent value="vacations" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Mes Vacations</h2>
+              <Button 
+                onClick={() => navigate('/vacation/create')}
+                disabled={!doctorProfile}
+                className="bg-medical-blue hover:bg-medical-blue-dark"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nouvelle Vacation
+              </Button>
+            </div>
+
+            <div className="grid gap-6">
+              {vacationPosts.length === 0 ? (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Aucune vacation publiée
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Commencez par publier votre première vacation
+                    </p>
+                    <Button 
+                      onClick={() => navigate('/vacation/create')}
+                      disabled={!doctorProfile}
+                    >
+                      Publier une vacation
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                vacationPosts.map((post) => (
+                  <Card key={post.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-lg">{post.title}</CardTitle>
+                          <CardDescription className="mt-1">
+                            {post.description}
+                          </CardDescription>
+                        </div>
+                        <Badge className={getStatusColor(post.status)}>
+                          {getStatusText(post.status)}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                          <span>
+                            {new Date(post.start_date).toLocaleDateString('fr-FR')} - 
+                            {new Date(post.end_date).toLocaleDateString('fr-FR')}
+                          </span>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 text-gray-400 mr-2" />
+                          <span>{post.location || 'Non spécifié'}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Euro className="w-4 h-4 text-gray-400 mr-2" />
+                          <span>{post.hourly_rate}€/h</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Badge variant="outline">{post.speciality}</Badge>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="bookings">
+            <BookingManagement />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -26,6 +26,12 @@ export type VacationStatus =
   | 'cancelled'
   | 'pending'
 
+export type NotificationType = 
+  | 'info' 
+  | 'success' 
+  | 'warning' 
+  | 'error'
+
 export interface Profile {
   id: string
   user_type: UserType
@@ -90,4 +96,24 @@ export interface VacationBooking {
   status: VacationStatus
   created_at: string
   updated_at: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: NotificationType
+  read_at?: string
+  related_booking_id?: string
+  created_at: string
+}
+
+export interface Message {
+  id: string
+  booking_id: string
+  sender_id: string
+  receiver_id: string
+  content: string
+  created_at: string
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -70,6 +71,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-3">
             {user ? (
               <div className="flex items-center space-x-3">
+                <NotificationBell />
                 <span className="text-sm text-gray-600">
                   Bonjour, {profile?.first_name || user.email}
                 </span>
@@ -123,9 +125,12 @@ const Header = () => {
               <div className="flex flex-col space-y-2 pt-3">
                 {user ? (
                   <>
-                    <span className="text-sm text-gray-600 mb-2">
-                      Bonjour, {profile?.first_name || user.email}
-                    </span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        Bonjour, {profile?.first_name || user.email}
+                      </span>
+                      <NotificationBell />
+                    </div>
                     <Button variant="outline" onClick={handleDashboardClick} className="w-full">
                       Mon espace
                     </Button>
