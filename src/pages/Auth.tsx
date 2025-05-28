@@ -1,5 +1,4 @@
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,13 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { User, Building2, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false)
-  const { signUp, signIn } = useAuth()
+  const { signUp, signIn, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
 
   const [signUpData, setSignUpData] = useState({
@@ -23,13 +23,20 @@ const Auth = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
-    userType: 'doctor'
+    userType: location.state?.userType || 'doctor'
   })
 
   const [signInData, setSignInData] = useState({
     email: '',
     password: ''
   })
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/')
+    }
+  }, [user, navigate])
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()

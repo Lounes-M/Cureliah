@@ -40,6 +40,11 @@ const Header = () => {
     }
   };
 
+  const handleAuthClick = (userType: string) => {
+    // Navigate to auth page and set the intended user type
+    navigate('/auth', { state: { userType } });
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,11 +90,11 @@ const Header = () => {
               </div>
             ) : (
               <>
-                <Button variant="outline" onClick={() => navigate('/auth')} className="flex items-center space-x-2">
+                <Button variant="outline" onClick={() => handleAuthClick('establishment')} className="flex items-center space-x-2">
                   <Building2 className="w-4 h-4" />
                   <span>Espace Établissement</span>
                 </Button>
-                <Button onClick={() => navigate('/auth')} className="bg-medical-blue hover:bg-medical-blue-dark flex items-center space-x-2">
+                <Button onClick={() => handleAuthClick('doctor')} className="bg-medical-blue hover:bg-medical-blue-dark flex items-center space-x-2">
                   <User className="w-4 h-4" />
                   <span>Espace Médecin</span>
                 </Button>
@@ -141,11 +146,11 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" onClick={() => navigate('/auth')} className="w-full">
+                    <Button variant="outline" onClick={() => handleAuthClick('establishment')} className="w-full">
                       <Building2 className="w-4 h-4 mr-2" />
                       Espace Établissement
                     </Button>
-                    <Button onClick={() => navigate('/auth')} className="w-full bg-medical-blue hover:bg-medical-blue-dark">
+                    <Button onClick={() => handleAuthClick('doctor')} className="w-full bg-medical-blue hover:bg-medical-blue-dark">
                       <User className="w-4 h-4 mr-2" />
                       Espace Médecin
                     </Button>

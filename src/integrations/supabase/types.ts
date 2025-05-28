@@ -111,7 +111,6 @@ export type Database = {
           id: string
           is_verified: boolean | null
           license_number: string
-          speciality: Database["public"]["Enums"]["speciality"]
           updated_at: string | null
         }
         Insert: {
@@ -123,7 +122,6 @@ export type Database = {
           id: string
           is_verified?: boolean | null
           license_number: string
-          speciality: Database["public"]["Enums"]["speciality"]
           updated_at?: string | null
         }
         Update: {
@@ -135,7 +133,6 @@ export type Database = {
           id?: string
           is_verified?: boolean | null
           license_number?: string
-          speciality?: Database["public"]["Enums"]["speciality"]
           updated_at?: string | null
         }
         Relationships: [
@@ -208,7 +205,6 @@ export type Database = {
           city: string | null
           created_at: string | null
           description: string | null
-          establishment_type: Database["public"]["Enums"]["establishment_type"]
           id: string
           is_verified: boolean | null
           logo_url: string | null
@@ -222,7 +218,6 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
-          establishment_type: Database["public"]["Enums"]["establishment_type"]
           id: string
           is_verified?: boolean | null
           logo_url?: string | null
@@ -236,7 +231,6 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
-          establishment_type?: Database["public"]["Enums"]["establishment_type"]
           id?: string
           is_verified?: boolean | null
           logo_url?: string | null
@@ -412,7 +406,7 @@ export type Database = {
           last_name?: string | null
           phone?: string | null
           updated_at?: string | null
-          user_type: Database["public"]["Enums"]["user_type"]
+          user_type?: Database["public"]["Enums"]["user_type"]
         }
         Update: {
           created_at?: string | null
@@ -484,19 +478,16 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: []
@@ -509,7 +500,6 @@ export type Database = {
           id: string
           message: string | null
           payment_status: string | null
-          status: Database["public"]["Enums"]["vacation_status"] | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           total_amount: number | null
@@ -523,7 +513,6 @@ export type Database = {
           id?: string
           message?: string | null
           payment_status?: string | null
-          status?: Database["public"]["Enums"]["vacation_status"] | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           total_amount?: number | null
@@ -537,7 +526,6 @@ export type Database = {
           id?: string
           message?: string | null
           payment_status?: string | null
-          status?: Database["public"]["Enums"]["vacation_status"] | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           total_amount?: number | null
@@ -578,9 +566,7 @@ export type Database = {
           id: string
           location: string | null
           requirements: string | null
-          speciality: Database["public"]["Enums"]["speciality"]
           start_date: string
-          status: Database["public"]["Enums"]["vacation_status"] | null
           title: string
           updated_at: string | null
         }
@@ -593,9 +579,7 @@ export type Database = {
           id?: string
           location?: string | null
           requirements?: string | null
-          speciality: Database["public"]["Enums"]["speciality"]
           start_date: string
-          status?: Database["public"]["Enums"]["vacation_status"] | null
           title: string
           updated_at?: string | null
         }
@@ -608,9 +592,7 @@ export type Database = {
           id?: string
           location?: string | null
           requirements?: string | null
-          speciality?: Database["public"]["Enums"]["speciality"]
           start_date?: string
-          status?: Database["public"]["Enums"]["vacation_status"] | null
           title?: string
           updated_at?: string | null
         }
@@ -629,39 +611,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
       establishment_type:
         | "hospital"
         | "clinic"
+        | "private_practice"
         | "medical_center"
-        | "nursing_home"
       speciality:
-        | "general_medicine"
         | "cardiology"
-        | "dermatology"
+        | "neurology"
+        | "orthopedics"
         | "pediatrics"
-        | "surgery"
-        | "radiology"
-        | "anesthesia"
-        | "emergency"
         | "psychiatry"
+        | "radiology"
+        | "surgery"
+        | "general_medicine"
+        | "dermatology"
         | "gynecology"
-      user_type: "doctor" | "establishment" | "admin"
+      user_type: "doctor" | "establishment"
       vacation_status:
         | "available"
-        | "pending"
-        | "confirmed"
+        | "booked"
         | "completed"
         | "cancelled"
+        | "pending"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -781,28 +757,28 @@ export const Constants = {
       establishment_type: [
         "hospital",
         "clinic",
+        "private_practice",
         "medical_center",
-        "nursing_home",
       ],
       speciality: [
-        "general_medicine",
         "cardiology",
-        "dermatology",
+        "neurology",
+        "orthopedics",
         "pediatrics",
-        "surgery",
-        "radiology",
-        "anesthesia",
-        "emergency",
         "psychiatry",
+        "radiology",
+        "surgery",
+        "general_medicine",
+        "dermatology",
         "gynecology",
       ],
-      user_type: ["doctor", "establishment", "admin"],
+      user_type: ["doctor", "establishment"],
       vacation_status: [
         "available",
-        "pending",
-        "confirmed",
+        "booked",
         "completed",
         "cancelled",
+        "pending",
       ],
     },
   },
