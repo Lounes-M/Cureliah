@@ -269,7 +269,7 @@ const ReviewsRatings = ({ doctorId, bookingId, canReview = false }: ReviewsRatin
                         {review.establishment_profile?.first_name} {review.establishment_profile?.last_name}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {review.created_at && formatDistanceToNow(new Date(review.created_at), {
+                        {review.created_at && typeof review.created_at === 'string' && formatDistanceToNow(new Date(review.created_at), {
                           addSuffix: true,
                           locale: fr
                         })}
