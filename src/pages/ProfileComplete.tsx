@@ -12,6 +12,7 @@ import { ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
+import { SPECIALITIES, ESTABLISHMENT_TYPES } from '@/utils/specialities';
 
 const ProfileComplete = () => {
   const { user, profile } = useAuth();
@@ -54,7 +55,7 @@ const ProfileComplete = () => {
         .from('doctor_profiles')
         .insert({
           id: user.id,
-          speciality: doctorData.speciality as any,
+          speciality: doctorData.speciality,
           license_number: doctorData.license_number,
           experience_years: doctorData.experience_years ? parseInt(doctorData.experience_years) : null,
           hourly_rate: doctorData.hourly_rate ? parseFloat(doctorData.hourly_rate) : null,
@@ -166,16 +167,11 @@ const ProfileComplete = () => {
                       <SelectValue placeholder="Sélectionnez votre spécialité" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="cardiology">Cardiologie</SelectItem>
-                      <SelectItem value="neurology">Neurologie</SelectItem>
-                      <SelectItem value="orthopedics">Orthopédie</SelectItem>
-                      <SelectItem value="pediatrics">Pédiatrie</SelectItem>
-                      <SelectItem value="psychiatry">Psychiatrie</SelectItem>
-                      <SelectItem value="radiology">Radiologie</SelectItem>
-                      <SelectItem value="surgery">Chirurgie</SelectItem>
-                      <SelectItem value="general_medicine">Médecine générale</SelectItem>
-                      <SelectItem value="dermatology">Dermatologie</SelectItem>
-                      <SelectItem value="gynecology">Gynécologie</SelectItem>
+                      {Object.entries(SPECIALITIES).map(([key, speciality]) => (
+                        <SelectItem key={key} value={key}>
+                          {speciality.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -249,10 +245,11 @@ const ProfileComplete = () => {
                       <SelectValue placeholder="Sélectionnez le type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="hospital">Hôpital</SelectItem>
-                      <SelectItem value="clinic">Clinique</SelectItem>
-                      <SelectItem value="private_practice">Cabinet privé</SelectItem>
-                      <SelectItem value="medical_center">Centre médical</SelectItem>
+                      {Object.entries(ESTABLISHMENT_TYPES).map(([key, type]) => (
+                        <SelectItem key={key} value={key}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
