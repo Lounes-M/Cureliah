@@ -4,16 +4,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Euro, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { VacationBooking, VacationPost, Profile, EstablishmentProfile } from '@/types/database';
+import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
 import BookingStatusWorkflow from './BookingStatusWorkflow';
 import BookingTimeline from './BookingTimeline';
 
+interface EstablishmentInfo {
+  id: string;
+  name: string;
+  establishment_type?: string;
+  city?: string;
+}
+
+interface UserInfo {
+  id: string;
+  first_name: string;
+  last_name: string;
+}
+
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
-  establishment_profile: Profile & { establishment_profile: EstablishmentProfile };
+  establishment_info: EstablishmentInfo | null;
+  user_info: UserInfo | null;
 }
 
 const BookingManagement = () => {
@@ -46,22 +60,73 @@ const BookingManagement = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      console.log('Fetching bookings for doctor:', user.id);
+      
+      // First, get the basic bookings with vacation posts
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('vacation_bookings')
         .select(`
           *,
-          vacation_post:vacation_posts(*),
-          establishment_profile:profiles!vacation_bookings_establishment_id_fkey(
-            *,
-            establishment_profile:establishment_profiles(*)
-          )
+          vacation_posts (*)
         `)
         .eq('doctor_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        throw bookingsError;
+      }
 
-      setBookings(data as BookingWithDetails[] || []);
+      console.log('Bookings data:', bookingsData);
+
+      if (!bookingsData || bookingsData.length === 0) {
+        setBookings([]);
+        return;
+      }
+
+      // Get establishment IDs for additional info
+      const establishmentIds = bookingsData.map(booking => booking.establishment_id);
+      
+      // Get establishment profiles
+      let establishmentProfiles: any[] = [];
+      if (establishmentIds.length > 0) {
+        const { data: establishments, error: establishmentError } = await supabase
+          .from('establishment_profiles')
+          .select('id, name, establishment_type, city')
+          .in('id', establishmentIds);
+
+        if (establishmentError) {
+          console.warn('Error fetching establishment profiles:', establishmentError);
+        } else {
+          establishmentProfiles = establishments || [];
+        }
+      }
+
+      // Get user profiles for establishment info
+      let userProfiles: any[] = [];
+      if (establishmentIds.length > 0) {
+        const { data: users, error: userError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', establishmentIds);
+
+        if (userError) {
+          console.warn('Error fetching user profiles:', userError);
+        } else {
+          userProfiles = users || [];
+        }
+      }
+
+      // Combine the data
+      const combinedBookings = bookingsData.map(booking => ({
+        ...booking,
+        vacation_post: booking.vacation_posts,
+        establishment_info: establishmentProfiles.find(est => est.id === booking.establishment_id) || null,
+        user_info: userProfiles.find(user => user.id === booking.establishment_id) || null
+      }));
+
+      console.log('Combined bookings:', combinedBookings);
+      setBookings(combinedBookings as BookingWithDetails[]);
     } catch (error: any) {
       console.error('Error fetching bookings:', error);
       toast({
@@ -113,11 +178,15 @@ const BookingManagement = () => {
   };
 
   const openMessaging = (booking: BookingWithDetails) => {
+    const establishmentName = booking.establishment_info?.name || 
+                            `${booking.user_info?.first_name || ''} ${booking.user_info?.last_name || ''}`.trim() || 
+                            'Établissement';
+    
     setMessagingModal({
       isOpen: true,
       bookingId: booking.id,
       receiverId: booking.establishment_id,
-      receiverName: booking.establishment_profile?.establishment_profile?.name || 'Établissement',
+      receiverName: establishmentName,
       receiverType: 'establishment'
     });
   };
@@ -285,14 +354,18 @@ const BookingCard = ({
   getPaymentStatusColor,
   getPaymentStatusText
 }: BookingCardProps) => {
+  const establishmentName = booking.establishment_info?.name || 
+                          `${booking.user_info?.first_name || ''} ${booking.user_info?.last_name || ''}`.trim() || 
+                          'Établissement';
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div className="flex-1">
-            <CardTitle className="text-lg">{booking.vacation_post.title}</CardTitle>
+            <CardTitle className="text-lg">{booking.vacation_post?.title || 'Vacation'}</CardTitle>
             <CardDescription className="mt-1">
-              Demande de {booking.establishment_profile?.establishment_profile?.name || 'Établissement'}
+              Demande de {establishmentName}
             </CardDescription>
           </div>
           <div className="flex flex-col space-y-2">
@@ -308,28 +381,32 @@ const BookingCard = ({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="space-y-2">
-            <div className="flex items-center text-sm">
-              <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-              <span>
-                {new Date(booking.vacation_post.start_date).toLocaleDateString('fr-FR')} - 
-                {new Date(booking.vacation_post.end_date).toLocaleDateString('fr-FR')}
-              </span>
-            </div>
-            <div className="flex items-center text-sm">
-              <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_post.location || 'Non spécifié'}</span>
-            </div>
-            <div className="flex items-center text-sm">
-              <Euro className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_post.hourly_rate}€/h</span>
-            </div>
+            {booking.vacation_post && (
+              <>
+                <div className="flex items-center text-sm">
+                  <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                  <span>
+                    {new Date(booking.vacation_post.start_date).toLocaleDateString('fr-FR')} - 
+                    {new Date(booking.vacation_post.end_date).toLocaleDateString('fr-FR')}
+                  </span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <MapPin className="w-4 h-4 text-gray-400 mr-2" />
+                  <span>{booking.vacation_post.location || 'Non spécifié'}</span>
+                </div>
+                <div className="flex items-center text-sm">
+                  <Euro className="w-4 h-4 text-gray-400 mr-2" />
+                  <span>{booking.vacation_post.hourly_rate}€/h</span>
+                </div>
+              </>
+            )}
           </div>
           
           <div className="space-y-2">
             <div className="flex items-center text-sm">
               <User className="w-4 h-4 text-gray-400 mr-2" />
               <span>
-                {booking.establishment_profile?.establishment_profile?.establishment_type || 'Type non spécifié'}
+                {booking.establishment_info?.establishment_type || 'Type non spécifié'}
               </span>
             </div>
             {booking.total_amount && (
@@ -379,7 +456,7 @@ const BookingCard = ({
                 currentStatus={booking.status as any}
                 userType="doctor"
                 partnerId={booking.establishment_id}
-                partnerName={booking.establishment_profile?.establishment_profile?.name || 'Établissement'}
+                partnerName={establishmentName}
                 onStatusUpdate={onStatusUpdate}
               />
               <BookingTimeline
