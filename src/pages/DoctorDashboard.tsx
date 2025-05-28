@@ -164,28 +164,28 @@ const DoctorDashboard = () => {
             title="Vacations publiées"
             value={stats.totalVacations}
             icon={Calendar}
-            trend={stats.totalVacations > 0 ? "up" : "neutral"}
+            trend={stats.totalVacations > 0 ? { value: 15, label: "ce mois" } : undefined}
             description="Total des annonces"
           />
           <StatsCard
             title="Réservations actives"
             value={stats.activeBookings}
             icon={TrendingUp}
-            trend={stats.activeBookings > 0 ? "up" : "neutral"}
+            trend={stats.activeBookings > 0 ? { value: 8, label: "cette semaine" } : undefined}
             description="En cours"
           />
           <StatsCard
             title="Revenus totaux"
             value={stats.totalRevenue}
             icon={Users}
-            trend={stats.totalRevenue > 0 ? "up" : "neutral"}
+            trend={stats.totalRevenue > 0 ? { value: 12, label: "ce mois" } : undefined}
             description="€ générés"
           />
           <StatsCard
             title="Missions terminées"
             value={stats.completedMissions}
             icon={BookOpen}
-            trend={stats.completedMissions > 0 ? "up" : "neutral"}
+            trend={stats.completedMissions > 0 ? { value: 5, label: "ce mois" } : undefined}
             description="Avec succès"
           />
         </div>

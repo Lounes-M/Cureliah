@@ -168,28 +168,28 @@ const EstablishmentDashboard = () => {
             title="Réservations en attente"
             value={stats.pendingBookings}
             icon={Calendar}
-            trend={stats.pendingBookings > 0 ? "up" : "neutral"}
+            trend={stats.pendingBookings > 0 ? { value: 3, label: "nouvelles" } : undefined}
             description="Demandes à traiter"
           />
           <StatsCard
             title="Réservations confirmées"
             value={stats.confirmedBookings}
             icon={TrendingUp}
-            trend={stats.confirmedBookings > 0 ? "up" : "neutral"}
+            trend={stats.confirmedBookings > 0 ? { value: 10, label: "ce mois" } : undefined}
             description="Vacations réservées"
           />
           <StatsCard
             title="Missions terminées"
             value={stats.completedBookings}
             icon={MapPin}
-            trend={stats.completedBookings > 0 ? "up" : "neutral"}
+            trend={stats.completedBookings > 0 ? { value: 7, label: "ce mois" } : undefined}
             description="Collaborations réussies"
           />
           <StatsCard
             title="Total réservations"
             value={stats.totalBookings}
             icon={BookOpen}
-            trend={stats.totalBookings > 0 ? "up" : "neutral"}
+            trend={stats.totalBookings > 0 ? { value: 15, label: "toutes périodes" } : undefined}
             description="Toutes périodes"
           />
         </div>
