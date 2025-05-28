@@ -94,6 +94,9 @@ export interface VacationBooking {
   message?: string
   total_amount?: number
   status: VacationStatus
+  payment_status?: string
+  stripe_session_id?: string
+  stripe_payment_intent_id?: string
   created_at: string
   updated_at: string
 }
