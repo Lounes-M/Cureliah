@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +18,8 @@ const ProfileComplete = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [existingDoctorProfile, setExistingDoctorProfile] = useState(null);
+  const [existingEstablishmentProfile, setExistingEstablishmentProfile] = useState(null);
 
   const [doctorData, setDoctorData] = useState({
     speciality: '',
@@ -43,6 +44,51 @@ const ProfileComplete = () => {
       navigate('/auth');
       return;
     }
+
+    // Vérifier s'il existe déjà un profil pour cet utilisateur
+    const checkExistingProfile = async () => {
+      if (profile.user_type === 'doctor') {
+        const { data: doctorProfile } = await supabase
+          .from('doctor_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (doctorProfile) {
+          console.log('Existing doctor profile found:', doctorProfile);
+          setExistingDoctorProfile(doctorProfile);
+          setDoctorData({
+            speciality: doctorProfile.speciality || '',
+            license_number: doctorProfile.license_number || '',
+            experience_years: doctorProfile.experience_years?.toString() || '',
+            hourly_rate: doctorProfile.hourly_rate?.toString() || '',
+            bio: doctorProfile.bio || ''
+          });
+        }
+      } else {
+        const { data: establishmentProfile } = await supabase
+          .from('establishment_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (establishmentProfile) {
+          console.log('Existing establishment profile found:', establishmentProfile);
+          setExistingEstablishmentProfile(establishmentProfile);
+          setEstablishmentData({
+            name: establishmentProfile.name || '',
+            establishment_type: establishmentProfile.establishment_type || '',
+            siret: establishmentProfile.siret || '',
+            address: establishmentProfile.address || '',
+            city: establishmentProfile.city || '',
+            postal_code: establishmentProfile.postal_code || '',
+            description: establishmentProfile.description || ''
+          });
+        }
+      }
+    };
+
+    checkExistingProfile();
   }, [user, profile]);
 
   const handleDoctorSubmit = async (e: React.FormEvent) => {
@@ -68,38 +114,50 @@ const ProfileComplete = () => {
     }
 
     setLoading(true);
-    console.log('Submitting doctor profile with data:', {
-      id: user.id,
+    
+    const profileData = {
       speciality: doctorData.speciality,
       license_number: doctorData.license_number,
       experience_years: doctorData.experience_years ? parseInt(doctorData.experience_years) : null,
       hourly_rate: doctorData.hourly_rate ? parseFloat(doctorData.hourly_rate) : null,
       bio: doctorData.bio || null
-    });
+    };
+
+    console.log('Submitting doctor profile with data:', { id: user.id, ...profileData });
 
     try {
-      const { data, error } = await supabase
-        .from('doctor_profiles')
-        .insert({
-          id: user.id,
-          speciality: doctorData.speciality,
-          license_number: doctorData.license_number,
-          experience_years: doctorData.experience_years ? parseInt(doctorData.experience_years) : null,
-          hourly_rate: doctorData.hourly_rate ? parseFloat(doctorData.hourly_rate) : null,
-          bio: doctorData.bio || null
-        });
+      let result;
+      
+      if (existingDoctorProfile) {
+        // Mettre à jour le profil existant
+        console.log('Updating existing doctor profile');
+        result = await supabase
+          .from('doctor_profiles')
+          .update(profileData)
+          .eq('id', user.id);
+      } else {
+        // Créer un nouveau profil
+        console.log('Creating new doctor profile');
+        result = await supabase
+          .from('doctor_profiles')
+          .insert({
+            id: user.id,
+            ...profileData
+          });
+      }
 
+      const { data, error } = result;
       console.log('Supabase response:', { data, error });
 
       if (error) {
-        console.error('Error creating doctor profile:', error);
+        console.error('Error saving doctor profile:', error);
         throw error;
       }
 
-      console.log('Doctor profile created successfully');
+      console.log('Doctor profile saved successfully');
       toast({
-        title: "Profil complété !",
-        description: "Votre profil médecin a été créé avec succès.",
+        title: existingDoctorProfile ? "Profil mis à jour !" : "Profil complété !",
+        description: existingDoctorProfile ? "Votre profil médecin a été mis à jour avec succès." : "Votre profil médecin a été créé avec succès.",
       });
 
       navigate('/doctor/dashboard');
@@ -107,7 +165,7 @@ const ProfileComplete = () => {
       console.error('Error in handleDoctorSubmit:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création du profil",
+        description: error.message || "Une erreur est survenue lors de la sauvegarde du profil",
         variant: "destructive"
       });
     } finally {
@@ -138,42 +196,52 @@ const ProfileComplete = () => {
     }
 
     setLoading(true);
-    console.log('Submitting establishment profile with data:', {
-      id: user.id,
+    
+    const profileData = {
       name: establishmentData.name,
-      establishment_type: establishmentData.establishment_type,
+      establishment_type: establishmentData.establishment_type as any,
       siret: establishmentData.siret || null,
       address: establishmentData.address || null,
       city: establishmentData.city || null,
       postal_code: establishmentData.postal_code || null,
       description: establishmentData.description || null
-    });
+    };
+
+    console.log('Submitting establishment profile with data:', { id: user.id, ...profileData });
 
     try {
-      const { data, error } = await supabase
-        .from('establishment_profiles')
-        .insert({
-          id: user.id,
-          name: establishmentData.name,
-          establishment_type: establishmentData.establishment_type as any,
-          siret: establishmentData.siret || null,
-          address: establishmentData.address || null,
-          city: establishmentData.city || null,
-          postal_code: establishmentData.postal_code || null,
-          description: establishmentData.description || null
-        });
+      let result;
+      
+      if (existingEstablishmentProfile) {
+        // Mettre à jour le profil existant
+        console.log('Updating existing establishment profile');
+        result = await supabase
+          .from('establishment_profiles')
+          .update(profileData)
+          .eq('id', user.id);
+      } else {
+        // Créer un nouveau profil
+        console.log('Creating new establishment profile');
+        result = await supabase
+          .from('establishment_profiles')
+          .insert({
+            id: user.id,
+            ...profileData
+          });
+      }
 
+      const { data, error } = result;
       console.log('Supabase response:', { data, error });
 
       if (error) {
-        console.error('Error creating establishment profile:', error);
+        console.error('Error saving establishment profile:', error);
         throw error;
       }
 
-      console.log('Establishment profile created successfully');
+      console.log('Establishment profile saved successfully');
       toast({
-        title: "Profil complété !",
-        description: "Votre profil établissement a été créé avec succès.",
+        title: existingEstablishmentProfile ? "Profil mis à jour !" : "Profil complété !",
+        description: existingEstablishmentProfile ? "Votre profil établissement a été mis à jour avec succès." : "Votre profil établissement a été créé avec succès.",
       });
 
       navigate('/establishment/dashboard');
@@ -181,7 +249,7 @@ const ProfileComplete = () => {
       console.error('Error in handleEstablishmentSubmit:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création du profil",
+        description: error.message || "Une erreur est survenue lors de la sauvegarde du profil",
         variant: "destructive"
       });
     } finally {
@@ -215,11 +283,22 @@ const ProfileComplete = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Complétez votre profil</CardTitle>
+            <CardTitle>
+              {profile.user_type === 'doctor' 
+                ? (existingDoctorProfile ? 'Modifier votre profil' : 'Complétez votre profil')
+                : (existingEstablishmentProfile ? 'Modifier votre profil' : 'Complétez votre profil')
+              }
+            </CardTitle>
             <CardDescription>
               {profile.user_type === 'doctor' 
-                ? 'Complétez votre profil médecin pour commencer à publier des vacations'
-                : 'Complétez votre profil établissement pour commencer à réserver des vacations'
+                ? (existingDoctorProfile 
+                  ? 'Modifiez les informations de votre profil médecin'
+                  : 'Complétez votre profil médecin pour commencer à publier des vacations'
+                )
+                : (existingEstablishmentProfile
+                  ? 'Modifiez les informations de votre profil établissement'
+                  : 'Complétez votre profil établissement pour commencer à réserver des vacations'
+                )
               }
             </CardDescription>
           </CardHeader>
@@ -292,7 +371,10 @@ const ProfileComplete = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Création...' : 'Créer mon profil médecin'}
+                  {loading 
+                    ? (existingDoctorProfile ? 'Mise à jour...' : 'Création...') 
+                    : (existingDoctorProfile ? 'Mettre à jour mon profil' : 'Créer mon profil médecin')
+                  }
                 </Button>
               </form>
             ) : (
@@ -375,7 +457,10 @@ const ProfileComplete = () => {
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Création...' : 'Créer mon profil établissement'}
+                  {loading 
+                    ? (existingEstablishmentProfile ? 'Mise à jour...' : 'Création...') 
+                    : (existingEstablishmentProfile ? 'Mettre à jour mon profil' : 'Créer mon profil établissement')
+                  }
                 </Button>
               </form>
             )}
