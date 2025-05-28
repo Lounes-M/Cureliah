@@ -470,10 +470,14 @@ export type Database = {
           establishment_id: string
           helpful_count: number | null
           id: string
+          moderated_at: string | null
+          moderation_notes: string | null
+          moderator_id: string | null
           rating: number
           response: string | null
           response_date: string | null
           reviewer_type: string | null
+          status: string | null
           updated_at: string
           verified: boolean | null
         }
@@ -485,10 +489,14 @@ export type Database = {
           establishment_id: string
           helpful_count?: number | null
           id?: string
+          moderated_at?: string | null
+          moderation_notes?: string | null
+          moderator_id?: string | null
           rating: number
           response?: string | null
           response_date?: string | null
           reviewer_type?: string | null
+          status?: string | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -500,10 +508,14 @@ export type Database = {
           establishment_id?: string
           helpful_count?: number | null
           id?: string
+          moderated_at?: string | null
+          moderation_notes?: string | null
+          moderator_id?: string | null
           rating?: number
           response?: string | null
           response_date?: string | null
           reviewer_type?: string | null
+          status?: string | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -525,6 +537,13 @@ export type Database = {
           {
             foreignKeyName: "reviews_establishment_id_fkey"
             columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_moderator_id_fkey"
+            columns: ["moderator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

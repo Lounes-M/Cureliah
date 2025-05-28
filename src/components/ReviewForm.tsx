@@ -12,7 +12,7 @@ interface ReviewFormProps {
   bookingId: string;
   targetId: string;
   targetName: string;
-  isDoctor: boolean;
+  targetType: 'doctor' | 'establishment';
   onReviewSubmitted: () => void;
 }
 
@@ -20,7 +20,7 @@ const ReviewForm = ({
   bookingId, 
   targetId, 
   targetName, 
-  isDoctor, 
+  targetType, 
   onReviewSubmitted 
 }: ReviewFormProps) => {
   const { user } = useAuth();
@@ -39,8 +39,9 @@ const ReviewForm = ({
         booking_id: bookingId,
         rating,
         comment: comment.trim() || null,
-        doctor_id: isDoctor ? targetId : user.id,
-        establishment_id: isDoctor ? user.id : targetId
+        doctor_id: targetType === 'doctor' ? targetId : user.id,
+        establishment_id: targetType === 'establishment' ? targetId : user.id,
+        status: 'approved' // Auto-approve for now, can be changed to 'pending' for moderation
       };
 
       const { error } = await supabase
