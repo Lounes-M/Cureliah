@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { VacationBooking, VacationPost, Profile, EstablishmentProfile } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import MessagingModal from './MessagingModal';
 
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
@@ -19,6 +19,19 @@ const BookingManagement = () => {
   const { toast } = useToast();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messagingModal, setMessagingModal] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    receiverId: string;
+    receiverName: string;
+    receiverType: 'doctor' | 'establishment';
+  }>({
+    isOpen: false,
+    bookingId: '',
+    receiverId: '',
+    receiverName: '',
+    receiverType: 'establishment'
+  });
 
   useEffect(() => {
     if (user) {
@@ -107,6 +120,20 @@ const BookingManagement = () => {
       case 'completed': return 'Terminée';
       default: return status;
     }
+  };
+
+  const openMessaging = (booking: BookingWithDetails) => {
+    setMessagingModal({
+      isOpen: true,
+      bookingId: booking.id,
+      receiverId: booking.establishment_id,
+      receiverName: booking.establishment_profile?.establishment_profile?.name || 'Établissement',
+      receiverType: 'establishment'
+    });
+  };
+
+  const closeMessaging = () => {
+    setMessagingModal(prev => ({ ...prev, isOpen: false }));
   };
 
   if (loading) {
@@ -214,7 +241,7 @@ const BookingManagement = () => {
                       <X className="w-4 h-4 mr-2" />
                       Refuser
                     </Button>
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => openMessaging(booking)}>
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Message
                     </Button>
@@ -223,7 +250,7 @@ const BookingManagement = () => {
 
                 {booking.status === 'booked' && (
                   <div className="flex space-x-3">
-                    <Button variant="outline">
+                    <Button variant="outline" onClick={() => openMessaging(booking)}>
                       <MessageCircle className="w-4 h-4 mr-2" />
                       Contacter l'établissement
                     </Button>
@@ -235,11 +262,29 @@ const BookingManagement = () => {
                     </Button>
                   </div>
                 )}
+
+                {(booking.status === 'cancelled' || booking.status === 'completed') && (
+                  <div className="flex space-x-3">
+                    <Button variant="outline" onClick={() => openMessaging(booking)}>
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Voir les messages
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      <MessagingModal
+        isOpen={messagingModal.isOpen}
+        onClose={closeMessaging}
+        bookingId={messagingModal.bookingId}
+        receiverId={messagingModal.receiverId}
+        receiverName={messagingModal.receiverName}
+        receiverType={messagingModal.receiverType}
+      />
     </div>
   );
 };
