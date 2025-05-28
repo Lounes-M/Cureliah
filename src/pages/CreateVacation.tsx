@@ -57,13 +57,12 @@ const CreateVacation = () => {
           doctor_id: user.id,
           title: vacationData.title,
           description: vacationData.description || null,
-          speciality: vacationData.speciality as any,
+          speciality: vacationData.speciality,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           hourly_rate: parseFloat(vacationData.hourly_rate),
           location: vacationData.location || null,
-          requirements: vacationData.requirements || null,
-          status: 'available'
+          requirements: vacationData.requirements || null
         });
 
       if (error) throw error;
@@ -75,6 +74,7 @@ const CreateVacation = () => {
 
       navigate('/doctor/dashboard');
     } catch (error: any) {
+      console.error('Error creating vacation:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",

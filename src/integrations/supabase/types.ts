@@ -695,6 +695,7 @@ export type Database = {
           id: string
           location: string | null
           requirements: string | null
+          speciality: string | null
           start_date: string
           title: string
           updated_at: string | null
@@ -708,6 +709,7 @@ export type Database = {
           id?: string
           location?: string | null
           requirements?: string | null
+          speciality?: string | null
           start_date: string
           title: string
           updated_at?: string | null
@@ -721,6 +723,7 @@ export type Database = {
           id?: string
           location?: string | null
           requirements?: string | null
+          speciality?: string | null
           start_date?: string
           title?: string
           updated_at?: string | null
