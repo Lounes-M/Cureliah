@@ -40,7 +40,26 @@ const Auth = () => {
       firstName: signUpData.firstName,
       lastName: signUpData.lastName
     })
-    
+
+    // Validation
+    if (!signUpData.firstName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Le prénom est requis",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!signUpData.lastName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Le nom est requis",
+        variant: "destructive"
+      })
+      return
+    }
+
     if (signUpData.password !== signUpData.confirmPassword) {
       toast({
         title: "Erreur",
@@ -77,7 +96,9 @@ const Auth = () => {
 
       if (error) {
         console.error('SignUp error:', error)
-        if (error.message.includes('already registered')) {
+        
+        // More specific error handling
+        if (error.message.includes('User already registered')) {
           toast({
             title: "Erreur",
             description: "Un compte avec cette adresse email existe déjà",
@@ -87,6 +108,18 @@ const Auth = () => {
           toast({
             title: "Erreur",
             description: "Adresse email invalide",
+            variant: "destructive"
+          })
+        } else if (error.message.includes('Password should be at least')) {
+          toast({
+            title: "Erreur",
+            description: "Le mot de passe doit contenir au moins 6 caractères",
+            variant: "destructive"
+          })
+        } else if (error.message.includes('Signup requires a valid password')) {
+          toast({
+            title: "Erreur",
+            description: "Mot de passe invalide",
             variant: "destructive"
           })
         } else {
@@ -116,7 +149,7 @@ const Auth = () => {
       console.error('Unexpected error during signup:', error)
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur inattendue est survenue",
+        description: "Une erreur inattendue est survenue. Veuillez réessayer.",
         variant: "destructive"
       })
     } finally {
@@ -128,6 +161,25 @@ const Auth = () => {
     e.preventDefault()
     
     console.log('Starting signin process with email:', signInData.email)
+    
+    if (!signInData.email.trim()) {
+      toast({
+        title: "Erreur",
+        description: "L'email est requis",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!signInData.password.trim()) {
+      toast({
+        title: "Erreur", 
+        description: "Le mot de passe est requis",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsLoading(true)
     
     try {
@@ -141,6 +193,12 @@ const Auth = () => {
           toast({
             title: "Erreur",
             description: "Email ou mot de passe incorrect",
+            variant: "destructive"
+          })
+        } else if (error.message.includes('Email not confirmed')) {
+          toast({
+            title: "Email non confirmé",
+            description: "Veuillez vérifier votre email et cliquer sur le lien de confirmation",
             variant: "destructive"
           })
         } else {
@@ -162,7 +220,7 @@ const Auth = () => {
       console.error('Unexpected error during signin:', error)
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la connexion",
+        description: "Une erreur est survenue lors de la connexion",
         variant: "destructive"
       })
     } finally {
@@ -209,6 +267,7 @@ const Auth = () => {
                       onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
                       required
                       placeholder="votre@email.com"
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -220,6 +279,7 @@ const Auth = () => {
                       onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                       required
                       placeholder="Votre mot de passe"
+                      disabled={isLoading}
                     />
                   </div>
                   <Button 
@@ -236,23 +296,25 @@ const Auth = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">Prénom</Label>
+                      <Label htmlFor="firstName">Prénom *</Label>
                       <Input
                         id="firstName"
                         value={signUpData.firstName}
                         onChange={(e) => setSignUpData({ ...signUpData, firstName: e.target.value })}
                         required
                         placeholder="Jean"
+                        disabled={isLoading}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">Nom</Label>
+                      <Label htmlFor="lastName">Nom *</Label>
                       <Input
                         id="lastName"
                         value={signUpData.lastName}
                         onChange={(e) => setSignUpData({ ...signUpData, lastName: e.target.value })}
                         required
                         placeholder="Dupont"
+                        disabled={isLoading}
                       />
                     </div>
                   </div>
@@ -262,6 +324,7 @@ const Auth = () => {
                     <RadioGroup
                       value={signUpData.userType}
                       onValueChange={(value) => setSignUpData({ ...signUpData, userType: value })}
+                      disabled={isLoading}
                     >
                       <div className="flex items-center space-x-2 p-3 border rounded-lg">
                         <RadioGroupItem value="doctor" id="doctor" />
@@ -281,7 +344,7 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">Email *</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -289,11 +352,12 @@ const Auth = () => {
                       onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
                       required
                       placeholder="votre@email.com"
+                      disabled={isLoading}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
+                    <Label htmlFor="signup-password">Mot de passe *</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -302,11 +366,12 @@ const Auth = () => {
                       required
                       minLength={6}
                       placeholder="Au moins 6 caractères"
+                      disabled={isLoading}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                    <Label htmlFor="confirmPassword">Confirmer le mot de passe *</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
@@ -315,6 +380,7 @@ const Auth = () => {
                       required
                       minLength={6}
                       placeholder="Répétez votre mot de passe"
+                      disabled={isLoading}
                     />
                   </div>
 
