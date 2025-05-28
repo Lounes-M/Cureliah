@@ -183,12 +183,12 @@ const ReviewsRatings = ({ doctorId, bookingId, canReview = false }: ReviewsRatin
                     <div
                       className="bg-yellow-400 h-2 rounded-full"
                       style={{
-                        width: `${reviews.length > 0 ? (distribution[rating as keyof typeof distribution] / reviews.length) * 100 : 0}%`
+                        width: `${reviews.length > 0 ? (distribution[rating.toString() as keyof typeof distribution] / reviews.length) * 100 : 0}%`
                       }}
                     />
                   </div>
                   <span className="text-sm text-gray-600 w-8">
-                    {distribution[rating as keyof typeof distribution]}
+                    {distribution[rating.toString() as keyof typeof distribution]}
                   </span>
                 </div>
               ))}
