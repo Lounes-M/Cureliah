@@ -50,17 +50,10 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
     try {
       console.log('Fetching vacation bookings for user:', user.id);
       
-      // First, get all vacation bookings for the user
+      // Fetch vacation bookings where the user is the doctor
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('vacation_bookings')
-        .select(`
-          id,
-          vacation_post_id,
-          establishment_id,
-          doctor_id,
-          status,
-          created_at
-        `)
+        .select('*')
         .eq('doctor_id', user.id)
         .in('status', ['booked', 'completed']);
 
@@ -77,21 +70,13 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
         return;
       }
 
-      // Get vacation post IDs
-      const vacationPostIds = bookingsData.map(booking => booking.vacation_post_id);
-
-      // Fetch vacation posts with establishment profiles
+      // Get vacation post IDs from the bookings
+      const vacationPostIds = [...new Set(bookingsData.map(booking => booking.vacation_post_id))];
+      
+      // Fetch vacation posts
       const { data: vacationPostsData, error: vacationPostsError } = await supabase
         .from('vacation_posts')
-        .select(`
-          id,
-          title,
-          start_date,
-          end_date,
-          location,
-          speciality,
-          doctor_id
-        `)
+        .select('*')
         .in('id', vacationPostIds);
 
       if (vacationPostsError) {
@@ -101,8 +86,10 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
 
       console.log('Vacation posts data:', vacationPostsData);
 
-      // Get establishment profiles
-      const establishmentIds = bookingsData.map(booking => booking.establishment_id);
+      // Get establishment IDs from the bookings
+      const establishmentIds = [...new Set(bookingsData.map(booking => booking.establishment_id))];
+      
+      // Fetch establishment profiles
       const { data: establishmentProfilesData, error: establishmentProfilesError } = await supabase
         .from('establishment_profiles')
         .select('id, name')
@@ -110,34 +97,45 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
 
       if (establishmentProfilesError) {
         console.error('Error fetching establishment profiles:', establishmentProfilesError);
-        throw establishmentProfilesError;
+        // Continue without establishment data rather than failing completely
       }
 
       console.log('Establishment profiles data:', establishmentProfilesData);
 
-      // Combine the data
+      // Combine the data into the expected format
       const transformedData: VacationBooking[] = bookingsData.map(booking => {
         const vacationPost = vacationPostsData?.find(post => post.id === booking.vacation_post_id);
         const establishmentProfile = establishmentProfilesData?.find(profile => profile.id === booking.establishment_id);
 
         return {
-          ...booking,
-          vacation_posts: vacationPost || {
+          id: booking.id,
+          vacation_post_id: booking.vacation_post_id,
+          establishment_id: booking.establishment_id,
+          doctor_id: booking.doctor_id,
+          status: booking.status,
+          created_at: booking.created_at,
+          vacation_posts: vacationPost ? {
+            title: vacationPost.title,
+            start_date: vacationPost.start_date,
+            end_date: vacationPost.end_date,
+            location: vacationPost.location,
+            speciality: vacationPost.speciality
+          } : {
             title: 'Vacation inconnue',
             start_date: new Date().toISOString(),
             end_date: new Date().toISOString(),
             location: null,
             speciality: null
           },
-          establishment_profiles: establishmentProfile || {
-            name: 'Établissement inconnu'
+          establishment_profiles: {
+            name: establishmentProfile?.name || 'Établissement inconnu'
           }
         };
       });
 
       console.log('Final transformed vacation bookings:', transformedData);
 
-      // Filter by date range
+      // Filter by date range for the current month
       const startOfMonth = startOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
       const endOfMonth = endOfDay(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
 
@@ -147,7 +145,7 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
         return startDate <= endOfMonth && endDate >= startOfMonth;
       });
 
-      console.log('Filtered vacation bookings:', filteredData);
+      console.log('Filtered vacation bookings for current month:', filteredData);
       setVacationBookings(filteredData);
     } catch (error: any) {
       console.error('Error fetching vacation bookings:', error);
@@ -156,20 +154,30 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
         description: "Impossible de charger les vacations réservées",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchEvents();
-      if (profile?.user_type === 'doctor') {
-        fetchVacationBookings();
-      } else {
+    const fetchData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      
+      try {
+        await fetchEvents();
+        
+        if (profile?.user_type === 'doctor') {
+          await fetchVacationBookings();
+        }
+      } finally {
         setLoading(false);
       }
-    }
+    };
+
+    fetchData();
   }, [user, profile, selectedDate]);
 
   return {
