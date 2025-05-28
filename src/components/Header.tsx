@@ -1,14 +1,11 @@
 
-import { Button } from "@/components/ui/button";
-import { User, Building2, Menu, LogOut } from "lucide-react";
-import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import NotificationBell from "./NotificationBell";
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, Calendar, Search, BookOpen } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -16,153 +13,121 @@ const Header = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast({
-        title: "Déconnexion réussie",
-        description: "Vous avez été déconnecté(e) avec succès.",
-      });
       navigate('/');
+      toast({
+        title: "Déconnexion",
+        description: "Vous avez été déconnecté avec succès",
+      });
     } catch (error) {
+      console.error('Error signing out:', error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la déconnexion",
+        description: "Erreur lors de la déconnexion",
         variant: "destructive"
       });
     }
   };
 
-  const handleDashboardClick = () => {
-    // Use profile first, then fallback to user metadata
-    const userType = profile?.user_type || user?.user_metadata?.user_type;
-    
-    if (userType === 'doctor') {
-      navigate('/doctor/dashboard');
-    } else if (userType === 'establishment') {
-      navigate('/establishment/dashboard');
-    } else {
-      navigate('/profile/complete');
-    }
-  };
-
-  const handleAuthClick = (userType: string) => {
-    // Navigate to auth page and set the intended user type
-    navigate('/auth', { state: { userType } });
-  };
-
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="w-8 h-8 bg-medical-blue rounded-lg flex items-center justify-center">
+          <Link to="/" className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-medical-blue rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">PM</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">Projet Med</span>
+              <span className="text-xl font-bold text-medical-blue">Projet Med</span>
             </div>
-          </div>
+          </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#fonctionnement" className="text-gray-600 hover:text-medical-blue transition-colors">
-              Fonctionnement
-            </a>
-            <a href="#avantages" className="text-gray-600 hover:text-medical-blue transition-colors">
-              Avantages
-            </a>
-            <a href="#faq" className="text-gray-600 hover:text-medical-blue transition-colors">
-              FAQ
-            </a>
-          </nav>
-
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center space-x-3">
-            {user ? (
-              <div className="flex items-center space-x-3">
-                <NotificationBell />
-                <span className="text-sm text-gray-600">
-                  Bonjour, {profile?.first_name || user?.user_metadata?.first_name || user.email}
-                </span>
-                <Button variant="outline" onClick={handleDashboardClick}>
-                  Mon espace
-                </Button>
-                <Button variant="outline" onClick={handleSignOut} className="flex items-center space-x-2">
-                  <LogOut className="w-4 h-4" />
-                  <span>Déconnexion</span>
-                </Button>
-              </div>
-            ) : (
+          <nav className="hidden md:flex items-center space-x-6">
+            {user && profile ? (
               <>
-                <Button variant="outline" onClick={() => handleAuthClick('establishment')} className="flex items-center space-x-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>Espace Établissement</span>
-                </Button>
-                <Button onClick={() => handleAuthClick('doctor')} className="bg-medical-blue hover:bg-medical-blue-dark flex items-center space-x-2">
-                  <User className="w-4 h-4" />
-                  <span>Espace Médecin</span>
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100">
-            <div className="flex flex-col space-y-3">
-              <a href="#fonctionnement" className="text-gray-600 hover:text-medical-blue transition-colors">
-                Fonctionnement
-              </a>
-              <a href="#avantages" className="text-gray-600 hover:text-medical-blue transition-colors">
-                Avantages
-              </a>
-              <a href="#faq" className="text-gray-600 hover:text-medical-blue transition-colors">
-                FAQ
-              </a>
-              <div className="flex flex-col space-y-2 pt-3">
-                {user ? (
+                {profile.user_type === 'doctor' ? (
                   <>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-600">
-                        Bonjour, {profile?.first_name || user?.user_metadata?.first_name || user.email}
-                      </span>
-                      <NotificationBell />
-                    </div>
-                    <Button variant="outline" onClick={handleDashboardClick} className="w-full">
-                      Mon espace
-                    </Button>
-                    <Button variant="outline" onClick={handleSignOut} className="w-full">
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Déconnexion
-                    </Button>
+                    <Link
+                      to="/doctor/dashboard"
+                      className="text-gray-700 hover:text-medical-blue transition-colors"
+                    >
+                      Tableau de bord
+                    </Link>
+                    <Link
+                      to="/doctor/create-vacation"
+                      className="text-gray-700 hover:text-medical-blue transition-colors"
+                    >
+                      Créer une vacation
+                    </Link>
+                    <Link
+                      to="/bookings"
+                      className="text-gray-700 hover:text-medical-blue transition-colors flex items-center"
+                    >
+                      <BookOpen className="w-4 h-4 mr-1" />
+                      Mes réservations
+                    </Link>
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" onClick={() => handleAuthClick('establishment')} className="w-full">
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Espace Établissement
-                    </Button>
-                    <Button onClick={() => handleAuthClick('doctor')} className="w-full bg-medical-blue hover:bg-medical-blue-dark">
-                      <User className="w-4 h-4 mr-2" />
-                      Espace Médecin
-                    </Button>
+                    <Link
+                      to="/establishment/dashboard"
+                      className="text-gray-700 hover:text-medical-blue transition-colors"
+                    >
+                      Tableau de bord
+                    </Link>
+                    <Link
+                      to="/search"
+                      className="text-gray-700 hover:text-medical-blue transition-colors flex items-center"
+                    >
+                      <Search className="w-4 h-4 mr-1" />
+                      Rechercher
+                    </Link>
+                    <Link
+                      to="/bookings"
+                      className="text-gray-700 hover:text-medical-blue transition-colors flex items-center"
+                    >
+                      <BookOpen className="w-4 h-4 mr-1" />
+                      Mes réservations
+                    </Link>
                   </>
                 )}
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <a href="#fonctionnement" className="text-gray-700 hover:text-medical-blue transition-colors">
+                  Comment ça marche
+                </a>
+                <a href="#avantages" className="text-gray-700 hover:text-medical-blue transition-colors">
+                  Avantages
+                </a>
+                <a href="#temoignages" className="text-gray-700 hover:text-medical-blue transition-colors">
+                  Témoignages
+                </a>
+              </>
+            )}
+          </nav>
+
+          <div className="flex items-center space-x-4">
+            {user && profile ? (
+              <>
+                <span className="text-sm text-gray-700">
+                  {profile.first_name ? `${profile.first_name} ${profile.last_name}` : user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={() => navigate('/profile/complete')}>
+                  <User className="w-4 h-4 mr-2" />
+                  Profil
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => navigate('/auth')}>
+                Se connecter
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
