@@ -24,7 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = async () => {
-    if (!user) return
+    if (!user) {
+      setProfile(null)
+      return
+    }
     
     try {
       console.log('Fetching profile for user:', user.id)
@@ -39,12 +42,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error.code !== 'PGRST116') { // PGRST116 means no rows returned
           throw error
         }
+        // If no profile found, set to null
+        setProfile(null)
       } else {
         console.log('Profile fetched successfully:', data)
         setProfile(data)
       }
     } catch (error) {
       console.error('Error fetching profile:', error)
+      setProfile(null)
     }
   }
 
@@ -58,12 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
         
-        if (session?.user) {
-          // Defer profile fetching to avoid deadlock
-          setTimeout(() => {
-            fetchProfile()
-          }, 0)
-        } else {
+        // Clear profile when user logs out
+        if (!session?.user) {
           setProfile(null)
         }
         
@@ -85,10 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  // Update fetchProfile when user changes
+  // Fetch profile when user changes
   useEffect(() => {
     if (user) {
-      fetchProfile()
+      // Use setTimeout to avoid potential deadlock
+      setTimeout(() => {
+        fetchProfile()
+      }, 0)
+    } else {
+      setProfile(null)
     }
   }, [user])
 
