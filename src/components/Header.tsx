@@ -31,9 +31,12 @@ const Header = () => {
   };
 
   const handleDashboardClick = () => {
-    if (profile?.user_type === 'doctor') {
+    // Use profile first, then fallback to user metadata
+    const userType = profile?.user_type || user?.user_metadata?.user_type;
+    
+    if (userType === 'doctor') {
       navigate('/doctor/dashboard');
-    } else if (profile?.user_type === 'establishment') {
+    } else if (userType === 'establishment') {
       navigate('/establishment/dashboard');
     } else {
       navigate('/profile/complete');
@@ -78,7 +81,7 @@ const Header = () => {
               <div className="flex items-center space-x-3">
                 <NotificationBell />
                 <span className="text-sm text-gray-600">
-                  Bonjour, {profile?.first_name || user.email}
+                  Bonjour, {profile?.first_name || user?.user_metadata?.first_name || user.email}
                 </span>
                 <Button variant="outline" onClick={handleDashboardClick}>
                   Mon espace
@@ -132,7 +135,7 @@ const Header = () => {
                   <>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-gray-600">
-                        Bonjour, {profile?.first_name || user.email}
+                        Bonjour, {profile?.first_name || user?.user_metadata?.first_name || user.email}
                       </span>
                       <NotificationBell />
                     </div>
