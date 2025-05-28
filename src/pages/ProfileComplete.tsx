@@ -47,11 +47,38 @@ const ProfileComplete = () => {
 
   const handleDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error('No user found');
+      toast({
+        title: "Erreur",
+        description: "Utilisateur non connecté",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation des champs requis
+    if (!doctorData.speciality || !doctorData.license_number) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setLoading(true);
+    console.log('Submitting doctor profile with data:', {
+      id: user.id,
+      speciality: doctorData.speciality,
+      license_number: doctorData.license_number,
+      experience_years: doctorData.experience_years ? parseInt(doctorData.experience_years) : null,
+      hourly_rate: doctorData.hourly_rate ? parseFloat(doctorData.hourly_rate) : null,
+      bio: doctorData.bio || null
+    });
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('doctor_profiles')
         .insert({
           id: user.id,
@@ -62,8 +89,14 @@ const ProfileComplete = () => {
           bio: doctorData.bio || null
         });
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
 
+      if (error) {
+        console.error('Error creating doctor profile:', error);
+        throw error;
+      }
+
+      console.log('Doctor profile created successfully');
       toast({
         title: "Profil complété !",
         description: "Votre profil médecin a été créé avec succès.",
@@ -71,9 +104,10 @@ const ProfileComplete = () => {
 
       navigate('/doctor/dashboard');
     } catch (error: any) {
+      console.error('Error in handleDoctorSubmit:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: error.message || "Une erreur est survenue lors de la création du profil",
         variant: "destructive"
       });
     } finally {
@@ -83,11 +117,40 @@ const ProfileComplete = () => {
 
   const handleEstablishmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error('No user found');
+      toast({
+        title: "Erreur",
+        description: "Utilisateur non connecté",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation des champs requis
+    if (!establishmentData.name || !establishmentData.establishment_type) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setLoading(true);
+    console.log('Submitting establishment profile with data:', {
+      id: user.id,
+      name: establishmentData.name,
+      establishment_type: establishmentData.establishment_type,
+      siret: establishmentData.siret || null,
+      address: establishmentData.address || null,
+      city: establishmentData.city || null,
+      postal_code: establishmentData.postal_code || null,
+      description: establishmentData.description || null
+    });
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('establishment_profiles')
         .insert({
           id: user.id,
@@ -100,8 +163,14 @@ const ProfileComplete = () => {
           description: establishmentData.description || null
         });
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
 
+      if (error) {
+        console.error('Error creating establishment profile:', error);
+        throw error;
+      }
+
+      console.log('Establishment profile created successfully');
       toast({
         title: "Profil complété !",
         description: "Votre profil établissement a été créé avec succès.",
@@ -109,9 +178,10 @@ const ProfileComplete = () => {
 
       navigate('/establishment/dashboard');
     } catch (error: any) {
+      console.error('Error in handleEstablishmentSubmit:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: error.message || "Une erreur est survenue lors de la création du profil",
         variant: "destructive"
       });
     } finally {
@@ -160,7 +230,10 @@ const ProfileComplete = () => {
                   <Label htmlFor="speciality">Spécialité *</Label>
                   <Select 
                     value={doctorData.speciality} 
-                    onValueChange={(value) => setDoctorData({...doctorData, speciality: value})}
+                    onValueChange={(value) => {
+                      console.log('Speciality selected:', value);
+                      setDoctorData({...doctorData, speciality: value});
+                    }}
                     required
                   >
                     <SelectTrigger>
