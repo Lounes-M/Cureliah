@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -115,8 +114,8 @@ const EstablishmentSearch = () => {
       const combinedVacations = vacationsData.map(vacation => ({
         ...vacation,
         doctor_info: {
-          ...(doctorsData || []).find(doc => doc.id === vacation.doctor_id),
-          ...(doctorProfiles || []).find(dp => dp.id === vacation.doctor_id)
+          ...(doctorsData && doctorsData.length > 0 ? doctorsData.find(doc => doc.id === vacation.doctor_id) : {}),
+          ...(doctorProfiles && doctorProfiles.length > 0 ? doctorProfiles.find(dp => dp.id === vacation.doctor_id) : {})
         } || null
       }));
 
