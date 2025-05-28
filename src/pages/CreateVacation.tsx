@@ -1,7 +1,6 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,10 +18,13 @@ import { cn } from '@/lib/utils';
 import Header from '@/components/Header';
 
 const CreateVacation = () => {
+  const { vacationId } = useParams<{ vacationId: string }>();
+  const isEditing = Boolean(vacationId);
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEditing);
 
   const [vacationData, setVacationData] = useState({
     title: '',
@@ -35,6 +37,53 @@ const CreateVacation = () => {
 
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+
+  useEffect(() => {
+    if (!user || profile?.user_type !== 'doctor') {
+      navigate('/auth');
+      return;
+    }
+
+    if (isEditing && vacationId) {
+      fetchVacationData();
+    }
+  }, [user, profile, isEditing, vacationId]);
+
+  const fetchVacationData = async () => {
+    if (!user || !vacationId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('vacation_posts')
+        .select('*')
+        .eq('id', vacationId)
+        .eq('doctor_id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      setVacationData({
+        title: data.title,
+        description: data.description || '',
+        speciality: data.speciality || '',
+        hourly_rate: data.hourly_rate.toString(),
+        location: data.location || '',
+        requirements: data.requirements || ''
+      });
+      setStartDate(new Date(data.start_date));
+      setEndDate(new Date(data.end_date));
+    } catch (error: any) {
+      console.error('Error fetching vacation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger cette vacation",
+        variant: "destructive"
+      });
+      navigate('/doctor/manage-vacations');
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,30 +100,46 @@ const CreateVacation = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('vacation_posts')
-        .insert({
-          doctor_id: user.id,
-          title: vacationData.title,
-          description: vacationData.description || null,
-          speciality: vacationData.speciality,
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          hourly_rate: parseFloat(vacationData.hourly_rate),
-          location: vacationData.location || null,
-          requirements: vacationData.requirements || null
-        });
+      const vacationPayload = {
+        title: vacationData.title,
+        description: vacationData.description || null,
+        speciality: vacationData.speciality,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        hourly_rate: parseFloat(vacationData.hourly_rate),
+        location: vacationData.location || null,
+        requirements: vacationData.requirements || null
+      };
+
+      let error;
+
+      if (isEditing && vacationId) {
+        ({ error } = await supabase
+          .from('vacation_posts')
+          .update(vacationPayload)
+          .eq('id', vacationId)
+          .eq('doctor_id', user.id));
+      } else {
+        ({ error } = await supabase
+          .from('vacation_posts')
+          .insert({
+            ...vacationPayload,
+            doctor_id: user.id
+          }));
+      }
 
       if (error) throw error;
 
       toast({
-        title: "Vacation publiée !",
-        description: "Votre vacation a été publiée avec succès.",
+        title: isEditing ? "Vacation modifiée !" : "Vacation publiée !",
+        description: isEditing 
+          ? "Votre vacation a été modifiée avec succès."
+          : "Votre vacation a été publiée avec succès.",
       });
 
-      navigate('/doctor/dashboard');
+      navigate('/doctor/manage-vacations');
     } catch (error: any) {
-      console.error('Error creating vacation:', error);
+      console.error('Error saving vacation:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",
@@ -85,9 +150,15 @@ const CreateVacation = () => {
     }
   };
 
-  if (!user || profile?.user_type !== 'doctor') {
-    navigate('/auth');
-    return null;
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-lg">Chargement...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -96,18 +167,21 @@ const CreateVacation = () => {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/doctor/dashboard')}
+          onClick={() => navigate(isEditing ? '/doctor/manage-vacations' : '/doctor/dashboard')}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour au dashboard
+          {isEditing ? 'Retour aux vacations' : 'Retour au dashboard'}
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>Publier une nouvelle vacation</CardTitle>
+            <CardTitle>{isEditing ? 'Modifier la vacation' : 'Publier une nouvelle vacation'}</CardTitle>
             <CardDescription>
-              Créez une annonce pour proposer vos services médicaux
+              {isEditing 
+                ? 'Modifiez les informations de votre vacation'
+                : 'Créez une annonce pour proposer vos services médicaux'
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -252,7 +326,10 @@ const CreateVacation = () => {
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Publication...' : 'Publier la vacation'}
+                {loading 
+                  ? (isEditing ? 'Modification...' : 'Publication...') 
+                  : (isEditing ? 'Modifier la vacation' : 'Publier la vacation')
+                }
               </Button>
             </form>
           </CardContent>

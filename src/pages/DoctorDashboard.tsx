@@ -131,7 +131,7 @@ const DoctorDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/doctor/create-vacation')}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Créer une vacation</CardTitle>
@@ -145,13 +145,26 @@ const DoctorDashboard = () => {
             </CardContent>
           </Card>
 
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/doctor/manage-vacations')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Gérer mes vacations</CardTitle>
+              <Calendar className="h-4 w-4 text-medical-green" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-medical-green">{stats.totalVacations}</div>
+              <p className="text-xs text-muted-foreground">
+                Vacations publiées
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/bookings')}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Mes réservations</CardTitle>
-              <BookOpen className="h-4 w-4 text-medical-green" />
+              <BookOpen className="h-4 w-4 text-medical-blue" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-medical-green">{stats.activeBookings}</div>
+              <div className="text-2xl font-bold text-medical-blue">{stats.activeBookings}</div>
               <p className="text-xs text-muted-foreground">
                 Réservations actives
               </p>
@@ -212,6 +225,14 @@ const DoctorDashboard = () => {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Créer une nouvelle vacation
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/doctor/manage-vacations')} 
+                className="w-full"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Gérer mes vacations
               </Button>
               <Button 
                 variant="outline" 
