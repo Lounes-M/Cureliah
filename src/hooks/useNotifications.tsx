@@ -17,7 +17,7 @@ export function useNotifications() {
 
     fetchNotifications();
     
-    // Set up real-time subscription for new notifications
+    // Set up real-time subscription for notifications
     const channel = supabase
       .channel(`notifications-${user.id}`)
       .on(
@@ -38,6 +38,28 @@ export function useNotifications() {
             title: newNotification.title,
             description: newNotification.message,
           });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const updatedNotification = payload.new as Notification;
+          setNotifications(prev => 
+            prev.map(n => 
+              n.id === updatedNotification.id ? updatedNotification : n
+            )
+          );
+          
+          // Update unread count when notifications are marked as read
+          if (updatedNotification.read_at) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+          }
         }
       )
       .subscribe();
@@ -83,14 +105,7 @@ export function useNotifications() {
 
       if (error) throw error;
 
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId 
-            ? { ...n, read_at: new Date().toISOString() }
-            : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      // Note: Real-time subscription will handle the state update
     } catch (error: any) {
       console.error('Error marking notification as read:', error);
     }
@@ -108,10 +123,7 @@ export function useNotifications() {
 
       if (error) throw error;
 
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
-      );
-      setUnreadCount(0);
+      // Note: Real-time subscription will handle the state updates
     } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
     }

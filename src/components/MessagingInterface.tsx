@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Send, User, Building2 } from 'lucide-react';
+import { Send, User, Building2, Loader2 } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
@@ -56,7 +56,12 @@ const MessagingInterface = ({
   };
 
   if (loading) {
-    return <div className="text-center py-8">Chargement des messages...</div>;
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        <span>Chargement des messages...</span>
+      </div>
+    );
   }
 
   return (
@@ -133,7 +138,11 @@ const MessagingInterface = ({
             disabled={!newMessage.trim() || sending}
             className="self-end"
           >
-            <Send className="w-4 h-4" />
+            {sending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
       </CardContent>

@@ -607,6 +607,7 @@ export type Database = {
           id: string
           message: string | null
           payment_status: string | null
+          status: string | null
           stripe_payment_intent_id: string | null
           stripe_session_id: string | null
           total_amount: number | null
@@ -620,6 +621,7 @@ export type Database = {
           id?: string
           message?: string | null
           payment_status?: string | null
+          status?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           total_amount?: number | null
@@ -633,6 +635,7 @@ export type Database = {
           id?: string
           message?: string | null
           payment_status?: string | null
+          status?: string | null
           stripe_payment_intent_id?: string | null
           stripe_session_id?: string | null
           total_amount?: number | null

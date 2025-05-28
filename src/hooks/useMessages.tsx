@@ -24,7 +24,7 @@ export function useMessages(bookingId?: string) {
 
     fetchMessages();
     
-    // Set up real-time subscription
+    // Set up real-time subscription for messages
     const channel = supabase
       .channel(`messages-${bookingId}`)
       .on(
@@ -37,6 +37,7 @@ export function useMessages(bookingId?: string) {
         },
         (payload) => {
           const newMessage = payload.new as Message;
+          // Only show toast if message is from someone else
           if (newMessage.sender_id !== user.id) {
             setMessages(prev => [...prev, newMessage]);
             toast({
@@ -109,6 +110,7 @@ export function useMessages(bookingId?: string) {
 
       if (error) throw error;
 
+      // Add message to local state immediately for the sender
       setMessages(prev => [...prev, data as MessageWithSender]);
       
       return true;
