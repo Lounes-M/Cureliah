@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { VacationBooking, VacationPost, Profile, EstablishmentProfile } from '@/
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
+import PaymentButton from './PaymentButton';
 
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
@@ -122,6 +124,15 @@ const BookingManagement = () => {
     }
   };
 
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const openMessaging = (booking: BookingWithDetails) => {
     setMessagingModal({
       isOpen: true,
@@ -175,9 +186,16 @@ const BookingManagement = () => {
                       Demande de {booking.establishment_profile?.establishment_profile?.name || 'Établissement'}
                     </CardDescription>
                   </div>
-                  <Badge className={getStatusColor(booking.status)}>
-                    {getStatusText(booking.status)}
-                  </Badge>
+                  <div className="flex flex-col space-y-2">
+                    <Badge className={getStatusColor(booking.status)}>
+                      {getStatusText(booking.status)}
+                    </Badge>
+                    {booking.payment_status && (
+                      <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                        Paiement: {booking.payment_status}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

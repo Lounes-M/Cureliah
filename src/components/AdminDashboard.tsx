@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -53,6 +53,7 @@ interface AdminBooking {
   status: string;
   total_amount: number;
   created_at: string;
+  payment_status: string;
   doctor_profile?: {
     first_name: string;
     last_name: string;
@@ -75,6 +76,7 @@ interface AdminLog {
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   const { toast } = useToast();
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
@@ -92,10 +94,32 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      fetchAdminData();
+    if (user && !roleLoading) {
+      if (isAdmin) {
+        fetchAdminData();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [user]);
+  }, [user, isAdmin, roleLoading]);
+
+  if (roleLoading) {
+    return <div className="text-center py-8">Vérification des permissions...</div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <Card className="max-w-md mx-auto mt-8">
+        <CardContent className="text-center py-8">
+          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Accès refusé</h2>
+          <p className="text-gray-600">
+            Vous n'avez pas les permissions nécessaires pour accéder au tableau de bord administrateur.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const fetchAdminData = async () => {
     try {
@@ -122,7 +146,8 @@ const AdminDashboard = () => {
       const { data: revenueData } = await supabase
         .from('vacation_bookings')
         .select('total_amount')
-        .eq('status', 'completed');
+        .eq('status', 'completed')
+        .eq('payment_status', 'paid');
 
       const totalRevenue = revenueData?.reduce((sum, booking) => sum + (booking.total_amount || 0), 0) || 0;
 
@@ -270,6 +295,15 @@ const AdminDashboard = () => {
       case 'cancelled': return 'Annulé';
       case 'booked': return 'Réservé';
       default: return status;
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -495,6 +529,7 @@ const AdminDashboard = () => {
                     <TableHead>Établissement</TableHead>
                     <TableHead>Montant</TableHead>
                     <TableHead>Statut</TableHead>
+                    <TableHead>Paiement</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -511,6 +546,11 @@ const AdminDashboard = () => {
                       <TableCell>
                         <Badge className={getStatusColor(booking.status)}>
                           {getStatusLabel(booking.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getPaymentStatusColor(booking.payment_status)}>
+                          {booking.payment_status || 'N/A'}
                         </Badge>
                       </TableCell>
                       <TableCell>

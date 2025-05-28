@@ -480,6 +480,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vacation_bookings: {
         Row: {
           created_at: string | null
@@ -487,7 +508,10 @@ export type Database = {
           establishment_id: string
           id: string
           message: string | null
+          payment_status: string | null
           status: Database["public"]["Enums"]["vacation_status"] | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           total_amount: number | null
           updated_at: string | null
           vacation_post_id: string
@@ -498,7 +522,10 @@ export type Database = {
           establishment_id: string
           id?: string
           message?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           total_amount?: number | null
           updated_at?: string | null
           vacation_post_id: string
@@ -509,7 +536,10 @@ export type Database = {
           establishment_id?: string
           id?: string
           message?: string | null
+          payment_status?: string | null
           status?: Database["public"]["Enums"]["vacation_status"] | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           total_amount?: number | null
           updated_at?: string | null
           vacation_post_id?: string
@@ -599,9 +629,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       establishment_type:
         | "hospital"
         | "clinic"
@@ -740,6 +777,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       establishment_type: [
         "hospital",
         "clinic",
