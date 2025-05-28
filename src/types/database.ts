@@ -120,3 +120,28 @@ export interface Message {
   content: string
   created_at: string
 }
+
+export interface Review {
+  id: string
+  booking_id: string
+  doctor_id: string
+  establishment_id: string
+  rating: number
+  comment?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Payment {
+  id: string
+  booking_id: string
+  payer_id: string
+  receiver_id: string
+  amount: number
+  currency: string
+  status: string
+  payment_method: string
+  stripe_payment_intent_id?: string
+  created_at: string
+  updated_at: string
+}

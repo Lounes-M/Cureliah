@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { LogOut, User, Calendar, Search, BookOpen } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import NotificationDropdown from './NotificationDropdown';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -109,6 +110,7 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user && profile ? (
               <>
+                <NotificationDropdown />
                 <span className="text-sm text-gray-700">
                   {profile.first_name ? `${profile.first_name} ${profile.last_name}` : user.email}
                 </span>

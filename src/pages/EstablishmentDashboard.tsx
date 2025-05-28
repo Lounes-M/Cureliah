@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import StatsCard from '@/components/StatsCard';
+import EstablishmentBookingManagement from '@/components/EstablishmentBookingManagement';
 
 interface DashboardStats {
   totalBookings: number;
@@ -78,7 +79,7 @@ const EstablishmentDashboard = () => {
       const stats = {
         totalBookings: bookings?.length || 0,
         pendingBookings: bookings?.filter(b => b.status === 'pending').length || 0,
-        confirmedBookings: bookings?.filter(b => b.status === 'confirmed').length || 0,
+        confirmedBookings: bookings?.filter(b => b.status === 'booked').length || 0,
         completedBookings: bookings?.filter(b => b.status === 'completed').length || 0
       };
 
@@ -194,7 +195,7 @@ const EstablishmentDashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
               <CardTitle>Recommandations</CardTitle>
@@ -252,6 +253,9 @@ const EstablishmentDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Booking Management */}
+        <EstablishmentBookingManagement />
       </div>
     </div>
   );
