@@ -29,13 +29,23 @@ const Header = () => {
     }
   };
 
+  const handleDashboardClick = () => {
+    if (profile?.user_type === 'doctor') {
+      navigate('/doctor/dashboard');
+    } else if (profile?.user_type === 'establishment') {
+      navigate('/establishment/dashboard');
+    } else {
+      navigate('/profile/complete');
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center space-x-2">
+            <div className="flex-shrink-0 flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/')}>
               <div className="w-8 h-8 bg-medical-blue rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">PM</span>
               </div>
@@ -63,6 +73,9 @@ const Header = () => {
                 <span className="text-sm text-gray-600">
                   Bonjour, {profile?.first_name || user.email}
                 </span>
+                <Button variant="outline" onClick={handleDashboardClick}>
+                  Mon espace
+                </Button>
                 <Button variant="outline" onClick={handleSignOut} className="flex items-center space-x-2">
                   <LogOut className="w-4 h-4" />
                   <span>Déconnexion</span>
@@ -113,6 +126,9 @@ const Header = () => {
                     <span className="text-sm text-gray-600 mb-2">
                       Bonjour, {profile?.first_name || user.email}
                     </span>
+                    <Button variant="outline" onClick={handleDashboardClick} className="w-full">
+                      Mon espace
+                    </Button>
                     <Button variant="outline" onClick={handleSignOut} className="w-full">
                       <LogOut className="w-4 h-4 mr-2" />
                       Déconnexion

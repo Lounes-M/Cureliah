@@ -5,13 +5,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
   const handleDoctorClick = () => {
     if (user) {
-      // TODO: Navigate to doctor dashboard
-      console.log('Navigate to doctor dashboard');
+      if (profile?.user_type === 'doctor') {
+        navigate('/doctor/dashboard');
+      } else {
+        navigate('/profile/complete');
+      }
     } else {
       navigate('/auth');
     }
@@ -19,8 +22,11 @@ const HeroSection = () => {
 
   const handleEstablishmentClick = () => {
     if (user) {
-      // TODO: Navigate to establishment dashboard
-      console.log('Navigate to establishment dashboard');
+      if (profile?.user_type === 'establishment') {
+        navigate('/establishment/dashboard');
+      } else {
+        navigate('/profile/complete');
+      }
     } else {
       navigate('/auth');
     }
@@ -50,7 +56,7 @@ const HeroSection = () => {
                 className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <User className="w-5 h-5 mr-2" />
-                {user ? 'Mon espace médecin' : 'Je suis médecin'}
+                {user && profile?.user_type === 'doctor' ? 'Mon dashboard' : 'Je suis médecin'}
               </Button>
               <Button 
                 variant="outline" 
@@ -59,7 +65,7 @@ const HeroSection = () => {
                 className="border-medical-green text-medical-green hover:bg-medical-green hover:text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Building2 className="w-5 h-5 mr-2" />
-                {user ? 'Mon espace établissement' : 'Je suis un établissement'}
+                {user && profile?.user_type === 'establishment' ? 'Mon dashboard' : 'Je suis un établissement'}
               </Button>
             </div>
 
