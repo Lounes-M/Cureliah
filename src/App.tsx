@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import EstablishmentDashboard from "./pages/EstablishmentDashboard";
+import EstablishmentSearch from "./pages/EstablishmentSearch";
+import EstablishmentProfile from "./pages/EstablishmentProfile";
 import CreateVacation from "./pages/CreateVacation";
 import ManageVacations from "./pages/ManageVacations";
 import VacationDetails from "./pages/VacationDetails";
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
             <Route path="/establishment/dashboard" element={<EstablishmentDashboard />} />
+            <Route path="/establishment/search" element={<EstablishmentSearch />} />
+            <Route path="/establishment/profile" element={<EstablishmentProfile />} />
             <Route path="/doctor/create-vacation" element={<CreateVacation />} />
             <Route path="/doctor/manage-vacations" element={<ManageVacations />} />
             <Route path="/doctor/vacation/:vacationId" element={<VacationDetails />} />

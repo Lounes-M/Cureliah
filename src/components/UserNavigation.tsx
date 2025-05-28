@@ -136,10 +136,26 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/establishment/dashboard')}
+                          onClick={() => navigate('/establishment/search')}
                         >
                           <Search className="w-4 h-4 mr-2" />
                           Rechercher des médecins
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          className="justify-start"
+                          onClick={() => navigate('/establishment/profile')}
+                        >
+                          <User className="w-4 h-4 mr-2" />
+                          Mon profil
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          className="justify-start"
+                          onClick={() => navigate('/bookings')}
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Mes réservations
                         </Button>
                       </>
                     )}
@@ -171,7 +187,7 @@ const UserNavigation = () => {
                   </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile/complete')}>
+                <DropdownMenuItem onClick={() => navigate(profile?.user_type === 'doctor' ? '/profile/complete' : '/establishment/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profil</span>
                 </DropdownMenuItem>

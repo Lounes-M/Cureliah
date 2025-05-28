@@ -122,8 +122,8 @@ const EstablishmentDashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/search')}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/establishment/search')}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Rechercher des vacations</CardTitle>
               <Search className="h-4 w-4 text-medical-green" />
@@ -149,7 +149,7 @@ const EstablishmentDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/profile/complete')}>
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/establishment/profile')}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Mon profil</CardTitle>
               <Users className="h-4 w-4 text-medical-gray" />
@@ -158,6 +158,19 @@ const EstablishmentDashboard = () => {
               <div className="text-2xl font-bold text-medical-gray">Gérer</div>
               <p className="text-xs text-muted-foreground">
                 Modifier mes informations
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/establishment/search')}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Nouvelle recherche</CardTitle>
+              <TrendingUp className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">Démarrer</div>
+              <p className="text-xs text-muted-foreground">
+                Lancer une nouvelle recherche
               </p>
             </CardContent>
           </Card>
@@ -217,7 +230,7 @@ const EstablishmentDashboard = () => {
                   <p className="text-sm text-gray-600 mb-4">
                     Explorez les vacations disponibles et trouvez les médecins qui correspondent à vos besoins.
                   </p>
-                  <Button onClick={() => navigate('/search')} className="bg-medical-green hover:bg-medical-green-dark">
+                  <Button onClick={() => navigate('/establishment/search')} className="bg-medical-green hover:bg-medical-green-dark">
                     Rechercher des vacations
                   </Button>
                 </div>
@@ -228,6 +241,13 @@ const EstablishmentDashboard = () => {
                     <div>
                       <p className="text-sm font-medium">Complétez votre profil</p>
                       <p className="text-xs text-gray-600">Ajoutez plus d'informations pour attirer les médecins</p>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-xs text-medical-green"
+                        onClick={() => navigate('/establishment/profile')}
+                      >
+                        Gérer mon profil →
+                      </Button>
                     </div>
                   </div>
                   {stats.pendingBookings > 0 && (
@@ -236,6 +256,13 @@ const EstablishmentDashboard = () => {
                       <div>
                         <p className="text-sm font-medium">Réservations en attente</p>
                         <p className="text-xs text-gray-600">Vous avez {stats.pendingBookings} demande(s) en attente</p>
+                        <Button 
+                          variant="link" 
+                          className="p-0 h-auto text-xs text-yellow-600"
+                          onClick={() => navigate('/bookings')}
+                        >
+                          Voir mes réservations →
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -255,6 +282,13 @@ const EstablishmentDashboard = () => {
               <div className="text-center py-6 text-gray-500">
                 <Calendar className="w-8 h-8 mx-auto mb-2" />
                 <p className="text-sm">Aucune activité récente</p>
+                <Button 
+                  variant="link" 
+                  className="text-xs text-medical-blue mt-2"
+                  onClick={() => navigate('/establishment/search')}
+                >
+                  Commencer une recherche →
+                </Button>
               </div>
             </CardContent>
           </Card>
