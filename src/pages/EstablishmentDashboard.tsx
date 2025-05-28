@@ -436,7 +436,7 @@ const EstablishmentDashboard = () => {
                         )}
                       </CardContent>
                     </Card>
-                  )))}
+                  ))}
                 </div>
               )}
             </TabsContent>
