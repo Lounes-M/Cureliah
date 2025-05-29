@@ -27,13 +27,13 @@ export const BasicSearch = ({ filters, onFiltersChange }: BasicSearchProps) => {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Input
         placeholder="Rechercher par nom, titre..."
-        value={filters.searchQuery}
+        value={filters.searchQuery || ''}
         onChange={(e) => onFiltersChange({ searchQuery: e.target.value })}
         className="w-full"
       />
       
       <Select
-        value={filters.specialty}
+        value={filters.specialty || 'all'}
         onValueChange={(value) => onFiltersChange({ specialty: value })}
       >
         <SelectTrigger>
@@ -50,7 +50,7 @@ export const BasicSearch = ({ filters, onFiltersChange }: BasicSearchProps) => {
 
       <Input
         placeholder="Localisation"
-        value={filters.location}
+        value={filters.location || ''}
         onChange={(e) => onFiltersChange({ location: e.target.value })}
       />
     </div>

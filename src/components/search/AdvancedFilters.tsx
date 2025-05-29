@@ -82,7 +82,7 @@ export const AdvancedFilters = ({ filters, onFiltersChange }: AdvancedFiltersPro
         <div>
           <label className="text-sm font-medium mb-2 block">Statut</label>
           <Select
-            value={filters.availabilityStatus}
+            value={filters.availabilityStatus || 'all'}
             onValueChange={(value) => onFiltersChange({ availabilityStatus: value })}
           >
             <SelectTrigger>
