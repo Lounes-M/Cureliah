@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SearchFiltersType } from '@/components/SearchFilters';
+import { SearchFilters as SearchFiltersType } from '@/components/search/types';
 import { VacationPost } from '@/types/database';
 
 interface VacationPostWithProfile extends VacationPost {
