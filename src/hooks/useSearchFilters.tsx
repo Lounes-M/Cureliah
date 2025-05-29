@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SearchFilters } from '@/components/SearchFilters';
+import { SearchFiltersType } from '@/components/SearchFilters';
 import { VacationPost } from '@/types/database';
 
 interface VacationPostWithProfile extends VacationPost {
@@ -15,8 +15,8 @@ interface VacationPostWithProfile extends VacationPost {
   };
 }
 
-export function useSearchFilters(initialFilters?: Partial<SearchFilters>) {
-  const [filters, setFilters] = useState<SearchFilters>({
+export function useSearchFilters(initialFilters?: Partial<SearchFiltersType>) {
+  const [filters, setFilters] = useState<SearchFiltersType>({
     searchQuery: '',
     specialty: 'all',
     location: '',
@@ -32,7 +32,7 @@ export function useSearchFilters(initialFilters?: Partial<SearchFilters>) {
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
 
-  const searchVacations = async (searchFilters: SearchFilters, page = 0, limit = 20) => {
+  const searchVacations = async (searchFilters: SearchFiltersType, page = 0, limit = 20) => {
     setLoading(true);
     try {
       let query = supabase
@@ -115,12 +115,12 @@ export function useSearchFilters(initialFilters?: Partial<SearchFilters>) {
     searchVacations(filters);
   }, [filters]);
 
-  const updateFilters = (newFilters: SearchFilters) => {
+  const updateFilters = (newFilters: SearchFiltersType) => {
     setFilters(newFilters);
   };
 
   const clearFilters = () => {
-    const clearedFilters: SearchFilters = {
+    const clearedFilters: SearchFiltersType = {
       searchQuery: '',
       specialty: 'all',
       location: '',
