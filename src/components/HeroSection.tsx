@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { User, Building2, Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,27 +8,45 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleDoctorClick = () => {
-    console.log('Doctor button clicked', { user, profile });
+    console.log('Doctor button clicked - DEBUG INFO:');
+    console.log('- User:', user);
+    console.log('- Profile:', profile);
+    console.log('- User ID:', user?.id);
+    console.log('- Profile user_type:', profile?.user_type);
+    
     if (user) {
+      console.log('User is authenticated');
       if (profile?.user_type === 'doctor') {
+        console.log('Navigating to doctor dashboard');
         navigate('/doctor/dashboard');
       } else {
+        console.log('Navigating to profile completion');
         navigate('/profile/complete');
       }
     } else {
+      console.log('User not authenticated, navigating to auth');
       navigate('/auth');
     }
   };
 
   const handleEstablishmentClick = () => {
-    console.log('Establishment button clicked', { user, profile });
+    console.log('Establishment button clicked - DEBUG INFO:');
+    console.log('- User:', user);
+    console.log('- Profile:', profile);
+    console.log('- User ID:', user?.id);
+    console.log('- Profile user_type:', profile?.user_type);
+    
     if (user) {
+      console.log('User is authenticated');
       if (profile?.user_type === 'establishment') {
+        console.log('Navigating to establishment dashboard');
         navigate('/establishment/dashboard');
       } else {
+        console.log('Navigating to profile completion');
         navigate('/profile/complete');
       }
     } else {
+      console.log('User not authenticated, navigating to auth');
       navigate('/auth');
     }
   };
