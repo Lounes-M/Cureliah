@@ -61,17 +61,9 @@ const UserNavigation = () => {
 
   const handleNavigation = (path: string) => {
     console.log('Navigating to:', path);
-    console.log('User:', user);
-    console.log('Profile:', profile);
     
     if (!user) {
       navigate('/auth');
-      return;
-    }
-    
-    const userType = getUserType();
-    if (!userType) {
-      navigate('/profile/complete');
       return;
     }
     

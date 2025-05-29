@@ -14,27 +14,17 @@ const HeroSection = () => {
   };
 
   const handleDoctorClick = () => {
-    console.log('Doctor button clicked - DEBUG INFO:');
-    console.log('- User:', user);
-    console.log('- Profile:', profile);
-    console.log('- User ID:', user?.id);
-    console.log('- Profile user_type:', profile?.user_type);
-    console.log('- User metadata user_type:', user?.user_metadata?.user_type);
+    console.log('Doctor button clicked - User type:', getUserType());
     
     if (user) {
-      console.log('User is authenticated');
       const userType = getUserType();
-      console.log('Resolved user type:', userType);
       
       if (userType === 'doctor') {
         console.log('Navigating to doctor dashboard');
         navigate('/doctor/dashboard');
-      } else if (userType === 'establishment') {
-        console.log('User is establishment type, navigating to establishment dashboard');
-        navigate('/establishment/dashboard');
       } else {
-        console.log('No user type found, navigating to profile completion');
-        navigate('/profile/complete');
+        console.log('User is not a doctor, navigating to establishment dashboard');
+        navigate('/establishment/dashboard');
       }
     } else {
       console.log('User not authenticated, navigating to auth');
@@ -43,27 +33,17 @@ const HeroSection = () => {
   };
 
   const handleEstablishmentClick = () => {
-    console.log('Establishment button clicked - DEBUG INFO:');
-    console.log('- User:', user);
-    console.log('- Profile:', profile);
-    console.log('- User ID:', user?.id);
-    console.log('- Profile user_type:', profile?.user_type);
-    console.log('- User metadata user_type:', user?.user_metadata?.user_type);
+    console.log('Establishment button clicked - User type:', getUserType());
     
     if (user) {
-      console.log('User is authenticated');
       const userType = getUserType();
-      console.log('Resolved user type:', userType);
       
       if (userType === 'establishment') {
         console.log('Navigating to establishment dashboard');
         navigate('/establishment/dashboard');
-      } else if (userType === 'doctor') {
-        console.log('User is doctor type, navigating to doctor dashboard');
-        navigate('/doctor/dashboard');
       } else {
-        console.log('No user type found, navigating to profile completion');
-        navigate('/profile/complete');
+        console.log('User is not an establishment, navigating to doctor dashboard');
+        navigate('/doctor/dashboard');
       }
     } else {
       console.log('User not authenticated, navigating to auth');
