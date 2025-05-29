@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -83,12 +82,12 @@ const VacationSearch = () => {
     try {
       setSearchLoading(true);
       
-      let query = supabase
+      // First, get vacation posts with doctor_profiles relationship
+      let vacationQuery = supabase
         .from('vacation_posts')
         .select(`
           *,
-          doctor_profiles(bio, experience_years, license_number),
-          profiles(first_name, last_name)
+          doctor_profiles(bio, experience_years, license_number)
         `)
         .order('created_at', { ascending: false });
 
@@ -96,37 +95,58 @@ const VacationSearch = () => {
       const currentFilters = searchFilters || filters;
       
       if (currentFilters.speciality) {
-        query = query.eq('speciality', currentFilters.speciality);
+        vacationQuery = vacationQuery.eq('speciality', currentFilters.speciality);
       }
       
       if (currentFilters.location) {
-        query = query.ilike('location', `%${currentFilters.location}%`);
+        vacationQuery = vacationQuery.ilike('location', `%${currentFilters.location}%`);
       }
       
       if (currentFilters.minRate) {
-        query = query.gte('hourly_rate', parseFloat(currentFilters.minRate));
+        vacationQuery = vacationQuery.gte('hourly_rate', parseFloat(currentFilters.minRate));
       }
       
       if (currentFilters.maxRate) {
-        query = query.lte('hourly_rate', parseFloat(currentFilters.maxRate));
+        vacationQuery = vacationQuery.lte('hourly_rate', parseFloat(currentFilters.maxRate));
       }
       
       if (currentFilters.startDate) {
-        query = query.gte('start_date', currentFilters.startDate);
+        vacationQuery = vacationQuery.gte('start_date', currentFilters.startDate);
       }
       
       if (currentFilters.endDate) {
-        query = query.lte('end_date', currentFilters.endDate);
+        vacationQuery = vacationQuery.lte('end_date', currentFilters.endDate);
       }
 
-      const { data, error } = await query;
+      const { data: vacationsData, error: vacationsError } = await vacationQuery;
 
-      if (error) {
-        console.error('Error fetching vacations:', error);
-        throw error;
+      if (vacationsError) {
+        console.error('Error fetching vacations:', vacationsError);
+        throw vacationsError;
       }
 
-      setVacations(data || []);
+      // Then get doctor profile information separately
+      if (vacationsData && vacationsData.length > 0) {
+        const doctorIds = vacationsData.map(vacation => vacation.doctor_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', doctorIds);
+
+        if (profilesError) {
+          console.error('Error fetching profiles:', profilesError);
+        }
+
+        // Combine the data
+        const combinedData = vacationsData.map(vacation => ({
+          ...vacation,
+          profiles: profilesData?.find(profile => profile.id === vacation.doctor_id)
+        }));
+
+        setVacations(combinedData || []);
+      } else {
+        setVacations([]);
+      }
     } catch (error: any) {
       console.error('Error in fetchVacations:', error);
       toast({
