@@ -12,10 +12,12 @@ import NotificationCenter from '@/components/notifications/NotificationCenter';
 import DocumentManager from '@/components/documents/DocumentManager';
 import ReviewsRatings from '@/components/ReviewsRatings';
 import { useAuth } from '@/hooks/useAuth';
+import { useRecentVacations } from '@/hooks/useRecentVacations';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { vacations, loading } = useRecentVacations();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!user) {
@@ -101,14 +103,15 @@ const DoctorDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vacations récentes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <RecentVacations />
-                </CardContent>
-              </Card>
+              <RecentVacations 
+                vacations={vacations}
+                title="Vacations récentes"
+                emptyMessage="Aucune vacation créée"
+                onViewAll={() => navigate('/manage-vacations')}
+                showActions={true}
+                onActionClick={(vacation) => navigate(`/vacation/${vacation.id}`)}
+                actionLabel="Voir détails"
+              />
             </div>
           </TabsContent>
 
@@ -121,7 +124,14 @@ const DoctorDashboard = () => {
                   Nouvelle vacation
                 </Button>
               </div>
-              <RecentVacations />
+              <RecentVacations 
+                vacations={vacations}
+                title="Toutes mes vacations"
+                emptyMessage="Aucune vacation créée"
+                showActions={true}
+                onActionClick={(vacation) => navigate(`/vacation/${vacation.id}`)}
+                actionLabel="Gérer"
+              />
             </div>
           </TabsContent>
 
