@@ -1,248 +1,200 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Search, MessageCircle, User, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { MessageCircle, User } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Conversation {
-  booking_id: string;
-  other_user_id: string;
-  other_user_name: string;
-  other_user_type: 'doctor' | 'establishment';
-  vacation_title: string;
-  last_message: string;
-  last_message_at: string;
-  unread_count: number;
+  id: string;
+  name: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  participants: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 interface ConversationsListProps {
-  onSelectConversation: (conversation: Conversation) => void;
-  selectedBookingId?: string;
+  onConversationSelect: (conversationId: string) => void;
+  selectedConversationId?: string;
 }
 
-const ConversationsList = ({ onSelectConversation, selectedBookingId }: ConversationsListProps) => {
-  const { user, profile } = useAuth();
-  const { toast } = useToast();
+const ConversationsList = ({ onConversationSelect, selectedConversationId }: ConversationsListProps) => {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (user && profile) {
+    if (user) {
       fetchConversations();
-      subscribeToNewMessages();
     }
-  }, [user, profile]);
+  }, [user]);
 
   const fetchConversations = async () => {
-    if (!user || !profile) return;
+    if (!user) return;
 
     try {
-      // Get all bookings where the user is involved
-      const { data: bookings, error } = await supabase
-        .from('vacation_bookings')
+      console.log('Fetching conversations for user:', user.id);
+      
+      // Get all chat groups where the user is a member
+      const { data: groupMemberships, error: membershipError } = await supabase
+        .from('chat_group_members')
         .select(`
-          id,
-          doctor_id,
-          establishment_id,
-          vacation_post:vacation_posts!inner(title),
-          messages!inner(
-            content,
-            created_at,
-            sender_id,
-            read_at
+          group_id,
+          chat_groups (
+            id,
+            name,
+            description,
+            booking_id,
+            created_at
           )
         `)
-        .or(`doctor_id.eq.${user.id},establishment_id.eq.${user.id}`)
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id);
 
-      if (error) throw error;
-
-      // Transform bookings into conversations
-      const conversationsData: Conversation[] = [];
-      
-      for (const booking of bookings || []) {
-        const otherUserId = booking.doctor_id === user.id ? booking.establishment_id : booking.doctor_id;
-        const otherUserType = booking.doctor_id === user.id ? 'establishment' : 'doctor';
-        
-        // Get other user's profile
-        const { data: otherProfile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name')
-          .eq('id', otherUserId)
-          .single();
-
-        // Get last message and unread count
-        const messages = booking.messages || [];
-        const lastMessage = messages[messages.length - 1];
-        const unreadCount = messages.filter(
-          msg => msg.sender_id !== user.id && !msg.read_at
-        ).length;
-
-        if (messages.length > 0) {
-          conversationsData.push({
-            booking_id: booking.id,
-            other_user_id: otherUserId,
-            other_user_name: otherProfile ? 
-              `${otherProfile.first_name} ${otherProfile.last_name}` : 
-              'Utilisateur',
-            other_user_type: otherUserType,
-            vacation_title: Array.isArray(booking.vacation_post) 
-              ? booking.vacation_post[0]?.title || 'Vacation'
-              : booking.vacation_post?.title || 'Vacation',
-            last_message: lastMessage?.content || '',
-            last_message_at: lastMessage?.created_at || '',
-            unread_count
-          });
-        }
+      if (membershipError) {
+        console.error('Error fetching group memberships:', membershipError);
+        throw membershipError;
       }
 
-      setConversations(conversationsData);
+      if (!groupMemberships || groupMemberships.length === 0) {
+        console.log('No group memberships found');
+        setConversations([]);
+        return;
+      }
+
+      // Get the latest message for each group and unread count
+      const conversationsData = await Promise.all(
+        groupMemberships.map(async (membership: any) => {
+          const group = membership.chat_groups;
+          if (!group) return null;
+
+          // Get latest message
+          const { data: latestMessage } = await supabase
+            .from('messages')
+            .select('content, created_at, sender_id')
+            .eq('group_id', group.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          // Get unread message count
+          const { count: unreadCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', group.id)
+            .eq('receiver_id', user.id)
+            .is('read_at', null);
+
+          // Get other participants in the group
+          const { data: otherMembers } = await supabase
+            .from('chat_group_members')
+            .select(`
+              user_id,
+              profiles (
+                first_name,
+                last_name
+              )
+            `)
+            .eq('group_id', group.id)
+            .neq('user_id', user.id);
+
+          const participants = otherMembers?.map((member: any) => ({
+            id: member.user_id,
+            name: `${member.profiles?.first_name || ''} ${member.profiles?.last_name || ''}`.trim() || 'Utilisateur'
+          })) || [];
+
+          return {
+            id: group.id,
+            name: group.name || 'Conversation',
+            lastMessage: latestMessage?.content || 'Aucun message',
+            lastMessageTime: latestMessage?.created_at || group.created_at,
+            unreadCount: unreadCount || 0,
+            participants
+          };
+        })
+      );
+
+      const validConversations = conversationsData.filter(Boolean) as Conversation[];
+      console.log('Conversations loaded:', validConversations);
+      setConversations(validConversations);
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les conversations",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
   };
 
-  const subscribeToNewMessages = () => {
-    const channel = supabase
-      .channel('new-messages')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages'
-        },
-        () => {
-          fetchConversations(); // Refresh conversations when new message arrives
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.other_user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conversation.vacation_title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('fr-FR', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    } else {
-      return date.toLocaleDateString('fr-FR', { 
-        day: '2-digit', 
-        month: '2-digit' 
-      });
-    }
-  };
-
   if (loading) {
     return (
-      <Card className="h-full">
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="ml-2">Chargement...</span>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <MessageCircle className="w-5 h-5 mr-2" />
+            Conversations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-4">Chargement...</div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center space-x-2">
-          <MessageCircle className="w-5 h-5" />
-          <span>Conversations</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <MessageCircle className="w-5 h-5 mr-2" />
+          Conversations ({conversations.length})
         </CardTitle>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Rechercher une conversation..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
       </CardHeader>
-      
-      <CardContent className="space-y-2 max-h-96 overflow-y-auto">
-        {filteredConversations.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucune conversation</p>
+      <CardContent>
+        {conversations.length === 0 ? (
+          <div className="text-center py-8">
+            <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-600">Aucune conversation</p>
           </div>
         ) : (
-          filteredConversations.map((conversation) => (
-            <Button
-              key={conversation.booking_id}
-              variant={selectedBookingId === conversation.booking_id ? "default" : "ghost"}
-              className="w-full justify-start p-3 h-auto"
-              onClick={() => onSelectConversation(conversation)}
-            >
-              <div className="flex items-start space-x-3 w-full">
-                <Avatar className="w-10 h-10">
-                  <AvatarFallback>
-                    {conversation.other_user_type === 'doctor' ? (
-                      <User className="w-5 h-5" />
-                    ) : (
-                      <Building2 className="w-5 h-5" />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-sm font-medium truncate">
-                      {conversation.other_user_name}
-                    </h4>
-                    <div className="flex items-center space-x-1">
-                      {conversation.unread_count > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {conversation.unread_count}
+          <div className="space-y-2">
+            {conversations.map((conversation) => (
+              <Button
+                key={conversation.id}
+                variant={selectedConversationId === conversation.id ? "default" : "outline"}
+                className="w-full justify-start text-left h-auto p-3"
+                onClick={() => onConversationSelect(conversation.id)}
+              >
+                <div className="flex items-center space-x-3 w-full">
+                  <User className="w-8 h-8 text-gray-400" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium truncate">{conversation.name}</p>
+                      {conversation.unreadCount > 0 && (
+                        <Badge variant="destructive" className="ml-2">
+                          {conversation.unreadCount}
                         </Badge>
                       )}
-                      <span className="text-xs text-gray-500">
-                        {formatTime(conversation.last_message_at)}
-                      </span>
                     </div>
+                    <p className="text-sm text-gray-600 truncate">
+                      {conversation.lastMessage}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(conversation.lastMessageTime).toLocaleDateString('fr-FR')}
+                    </p>
+                    {conversation.participants.length > 0 && (
+                      <p className="text-xs text-gray-500">
+                        Avec: {conversation.participants.map(p => p.name).join(', ')}
+                      </p>
+                    )}
                   </div>
-                  
-                  <p className="text-xs text-gray-600 mb-1 truncate">
-                    {conversation.vacation_title}
-                  </p>
-                  
-                  <p className="text-xs text-gray-500 truncate">
-                    {conversation.last_message}
-                  </p>
                 </div>
-              </div>
-            </Button>
-          ))
+              </Button>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

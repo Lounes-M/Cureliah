@@ -41,7 +41,9 @@ const App = () => (
             <Route path="/doctor/vacation/:vacationId" element={<VacationDetails />} />
             <Route path="/doctor/vacation/:vacationId/edit" element={<CreateVacation />} />
             <Route path="/search" element={<VacationSearch />} />
+            <Route path="/vacation-search" element={<VacationSearch />} />
             <Route path="/bookings" element={<MyBookings />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/profile/complete" element={<ProfileComplete />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="*" element={<NotFound />} />
