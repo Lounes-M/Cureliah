@@ -24,7 +24,11 @@ const SearchFilters = ({ onFiltersChange, initialFilters }: SearchFiltersProps) 
   const updateFilters = (newFilters: Partial<SearchFiltersType>) => {
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
-    onFiltersChange(updatedFilters);
+    
+    // Always call the callback function to notify parent component
+    if (onFiltersChange) {
+      onFiltersChange(updatedFilters);
+    }
   };
 
   const clearFilters = () => {
@@ -39,19 +43,22 @@ const SearchFilters = ({ onFiltersChange, initialFilters }: SearchFiltersProps) 
       availabilityStatus: 'all'
     };
     setFilters(clearedFilters);
-    onFiltersChange(clearedFilters);
+    
+    if (onFiltersChange) {
+      onFiltersChange(clearedFilters);
+    }
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filters.searchQuery) count++;
-    if (filters.specialty !== 'all') count++;
-    if (filters.location) count++;
+    if (filters.searchQuery && filters.searchQuery.trim()) count++;
+    if (filters.specialty && filters.specialty !== 'all') count++;
+    if (filters.location && filters.location.trim()) count++;
     if (filters.dateRange.from || filters.dateRange.to) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 200) count++;
     if (filters.experienceYears > 0) count++;
     if (filters.rating > 0) count++;
-    if (filters.availabilityStatus !== 'all') count++;
+    if (filters.availabilityStatus && filters.availabilityStatus !== 'all') count++;
     return count;
   };
 

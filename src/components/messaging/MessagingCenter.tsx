@@ -6,23 +6,26 @@ import ConversationsList from './ConversationsList';
 import MessagingInterface from '../MessagingInterface';
 
 interface Conversation {
-  booking_id: string;
-  other_user_id: string;
-  other_user_name: string;
-  other_user_type: 'doctor' | 'establishment';
-  vacation_title: string;
-  last_message: string;
-  last_message_at: string;
-  unread_count: number;
+  id: string;
+  name: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unreadCount: number;
+  participants: Array<{
+    id: string;
+    name: string;
+  }>;
+  bookingId?: string;
 }
 
 const MessagingCenter = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 
-  const handleSelectConversation = (conversationId: string) => {
-    // Note: This would need to be updated to work with the actual conversation data
-    // For now, we'll need to adapt this based on how ConversationsList works
-    console.log('Selected conversation ID:', conversationId);
+  const handleSelectConversation = (conversationId: string, conversations: Conversation[]) => {
+    const conversation = conversations.find(c => c.id === conversationId);
+    if (conversation) {
+      setSelectedConversation(conversation);
+    }
   };
 
   return (
@@ -31,7 +34,7 @@ const MessagingCenter = () => {
       <div className="lg:col-span-1">
         <ConversationsList
           onConversationSelect={handleSelectConversation}
-          selectedConversationId={selectedConversation?.booking_id}
+          selectedConversationId={selectedConversation?.id}
         />
       </div>
 
@@ -39,10 +42,10 @@ const MessagingCenter = () => {
       <div className="lg:col-span-2">
         {selectedConversation ? (
           <MessagingInterface
-            bookingId={selectedConversation.booking_id}
-            receiverId={selectedConversation.other_user_id}
-            receiverName={selectedConversation.other_user_name}
-            receiverType={selectedConversation.other_user_type}
+            bookingId={selectedConversation.bookingId || selectedConversation.id}
+            receiverId={selectedConversation.participants[0]?.id || ''}
+            receiverName={selectedConversation.participants[0]?.name || selectedConversation.name}
+            receiverType="doctor"
           />
         ) : (
           <Card className="h-full">

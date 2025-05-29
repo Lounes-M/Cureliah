@@ -17,7 +17,7 @@ import { useRecentBookings } from '@/hooks/useRecentBookings';
 
 const EstablishmentDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { bookings, loading } = useRecentBookings();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -27,6 +27,18 @@ const EstablishmentDashboard = () => {
         <Header />
         <div className="flex items-center justify-center h-96">
           <div className="text-lg">Veuillez vous connecter pour accéder au tableau de bord</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is establishment
+  if (profile && profile.user_type !== 'establishment') {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-lg">Accès réservé aux établissements</div>
         </div>
       </div>
     );

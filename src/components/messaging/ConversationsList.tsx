@@ -17,10 +17,11 @@ interface Conversation {
     id: string;
     name: string;
   }>;
+  bookingId?: string;
 }
 
 interface ConversationsListProps {
-  onConversationSelect: (conversationId: string) => void;
+  onConversationSelect: (conversationId: string, conversations: Conversation[]) => void;
   selectedConversationId?: string;
 }
 
@@ -41,92 +42,92 @@ const ConversationsList = ({ onConversationSelect, selectedConversationId }: Con
     try {
       console.log('Fetching conversations for user:', user.id);
       
-      // Get all chat groups where the user is a member
-      const { data: groupMemberships, error: membershipError } = await supabase
-        .from('chat_group_members')
+      // Get bookings where user is involved (as establishment or doctor)
+      const { data: bookings, error: bookingsError } = await supabase
+        .from('vacation_bookings')
         .select(`
-          group_id,
-          chat_groups (
-            id,
-            name,
-            description,
-            booking_id,
-            created_at
+          id,
+          doctor_id,
+          establishment_id,
+          created_at,
+          vacation_post:vacation_posts(
+            title
           )
         `)
-        .eq('user_id', user.id);
+        .or(`doctor_id.eq.${user.id},establishment_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
 
-      if (membershipError) {
-        console.error('Error fetching group memberships:', membershipError);
-        throw membershipError;
+      if (bookingsError) {
+        console.error('Error fetching bookings:', bookingsError);
+        throw bookingsError;
       }
 
-      if (!groupMemberships || groupMemberships.length === 0) {
-        console.log('No group memberships found');
+      if (!bookings || bookings.length === 0) {
+        console.log('No bookings found');
         setConversations([]);
         return;
       }
 
-      // Get the latest message for each group and unread count
+      // Get conversations based on bookings
       const conversationsData = await Promise.all(
-        groupMemberships.map(async (membership: any) => {
-          const group = membership.chat_groups;
-          if (!group) return null;
+        bookings.map(async (booking: any) => {
+          // Determine the other user
+          const otherUserId = booking.doctor_id === user.id ? booking.establishment_id : booking.doctor_id;
+          
+          // Get other user profile
+          const { data: otherUserProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', otherUserId)
+            .single();
 
-          // Get latest message
+          // Get latest message for this booking
           const { data: latestMessage } = await supabase
             .from('messages')
             .select('content, created_at, sender_id')
-            .eq('group_id', group.id)
+            .eq('booking_id', booking.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           // Get unread message count
           const { count: unreadCount } = await supabase
             .from('messages')
             .select('*', { count: 'exact', head: true })
-            .eq('group_id', group.id)
+            .eq('booking_id', booking.id)
             .eq('receiver_id', user.id)
             .is('read_at', null);
 
-          // Get other participants in the group
-          const { data: otherMembers } = await supabase
-            .from('chat_group_members')
-            .select(`
-              user_id,
-              profiles (
-                first_name,
-                last_name
-              )
-            `)
-            .eq('group_id', group.id)
-            .neq('user_id', user.id);
-
-          const participants = otherMembers?.map((member: any) => ({
-            id: member.user_id,
-            name: `${member.profiles?.first_name || ''} ${member.profiles?.last_name || ''}`.trim() || 'Utilisateur'
-          })) || [];
+          const otherUserName = otherUserProfile 
+            ? `${otherUserProfile.first_name || ''} ${otherUserProfile.last_name || ''}`.trim() || 'Utilisateur'
+            : 'Utilisateur';
 
           return {
-            id: group.id,
-            name: group.name || 'Conversation',
+            id: booking.id,
+            name: booking.vacation_post?.title || 'Conversation',
             lastMessage: latestMessage?.content || 'Aucun message',
-            lastMessageTime: latestMessage?.created_at || group.created_at,
+            lastMessageTime: latestMessage?.created_at || booking.created_at,
             unreadCount: unreadCount || 0,
-            participants
+            participants: [{
+              id: otherUserId,
+              name: otherUserName
+            }],
+            bookingId: booking.id
           };
         })
       );
 
-      const validConversations = conversationsData.filter(Boolean) as Conversation[];
-      console.log('Conversations loaded:', validConversations);
-      setConversations(validConversations);
+      console.log('Conversations loaded:', conversationsData);
+      setConversations(conversationsData);
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConversationClick = (conversationId: string) => {
+    onConversationSelect(conversationId, conversations);
   };
 
   if (loading) {
@@ -158,6 +159,9 @@ const ConversationsList = ({ onConversationSelect, selectedConversationId }: Con
           <div className="text-center py-8">
             <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
             <p className="text-gray-600">Aucune conversation</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Les conversations apparaîtront ici une fois que vous aurez des réservations actives.
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -166,15 +170,15 @@ const ConversationsList = ({ onConversationSelect, selectedConversationId }: Con
                 key={conversation.id}
                 variant={selectedConversationId === conversation.id ? "default" : "outline"}
                 className="w-full justify-start text-left h-auto p-3"
-                onClick={() => onConversationSelect(conversation.id)}
+                onClick={() => handleConversationClick(conversation.id)}
               >
                 <div className="flex items-center space-x-3 w-full">
-                  <User className="w-8 h-8 text-gray-400" />
+                  <User className="w-8 h-8 text-gray-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="font-medium truncate">{conversation.name}</p>
                       {conversation.unreadCount > 0 && (
-                        <Badge variant="destructive" className="ml-2">
+                        <Badge variant="destructive" className="ml-2 flex-shrink-0">
                           {conversation.unreadCount}
                         </Badge>
                       )}
