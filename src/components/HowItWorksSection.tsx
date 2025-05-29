@@ -5,6 +5,11 @@ import { useNavigate } from "react-router-dom";
 const HowItWorksSection = () => {
   const navigate = useNavigate();
 
+  const handleAuthNavigation = () => {
+    console.log('Auth navigation clicked');
+    navigate('/auth');
+  };
+
   return (
     <section id="fonctionnement" className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -113,13 +118,13 @@ const HowItWorksSection = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => navigate('/auth')}
+                onClick={handleAuthNavigation}
                 className="bg-white text-medical-blue px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 Inscription médecin
               </button>
               <button 
-                onClick={() => navigate('/auth')}
+                onClick={handleAuthNavigation}
                 className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-medical-blue transition-colors"
               >
                 Inscription établissement

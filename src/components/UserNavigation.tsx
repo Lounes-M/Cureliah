@@ -54,6 +54,24 @@ const UserNavigation = () => {
     }
   };
 
+  const handleNavigation = (path: string) => {
+    console.log('Navigating to:', path);
+    console.log('User:', user);
+    console.log('Profile:', profile);
+    
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    
+    if (!profile) {
+      navigate('/profile/complete');
+      return;
+    }
+    
+    navigate(path);
+  };
+
   const getUserInitials = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
@@ -109,7 +127,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/doctor/dashboard')}
+                          onClick={() => handleNavigation('/doctor/dashboard')}
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Tableau de bord
@@ -117,7 +135,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/vacation/create')}
+                          onClick={() => handleNavigation('/doctor/create-vacation')}
                         >
                           <Plus className="w-4 h-4 mr-2" />
                           Nouvelle vacation
@@ -128,7 +146,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/establishment/dashboard')}
+                          onClick={() => handleNavigation('/establishment/dashboard')}
                         >
                           <Building2 className="w-4 h-4 mr-2" />
                           Tableau de bord
@@ -136,7 +154,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/establishment/search')}
+                          onClick={() => handleNavigation('/establishment/search')}
                         >
                           <Search className="w-4 h-4 mr-2" />
                           Rechercher des médecins
@@ -144,7 +162,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/establishment/profile')}
+                          onClick={() => handleNavigation('/establishment/profile')}
                         >
                           <User className="w-4 h-4 mr-2" />
                           Mon profil
@@ -152,7 +170,7 @@ const UserNavigation = () => {
                         <Button 
                           variant="ghost" 
                           className="justify-start"
-                          onClick={() => navigate('/bookings')}
+                          onClick={() => handleNavigation('/bookings')}
                         >
                           <Calendar className="w-4 h-4 mr-2" />
                           Mes réservations
@@ -187,7 +205,7 @@ const UserNavigation = () => {
                   </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate(profile?.user_type === 'doctor' ? '/profile/complete' : '/establishment/profile')}>
+                <DropdownMenuItem onClick={() => handleNavigation(profile?.user_type === 'doctor' ? '/profile/complete' : '/establishment/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profil</span>
                 </DropdownMenuItem>

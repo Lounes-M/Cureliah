@@ -9,6 +9,7 @@ const HeroSection = () => {
   const navigate = useNavigate();
 
   const handleDoctorClick = () => {
+    console.log('Doctor button clicked', { user, profile });
     if (user) {
       if (profile?.user_type === 'doctor') {
         navigate('/doctor/dashboard');
@@ -21,6 +22,7 @@ const HeroSection = () => {
   };
 
   const handleEstablishmentClick = () => {
+    console.log('Establishment button clicked', { user, profile });
     if (user) {
       if (profile?.user_type === 'establishment') {
         navigate('/establishment/dashboard');
