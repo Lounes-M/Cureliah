@@ -54,6 +54,11 @@ const UserNavigation = () => {
     }
   };
 
+  const getUserType = () => {
+    // First check profile, then fallback to user metadata
+    return profile?.user_type || user?.user_metadata?.user_type;
+  };
+
   const handleNavigation = (path: string) => {
     console.log('Navigating to:', path);
     console.log('User:', user);
@@ -64,7 +69,8 @@ const UserNavigation = () => {
       return;
     }
     
-    if (!profile) {
+    const userType = getUserType();
+    if (!userType) {
       navigate('/profile/complete');
       return;
     }
@@ -76,6 +82,9 @@ const UserNavigation = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
     }
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`.toUpperCase();
+    }
     return user?.email?.[0].toUpperCase() || 'U';
   };
 
@@ -83,8 +92,13 @@ const UserNavigation = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
+    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
+      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
+    }
     return user?.email || 'Utilisateur';
   };
+
+  const userType = getUserType();
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -108,7 +122,7 @@ const UserNavigation = () => {
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger className="text-gray-600 hover:text-medical-blue">
-                  {profile?.user_type === 'doctor' ? (
+                  {userType === 'doctor' ? (
                     <>
                       <Stethoscope className="w-4 h-4 mr-2" />
                       Espace Médecin
@@ -122,7 +136,7 @@ const UserNavigation = () => {
                 </NavigationMenuTrigger>
                 <NavigationMenuContent className="bg-white shadow-lg border rounded-lg p-4 min-w-64">
                   <div className="grid gap-3">
-                    {profile?.user_type === 'doctor' ? (
+                    {userType === 'doctor' ? (
                       <>
                         <Button 
                           variant="ghost" 
@@ -201,11 +215,11 @@ const UserNavigation = () => {
                 <div className="flex flex-col space-y-1 p-2">
                   <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {profile?.user_type === 'doctor' ? 'Médecin' : 'Établissement'}
+                    {userType === 'doctor' ? 'Médecin' : 'Établissement'}
                   </p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleNavigation(profile?.user_type === 'doctor' ? '/profile/complete' : '/establishment/profile')}>
+                <DropdownMenuItem onClick={() => handleNavigation(userType === 'doctor' ? '/profile/complete' : '/establishment/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Profil</span>
                 </DropdownMenuItem>

@@ -23,6 +23,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const createMissingProfile = async (user: User) => {
+    console.log('Creating missing profile for user:', user.id)
+    try {
+      const userData = user.user_metadata || {}
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          first_name: userData.first_name || '',
+          last_name: userData.last_name || '',
+          user_type: userData.user_type || 'doctor'
+        })
+      
+      if (error) {
+        console.error('Error creating profile:', error)
+      } else {
+        console.log('Profile created successfully')
+        // Fetch the profile again after creation
+        await fetchProfile()
+      }
+    } catch (error) {
+      console.error('Error creating missing profile:', error)
+    }
+  }
+
   const fetchProfile = async () => {
     if (!user) {
       setProfile(null)
@@ -39,10 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         console.error('Error fetching profile:', error)
-        if (error.code !== 'PGRST116') { // PGRST116 means no rows returned
+        if (error.code === 'PGRST116') { // No rows returned
+          console.log('Profile not found, creating one...')
+          await createMissingProfile(user)
+        } else {
           throw error
         }
-        // If no profile found, set to null
         setProfile(null)
       } else {
         console.log('Profile fetched successfully:', data)
