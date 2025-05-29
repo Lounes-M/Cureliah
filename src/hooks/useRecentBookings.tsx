@@ -19,16 +19,16 @@ interface BookingWithVacation {
 }
 
 export function useRecentBookings() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<BookingWithVacation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user && user.user_type === 'establishment') {
+    if (user && profile && profile.user_type === 'establishment') {
       fetchBookings();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -41,7 +41,7 @@ export function useRecentBookings() {
           status,
           created_at,
           total_amount,
-          vacation_post:vacation_posts (
+          vacation_post:vacation_posts!inner (
             title,
             speciality,
             start_date,
@@ -54,7 +54,15 @@ export function useRecentBookings() {
         .limit(5);
 
       if (error) throw error;
-      setBookings(data || []);
+      
+      const formattedBookings = data?.map(booking => ({
+        ...booking,
+        vacation_post: Array.isArray(booking.vacation_post) 
+          ? booking.vacation_post[0] 
+          : booking.vacation_post
+      })) as BookingWithVacation[];
+      
+      setBookings(formattedBookings || []);
     } catch (error: any) {
       console.error('Error fetching bookings:', error);
       toast({

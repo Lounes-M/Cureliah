@@ -6,19 +6,19 @@ import { useToast } from '@/hooks/use-toast';
 import { VacationPost } from '@/types/database';
 
 export function useRecentVacations() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       fetchVacations();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const fetchVacations = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     try {
       let query = supabase
@@ -28,7 +28,7 @@ export function useRecentVacations() {
         .limit(5);
 
       // For doctors, show their own vacations
-      if (user.user_type === 'doctor') {
+      if (profile.user_type === 'doctor') {
         query = query.eq('doctor_id', user.id);
       }
 

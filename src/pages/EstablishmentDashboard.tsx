@@ -11,6 +11,7 @@ import DashboardStats from '@/components/dashboard/DashboardStats';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
 import DocumentManager from '@/components/documents/DocumentManager';
 import ReviewsRatings from '@/components/ReviewsRatings';
+import MessagingCenter from '@/components/messaging/MessagingCenter';
 import { useAuth } from '@/hooks/useAuth';
 import { useRecentBookings } from '@/hooks/useRecentBookings';
 
@@ -209,17 +210,7 @@ const EstablishmentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="messages">
-            <Card>
-              <CardHeader>
-                <CardTitle>Centre de messages</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Sélectionnez une réservation pour voir les messages</p>
-                </div>
-              </CardContent>
-            </Card>
+            <MessagingCenter />
           </TabsContent>
 
           <TabsContent value="documents">
