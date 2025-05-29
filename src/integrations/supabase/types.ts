@@ -303,6 +303,7 @@ export type Database = {
           city: string | null
           created_at: string | null
           description: string | null
+          establishment_type: string | null
           id: string
           is_verified: boolean | null
           logo_url: string | null
@@ -316,6 +317,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          establishment_type?: string | null
           id: string
           is_verified?: boolean | null
           logo_url?: string | null
@@ -329,6 +331,7 @@ export type Database = {
           city?: string | null
           created_at?: string | null
           description?: string | null
+          establishment_type?: string | null
           id?: string
           is_verified?: boolean | null
           logo_url?: string | null

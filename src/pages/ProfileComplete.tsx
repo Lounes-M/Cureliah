@@ -199,7 +199,7 @@ const ProfileComplete = () => {
     
     const profileData = {
       name: establishmentData.name,
-      establishment_type: establishmentData.establishment_type as any,
+      establishment_type: establishmentData.establishment_type,
       siret: establishmentData.siret || null,
       address: establishmentData.address || null,
       city: establishmentData.city || null,
