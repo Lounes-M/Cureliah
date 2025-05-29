@@ -4,19 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MessageSquare } from 'lucide-react';
 import ConversationsList from './ConversationsList';
 import MessagingInterface from '../MessagingInterface';
-
-interface Conversation {
-  id: string;
-  name: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  participants: Array<{
-    id: string;
-    name: string;
-  }>;
-  bookingId?: string;
-}
+import { Conversation } from '@/hooks/useConversations';
 
 const MessagingCenter = () => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
