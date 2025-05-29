@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { User, Building2, Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,20 +8,32 @@ const HeroSection = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
 
+  const getUserType = () => {
+    // First check profile, then fallback to user metadata
+    return profile?.user_type || user?.user_metadata?.user_type;
+  };
+
   const handleDoctorClick = () => {
     console.log('Doctor button clicked - DEBUG INFO:');
     console.log('- User:', user);
     console.log('- Profile:', profile);
     console.log('- User ID:', user?.id);
     console.log('- Profile user_type:', profile?.user_type);
+    console.log('- User metadata user_type:', user?.user_metadata?.user_type);
     
     if (user) {
       console.log('User is authenticated');
-      if (profile?.user_type === 'doctor') {
+      const userType = getUserType();
+      console.log('Resolved user type:', userType);
+      
+      if (userType === 'doctor') {
         console.log('Navigating to doctor dashboard');
         navigate('/doctor/dashboard');
+      } else if (userType === 'establishment') {
+        console.log('User is establishment type, navigating to establishment dashboard');
+        navigate('/establishment/dashboard');
       } else {
-        console.log('Navigating to profile completion');
+        console.log('No user type found, navigating to profile completion');
         navigate('/profile/complete');
       }
     } else {
@@ -35,14 +48,21 @@ const HeroSection = () => {
     console.log('- Profile:', profile);
     console.log('- User ID:', user?.id);
     console.log('- Profile user_type:', profile?.user_type);
+    console.log('- User metadata user_type:', user?.user_metadata?.user_type);
     
     if (user) {
       console.log('User is authenticated');
-      if (profile?.user_type === 'establishment') {
+      const userType = getUserType();
+      console.log('Resolved user type:', userType);
+      
+      if (userType === 'establishment') {
         console.log('Navigating to establishment dashboard');
         navigate('/establishment/dashboard');
+      } else if (userType === 'doctor') {
+        console.log('User is doctor type, navigating to doctor dashboard');
+        navigate('/doctor/dashboard');
       } else {
-        console.log('Navigating to profile completion');
+        console.log('No user type found, navigating to profile completion');
         navigate('/profile/complete');
       }
     } else {
@@ -50,6 +70,8 @@ const HeroSection = () => {
       navigate('/auth');
     }
   };
+
+  const userType = getUserType();
 
   return (
     <section className="bg-gradient-to-br from-medical-blue-light via-white to-medical-green-light min-h-[80vh] flex items-center">
@@ -75,7 +97,7 @@ const HeroSection = () => {
                 className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <User className="w-5 h-5 mr-2" />
-                {user && profile?.user_type === 'doctor' ? 'Mon dashboard' : 'Je suis médecin'}
+                {user && userType === 'doctor' ? 'Mon dashboard' : 'Je suis médecin'}
               </Button>
               <Button 
                 variant="outline" 
@@ -84,7 +106,7 @@ const HeroSection = () => {
                 className="border-medical-green text-medical-green hover:bg-medical-green hover:text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Building2 className="w-5 h-5 mr-2" />
-                {user && profile?.user_type === 'establishment' ? 'Mon dashboard' : 'Je suis un établissement'}
+                {user && userType === 'establishment' ? 'Mon dashboard' : 'Je suis un établissement'}
               </Button>
             </div>
 
