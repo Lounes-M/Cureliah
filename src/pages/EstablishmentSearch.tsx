@@ -111,13 +111,27 @@ const EstablishmentSearch = () => {
       }
 
       // Combiner les données
-      const combinedVacations = vacationsData.map(vacation => ({
-        ...vacation,
-        doctor_info: {
-          ...(doctorsData && doctorsData.length > 0 ? doctorsData.find(doc => doc.id === vacation.doctor_id) : {}),
-          ...(doctorProfiles && doctorProfiles.length > 0 ? doctorProfiles.find(dp => dp.id === vacation.doctor_id) : {})
-        } || null
-      }));
+      const combinedVacations = vacationsData.map(vacation => {
+        const doctorProfile = doctorsData && doctorsData.length > 0 
+          ? doctorsData.find(doc => doc.id === vacation.doctor_id) 
+          : null;
+        
+        const doctorDetailedProfile = doctorProfiles && doctorProfiles.length > 0 
+          ? doctorProfiles.find(dp => dp.id === vacation.doctor_id) 
+          : null;
+
+        const doctor_info = doctorProfile ? {
+          id: doctorProfile.id,
+          first_name: doctorProfile.first_name,
+          last_name: doctorProfile.last_name,
+          experience_years: doctorDetailedProfile?.experience_years
+        } : null;
+
+        return {
+          ...vacation,
+          doctor_info
+        };
+      });
 
       setVacations(combinedVacations as VacationWithDoctor[]);
     } catch (error: any) {
