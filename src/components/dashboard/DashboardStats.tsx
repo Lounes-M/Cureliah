@@ -1,7 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   Calendar, 
   Users, 
@@ -72,7 +70,8 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
       const { data: documents } = await supabase
         .from('documents')
         .select('id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
       // Fetch unread messages
       const { data: unreadMessages } = await supabase
@@ -164,10 +163,10 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {[...Array(7)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="h-8 bg-gray-200 rounded w-1/2"></div>
             </CardContent>
@@ -178,23 +177,23 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {statCards.map((stat, index) => {
         const IconComponent = stat.icon;
         return (
-          <Card key={index}>
-            <CardContent className="p-6">
+          <Card key={index} className="overflow-hidden">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-muted-foreground mb-1 truncate">{stat.title}</p>
                   <div className="flex items-baseline">
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                    <p className="text-2xl font-bold truncate">{stat.value}</p>
                     {stat.suffix && (
-                      <p className="ml-2 text-sm text-gray-500">{stat.suffix}</p>
+                      <span className="ml-2 text-sm text-muted-foreground">{stat.suffix}</span>
                     )}
                   </div>
                 </div>
-                <div className={`${stat.bgColor} p-3 rounded-full`}>
+                <div className={`${stat.bgColor} p-3 rounded-full flex-shrink-0 ml-4`}>
                   <IconComponent className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>

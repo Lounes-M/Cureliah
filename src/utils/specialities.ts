@@ -1,4 +1,3 @@
-
 export const SPECIALITIES = {
   cardiology: {
     label: 'Cardiologie',
@@ -75,7 +74,7 @@ export const ESTABLISHMENT_TYPES = {
   }
 } as const;
 
-export const getSpecialityInfo = (speciality: string) => {
+export const getSpecialityInfo = (speciality: string): { label: string; description: string; color: string } => {
   return SPECIALITIES[speciality as keyof typeof SPECIALITIES] || {
     label: speciality,
     description: '',

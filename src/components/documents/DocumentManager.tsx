@@ -1,71 +1,51 @@
-
-import { useState, useEffect } from 'react';
-import { Upload, File, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { Document, uploadDocument, getDocuments, deleteDocument } from '@/services/documents';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { File, Trash2, Download, Upload, Loader2, Folder, Search, Filter } from 'lucide-react';
+import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-interface Document {
+interface DocumentCategory {
   id: string;
   name: string;
-  file_path: string;
-  file_type: string;
-  file_size: number;
-  category: 'general' | 'contract' | 'license' | 'insurance' | 'identity';
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  updated_at: string;
+  icon: React.ReactNode;
 }
 
-interface DocumentManagerProps {
-  bookingId?: string;
-  category?: string;
-}
+const DOCUMENT_CATEGORIES: DocumentCategory[] = [
+  { id: 'all', name: 'Tous les documents', icon: <File className="w-4 h-4" /> },
+  { id: 'diplomas', name: 'Diplômes', icon: <File className="w-4 h-4" /> },
+  { id: 'certifications', name: 'Certifications', icon: <File className="w-4 h-4" /> },
+  { id: 'contracts', name: 'Contrats', icon: <File className="w-4 h-4" /> },
+  { id: 'other', name: 'Autres', icon: <File className="w-4 h-4" /> }
+];
 
-const DocumentManager = ({ bookingId, category }: DocumentManagerProps) => {
+export default function DocumentManager() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState(category || 'general');
-
-  const categories = {
-    general: 'Général',
-    contract: 'Contrat',
-    license: 'Licence',
-    insurance: 'Assurance',
-    identity: 'Identité'
-  };
-
-  useEffect(() => {
-    fetchDocuments();
-  }, [bookingId]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('date');
 
   const fetchDocuments = async () => {
     if (!user) return;
 
     try {
-      let query = supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('documents')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
-      if (bookingId) {
-        query = query.eq('booking_id', bookingId);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setDocuments(data || []);
@@ -73,7 +53,7 @@ const DocumentManager = ({ bookingId, category }: DocumentManagerProps) => {
       console.error('Error fetching documents:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les documents",
+        description: error.message || "Impossible de charger les documents",
         variant: "destructive"
       });
     } finally {
@@ -81,42 +61,76 @@ const DocumentManager = ({ bookingId, category }: DocumentManagerProps) => {
     }
   };
 
-  const handleFileUpload = async () => {
-    if (!selectedFile || !user) return;
+  useEffect(() => {
+    if (user) {
+      fetchDocuments();
+    }
+  }, [user]);
 
-    setUploading(true);
+  const handleUpload = async (file: File) => {
+    if (!user) return;
+
+    // Vérification de la taille du fichier (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Erreur",
+        description: "Le fichier ne doit pas dépasser 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Vérification du type de fichier
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Erreur",
+        description: "Type de fichier non supporté. Formats acceptés : PDF, JPEG, PNG, DOC, DOCX",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
-      // For now, we'll create a document record without actual file upload
-      // In a real implementation, you would upload to Supabase Storage first
-      const filePath = `documents/${user.id}/${Date.now()}_${selectedFile.name}`;
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-      const { error } = await supabase
+      // Upload du fichier
+      const { error: uploadError } = await supabase.storage
         .from('documents')
-        .insert({
-          user_id: user.id,
-          booking_id: bookingId || null,
-          name: selectedFile.name,
-          file_path: filePath,
-          file_type: selectedFile.type,
-          file_size: selectedFile.size,
-          category: selectedCategory,
-          status: 'pending'
-        });
+        .upload(filePath, file);
 
-      if (error) throw error;
+      if (uploadError) throw uploadError;
+
+      // Création de l'entrée dans la base de données
+      const { error: dbError } = await supabase
+        .from('documents')
+        .insert([
+          {
+            user_id: user.id,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: filePath,
+            category: selectedCategory === 'all' ? 'other' : selectedCategory
+          }
+        ]);
+
+      if (dbError) throw dbError;
 
       toast({
         title: "Succès",
-        description: "Document uploadé avec succès"
+        description: "Document téléchargé avec succès"
       });
 
-      setSelectedFile(null);
       fetchDocuments();
     } catch (error: any) {
       console.error('Error uploading document:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'uploader le document",
+        description: error.message || "Erreur lors du téléchargement du document",
         variant: "destructive"
       });
     } finally {
@@ -124,15 +138,27 @@ const DocumentManager = ({ bookingId, category }: DocumentManagerProps) => {
     }
   };
 
-  const deleteDocument = async (documentId: string) => {
+  const handleDelete = async (documentId: string, filePath: string) => {
+    if (!user) return;
+
     try {
-      const { error } = await supabase
+      setLoading(true);
+
+      // Suppression du fichier du stockage
+      const { error: storageError } = await supabase.storage
+        .from('documents')
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Suppression de l'entrée dans la base de données
+      const { error: dbError } = await supabase
         .from('documents')
         .delete()
         .eq('id', documentId)
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
 
       toast({
         title: "Succès",
@@ -144,150 +170,188 @@ const DocumentManager = ({ bookingId, category }: DocumentManagerProps) => {
       console.error('Error deleting document:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le document",
+        description: error.message || "Erreur lors de la suppression du document",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .download(filePath);
+
+      if (error) throw error;
+
+      // Création d'un lien de téléchargement
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Error downloading document:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors du téléchargement du document",
         variant: "destructive"
       });
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'rejected':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-yellow-500" />;
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return 'Approuvé';
-      case 'rejected':
-        return 'Rejeté';
-      default:
-        return 'En attente';
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  const filteredDocuments = documents
+    .filter(doc => selectedCategory === 'all' || doc.category === selectedCategory)
+    .filter(doc => doc.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === 'date') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      return a.name.localeCompare(b.name);
+    });
 
   if (loading) {
-    return <div className="text-center py-8">Chargement des documents...</div>;
+    return (
+      <div className="flex items-center justify-center h-40">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <span className="ml-2">Chargement des documents...</span>
+      </div>
+    );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <File className="w-5 h-5" />
-          <span>Gestionnaire de documents</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Upload Section */}
-        <div className="border border-dashed border-gray-300 rounded-lg p-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="file">Sélectionner un fichier</Label>
-              <Input
-                id="file"
-                type="file"
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Catégorie</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(categories).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              onClick={handleFileUpload}
-              disabled={!selectedFile || uploading}
-              className="w-full"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {uploading ? 'Upload en cours...' : 'Uploader le document'}
-            </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Documents</h2>
+        <div className="flex items-center space-x-4">
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Trier par" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date">Date</SelectItem>
+              <SelectItem value="name">Nom</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="relative">
+            <Input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files) {
+                  const file = e.target.files[0];
+                  handleUpload(file);
+                }
+              }}
+              className="hidden"
+              id="file-upload"
+              disabled={uploading}
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+            />
+            <label htmlFor="file-upload">
+              <Button
+                variant="outline"
+                className="cursor-pointer"
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Téléchargement...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Télécharger un document
+                  </>
+                )}
+              </Button>
+            </label>
           </div>
         </div>
+      </div>
 
-        {/* Documents List */}
-        <div className="space-y-4">
-          <h3 className="font-semibold">Documents uploadés</h3>
-          {documents.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <File className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Aucun document uploadé</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {documents.map((document) => (
-                <div
-                  key={document.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <File className="w-8 h-8 text-gray-500" />
-                    <div>
-                      <p className="font-medium">{document.name}</p>
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
-                        <Badge variant="outline">
-                          {categories[document.category as keyof typeof categories]}
-                        </Badge>
-                        <span>{formatFileSize(document.file_size)}</span>
-                        <span>
-                          {formatDistanceToNow(new Date(document.created_at), {
-                            addSuffix: true,
-                            locale: fr
-                          })}
-                        </span>
+      <div className="flex items-center space-x-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Rechercher un document..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
+
+      <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
+        <TabsList>
+          {DOCUMENT_CATEGORIES.map((category) => (
+            <TabsTrigger key={category.id} value={category.id}>
+              <span className="flex items-center">
+                {category.icon}
+                <span className="ml-2">{category.name}</span>
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={selectedCategory}>
+          <ScrollArea className="h-[400px] border rounded-lg">
+            <div className="p-4">
+              {filteredDocuments.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun document trouvé</p>
+                  <p className="text-sm mt-1">
+                    {searchQuery ? 'Essayez une autre recherche' : 'Téléchargez vos documents pour les partager'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredDocuments.map((document) => (
+                    <div
+                      key={document.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <File className="w-6 h-6 text-primary" />
+                        <div>
+                          <p className="font-medium">{document.name}</p>
+                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                            <span>{format(new Date(document.created_at), 'PPp')}</span>
+                            <Badge variant="outline">{document.category}</Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDownload(document.url, document.name)}
+                          title="Télécharger"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(document.id, document.url)}
+                          title="Supprimer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-2">
-                      {getStatusIcon(document.status)}
-                      <span className="text-sm">{getStatusText(document.status)}</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteDocument(document.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
-};
-
-export default DocumentManager;
+}

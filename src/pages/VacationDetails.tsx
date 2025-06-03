@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -9,7 +8,7 @@ import { ArrowLeft, Pencil, Trash2, Calendar, MapPin, Euro, Clock, FileText } fr
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
-import { VacationPost } from '@/types/database';
+import { VacationPost, TimeSlot } from '@/types/database';
 import { getSpecialityInfo } from '@/utils/specialities';
 
 const VacationDetails = () => {
@@ -36,7 +35,16 @@ const VacationDetails = () => {
     try {
       const { data, error } = await supabase
         .from('vacation_posts')
-        .select('*')
+        .select(`
+          *,
+          time_slots (
+            id,
+            type,
+            start_time,
+            end_time,
+            vacation_id
+          )
+        `)
         .eq('id', vacationId)
         .eq('doctor_id', user.id)
         .single();
@@ -47,32 +55,28 @@ const VacationDetails = () => {
       console.error('Error fetching vacation:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger cette vacation",
+        description: "Impossible de charger les détails de la vacation",
         variant: "destructive"
       });
-      navigate('/doctor/manage-vacations');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!vacation || !confirm('Êtes-vous sûr de vouloir supprimer cette vacation ?')) {
-      return;
-    }
+    if (!vacation) return;
 
     try {
       const { error } = await supabase
         .from('vacation_posts')
         .delete()
-        .eq('id', vacation.id)
-        .eq('doctor_id', user?.id);
+        .eq('id', vacation.id);
 
       if (error) throw error;
 
       toast({
-        title: "Vacation supprimée",
-        description: "La vacation a été supprimée avec succès",
+        title: "Succès",
+        description: "La vacation a été supprimée avec succès"
       });
 
       navigate('/doctor/manage-vacations');
@@ -86,41 +90,53 @@ const VacationDetails = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'bg-green-100 text-green-800';
-      case 'booked': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-yellow-100 text-yellow-800';
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case 'draft': return 'Brouillon';
       case 'available': return 'Disponible';
       case 'booked': return 'Réservé';
       case 'completed': return 'Terminé';
       case 'cancelled': return 'Annulé';
-      default: return 'En attente';
+      case 'pending': return 'En attente';
+      default: return 'Non spécifié';
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'available': return 'bg-green-100 text-green-800';
+      case 'booked': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
 
-  const calculateDuration = () => {
-    if (!vacation) return 0;
-    const start = new Date(vacation.start_date);
-    const end = new Date(vacation.end_date);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const formatTimeSlots = (timeSlots: TimeSlot[]) => {
+    if (!timeSlots || timeSlots.length === 0) return 'Non spécifié';
+    
+    return timeSlots.map(slot => {
+      switch (slot.type) {
+        case 'morning':
+          return 'Matin';
+        case 'afternoon':
+          return 'Après-midi';
+        case 'custom':
+          return `${slot.start_time} - ${slot.end_time}`;
+        default:
+          return '';
+      }
+    }).filter(Boolean).join(', ');
   };
 
   if (loading) {
@@ -150,7 +166,7 @@ const VacationDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
           onClick={() => navigate('/doctor/manage-vacations')}
@@ -199,8 +215,10 @@ const VacationDetails = () => {
                   <div className="flex items-center text-gray-600">
                     <Clock className="w-5 h-5 mr-3" />
                     <div>
-                      <div className="font-medium">Durée</div>
-                      <div className="text-sm">{calculateDuration()} jour(s)</div>
+                      <div className="font-medium">Créneaux horaires</div>
+                      <div className="text-sm">
+                        {formatTimeSlots(vacation.time_slots)}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -254,22 +272,6 @@ const VacationDetails = () => {
                   <Trash2 className="w-4 h-4 mr-2" />
                   Supprimer
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations supplémentaires</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                <div>
-                  <span className="font-medium">Créée le :</span> {formatDate(vacation.created_at)}
-                </div>
-                <div>
-                  <span className="font-medium">Dernière modification :</span> {formatDate(vacation.updated_at || vacation.created_at)}
-                </div>
               </div>
             </CardContent>
           </Card>

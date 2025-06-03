@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Clock, XCircle, Star } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Star, FileText, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VacationStatus } from '@/types/database';
@@ -74,30 +74,36 @@ const VacationStatusManager = ({
 
   const getStatusColor = (status: VacationStatus) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'booked': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'available': return 'bg-green-100 text-green-800';
+      case 'booked': return 'bg-blue-100 text-blue-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusText = (status: VacationStatus) => {
     switch (status) {
+      case 'draft': return 'Brouillon';
+      case 'available': return 'Disponible';
+      case 'booked': return 'Réservé';
+      case 'completed': return 'Terminé';
+      case 'cancelled': return 'Annulé';
       case 'pending': return 'En attente';
-      case 'booked': return 'Confirmée';
-      case 'completed': return 'Terminée';
-      case 'cancelled': return 'Annulée';
-      default: return status;
+      default: return 'Non spécifié';
     }
   };
 
   const getStatusIcon = (status: VacationStatus) => {
     switch (status) {
-      case 'pending': return <Clock className="w-4 h-4" />;
-      case 'booked': return <CheckCircle className="w-4 h-4" />;
+      case 'draft': return <FileText className="w-4 h-4" />;
+      case 'available': return <CheckCircle className="w-4 h-4" />;
+      case 'booked': return <Calendar className="w-4 h-4" />;
       case 'completed': return <Star className="w-4 h-4" />;
       case 'cancelled': return <XCircle className="w-4 h-4" />;
+      case 'pending': return <Clock className="w-4 h-4" />;
       default: return null;
     }
   };

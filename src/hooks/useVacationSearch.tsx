@@ -1,34 +1,11 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { VacationPost } from '@/types/database';
 
-interface VacationPost {
-  id: string;
-  title: string;
-  description: string;
-  speciality: string;
-  start_date: string;
-  end_date: string;
-  hourly_rate: number;
-  location: string;
-  requirements: string;
-  doctor_id: string;
-  created_at: string;
-  doctor_profiles?: {
-    bio: string;
-    experience_years: number;
-    license_number: string;
-  };
-  profiles?: {
-    first_name: string;
-    last_name: string;
-  };
-}
-
-interface SearchFilters {
+export interface SearchFilters {
   speciality: string;
   location: string;
   minRate: string;
@@ -37,13 +14,14 @@ interface SearchFilters {
   endDate: string;
 }
 
-export const useVacationSearch = () => {
+const useVacationSearch = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const [filters, setFilters] = useState<SearchFilters>({
     speciality: '',
@@ -54,158 +32,139 @@ export const useVacationSearch = () => {
     endDate: ''
   });
 
-  useEffect(() => {
-    if (!user || !profile) {
-      navigate('/auth');
-      return;
-    }
-
-    if (profile.user_type !== 'establishment') {
-      navigate('/doctor/dashboard');
-      return;
-    }
-
-    fetchVacations();
-  }, [user, profile]);
-
-  const fetchVacations = async (searchFilters?: SearchFilters) => {
+  const fetchVacations = useCallback(async () => {
     try {
       setSearchLoading(true);
-      
-      // First, get vacation posts with doctor_profiles relationship
-      let vacationQuery = supabase
+      let query = supabase
         .from('vacation_posts')
         .select(`
           *,
-          doctor_profiles(bio, experience_years, license_number)
-        `)
-        .order('created_at', { ascending: false });
+          time_slots(*),
+          doctor_profiles(*),
+          profiles(*)
+        `);
 
-      // Apply filters
-      const currentFilters = searchFilters || filters;
-      
-      if (currentFilters.speciality) {
-        vacationQuery = vacationQuery.eq('speciality', currentFilters.speciality);
-      }
-      
-      if (currentFilters.location) {
-        vacationQuery = vacationQuery.ilike('location', `%${currentFilters.location}%`);
-      }
-      
-      if (currentFilters.minRate) {
-        vacationQuery = vacationQuery.gte('hourly_rate', parseFloat(currentFilters.minRate));
-      }
-      
-      if (currentFilters.maxRate) {
-        vacationQuery = vacationQuery.lte('hourly_rate', parseFloat(currentFilters.maxRate));
-      }
-      
-      if (currentFilters.startDate) {
-        vacationQuery = vacationQuery.gte('start_date', currentFilters.startDate);
-      }
-      
-      if (currentFilters.endDate) {
-        vacationQuery = vacationQuery.lte('end_date', currentFilters.endDate);
-      }
-
-      const { data: vacationsData, error: vacationsError } = await vacationQuery;
-
-      if (vacationsError) {
-        console.error('Error fetching vacations:', vacationsError);
-        throw vacationsError;
-      }
-
-      // Then get doctor profile information separately
-      if (vacationsData && vacationsData.length > 0) {
-        const doctorIds = vacationsData.map(vacation => vacation.doctor_id);
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name')
-          .in('id', doctorIds);
-
-        if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
-        }
-
-        // Combine the data
-        const combinedData = vacationsData.map(vacation => ({
-          ...vacation,
-          profiles: profilesData?.find(profile => profile.id === vacation.doctor_id)
-        }));
-
-        setVacations(combinedData || []);
+      // Si l'utilisateur est un médecin, ne montrer que ses vacations
+      if (user && profile?.user_type === 'doctor') {
+        query = query.eq('doctor_id', user.id);
       } else {
-        setVacations([]);
+        // Sinon, ne montrer que les vacations disponibles
+        query = query.eq('status', 'available');
       }
+
+      // Appliquer les filtres
+      if (filters.speciality) {
+        query = query.eq('speciality', filters.speciality);
+      }
+
+      if (filters.location) {
+        query = query.ilike('location', `%${filters.location}%`);
+      }
+
+      if (filters.minRate) {
+        query = query.gte('hourly_rate', parseFloat(filters.minRate));
+      }
+
+      if (filters.maxRate) {
+        query = query.lte('hourly_rate', parseFloat(filters.maxRate));
+      }
+
+      if (filters.startDate) {
+        query = query.gte('start_date', filters.startDate);
+      }
+
+      if (filters.endDate) {
+        query = query.lte('end_date', filters.endDate);
+      }
+
+      // Trier par date de création
+      query = query.order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      setVacations(data || []);
+      setError(null);
     } catch (error: any) {
-      console.error('Error in fetchVacations:', error);
+      console.error('Error fetching vacations:', error);
+      setError(error.message);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les vacations",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la recherche des vacations.',
+        variant: 'destructive'
       });
     } finally {
-      setLoading(false);
       setSearchLoading(false);
+      setLoading(false);
     }
-  };
+  }, [filters, user, profile, toast]);
 
-  const handleSearch = () => {
-    fetchVacations(filters);
-  };
+  // Mettre à jour les vacations quand les filtres changent
+  useEffect(() => {
+    fetchVacations();
+  }, [filters, fetchVacations]);
+
+  const handleSearch = useCallback(() => {
+    fetchVacations();
+  }, [fetchVacations]);
 
   const handleBookVacation = async (vacationId: string) => {
-    if (!user) return;
-    
-    try {
-      const { error } = await supabase
-        .from('vacation_bookings')
-        .insert({
-          vacation_post_id: vacationId,
-          establishment_id: user.id,
-          doctor_id: vacations.find(v => v.id === vacationId)?.doctor_id,
-          status: 'pending'
-        });
+    if (!user) {
+      toast({
+        title: 'Connexion requise',
+        description: 'Vous devez être connecté pour réserver une vacation.',
+        variant: 'destructive'
+      });
+      navigate('/login');
+      return;
+    }
 
-      if (error) {
-        console.error('Error creating booking:', error);
-        throw error;
+    try {
+      const { data: vacation, error: vacationError } = await supabase
+        .from('vacation_posts')
+        .select('*')
+        .eq('id', vacationId)
+        .single();
+
+      if (vacationError) throw vacationError;
+
+      if (vacation.status !== 'available') {
+        toast({
+          title: 'Vacation non disponible',
+          description: 'Cette vacation n\'est plus disponible.',
+          variant: 'destructive'
+        });
+        return;
       }
 
-      toast({
-        title: "Réservation envoyée !",
-        description: "Votre demande de réservation a été envoyée au médecin.",
-      });
-
-      // Refresh the list
-      fetchVacations();
+      navigate(`/vacations/${vacationId}/book`);
     } catch (error: any) {
-      console.error('Error in handleBookVacation:', error);
+      console.error('Error booking vacation:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer la demande de réservation",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la réservation.',
+        variant: 'destructive'
       });
     }
   };
 
   const clearFilters = () => {
-    const clearedFilters: SearchFilters = {
+    setFilters({
       speciality: '',
       location: '',
       minRate: '',
       maxRate: '',
       startDate: '',
       endDate: ''
-    };
-    setFilters(clearedFilters);
-    fetchVacations(clearedFilters);
+    });
   };
 
   return {
     vacations,
     loading,
     searchLoading,
+    error,
     filters,
     setFilters,
     handleSearch,
@@ -213,3 +172,5 @@ export const useVacationSearch = () => {
     clearFilters
   };
 };
+
+export default useVacationSearch;

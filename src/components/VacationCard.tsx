@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, Euro, Clock, User } from 'lucide-react';
-import { VacationPost } from '@/types/database';
+import { Calendar, MapPin, Euro, Clock, User, Eye, Pencil } from 'lucide-react';
+import { VacationPost, TimeSlot } from '@/types/database';
 import { getSpecialityInfo } from '@/utils/specialities';
 
 interface VacationCardProps {
@@ -61,6 +60,25 @@ const VacationCard = ({
     return diffDays;
   };
 
+  const formatTimeSlots = (timeSlots: TimeSlot[]) => {
+    if (!timeSlots || timeSlots.length === 0) return 'Non spécifié';
+    
+    const slots = timeSlots.map(slot => {
+      switch (slot.type) {
+        case 'morning':
+          return 'Matin';
+        case 'afternoon':
+          return 'Après-midi';
+        case 'custom':
+          return `${slot.start_time} - ${slot.end_time}`;
+        default:
+          return '';
+      }
+    }).filter(Boolean);
+
+    return slots.join(', ');
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow duration-200">
       <CardHeader>
@@ -78,21 +96,39 @@ const VacationCard = ({
             <Badge className={specialityInfo.color}>
               {specialityInfo.label}
             </Badge>
+            {vacation.time_slots && vacation.time_slots.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {formatTimeSlots(vacation.time_slots)}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="space-y-2">
-            <div className="flex items-center text-sm text-gray-600">
-              <Calendar className="w-4 h-4 mr-2" />
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <Calendar className="w-4 h-4" />
               <span>
-                {formatDate(vacation.start_date)} - {formatDate(vacation.end_date)}
+                Du {new Date(vacation.start_date).toLocaleDateString()} au {new Date(vacation.end_date).toLocaleDateString()}
               </span>
             </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Clock className="w-4 h-4 mr-2" />
-              <span>{calculateDuration()} jour(s)</span>
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <Clock className="w-4 h-4" />
+              <span>
+                {vacation.time_slots && vacation.time_slots.length > 0 ? (
+                  vacation.time_slots.map((slot, index) => (
+                    <span key={index}>
+                      {slot.type === 'morning' ? 'Matin' :
+                       slot.type === 'afternoon' ? 'Après-midi' :
+                       `${slot.start_time} - ${slot.end_time}`}
+                      {index < vacation.time_slots.length - 1 ? ', ' : ''}
+                    </span>
+                  ))
+                ) : (
+                  'Non spécifié'
+                )}
+              </span>
             </div>
           </div>
           
@@ -119,36 +155,23 @@ const VacationCard = ({
         )}
 
         {showActions && (
-          <div className="flex space-x-2">
-            {isEstablishment ? (
-              <>
-                {vacation.status === 'available' && onBook && (
-                  <Button 
-                    onClick={() => onBook(vacation.id)}
-                    className="bg-medical-green hover:bg-medical-green-dark"
-                  >
-                    Réserver
-                  </Button>
-                )}
-                {onView && (
-                  <Button variant="outline" onClick={() => onView(vacation.id)}>
-                    Voir détails
-                  </Button>
-                )}
-              </>
-            ) : (
-              <>
-                {onEdit && (
-                  <Button variant="outline" onClick={() => onEdit(vacation.id)}>
-                    Modifier
-                  </Button>
-                )}
-                {onView && (
-                  <Button variant="outline" onClick={() => onView(vacation.id)}>
-                    Voir détails
-                  </Button>
-                )}
-              </>
+          <div className="flex justify-end space-x-2">
+            {onView && (
+              <Button variant="outline" size="sm" onClick={() => onView(vacation.id)}>
+                <Eye className="w-4 h-4 mr-2" />
+                Voir
+              </Button>
+            )}
+            {onEdit && (
+              <Button variant="outline" size="sm" onClick={() => onEdit(vacation.id)}>
+                <Pencil className="w-4 h-4 mr-2" />
+                Modifier
+              </Button>
+            )}
+            {onBook && (
+              <Button size="sm" onClick={() => onBook(vacation.id)}>
+                Réserver
+              </Button>
             )}
           </div>
         )}

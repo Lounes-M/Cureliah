@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,7 +85,7 @@ const VacationFilters = ({ filters, onFiltersChange, onReset }: VacationFiltersP
                 <SelectValue placeholder="Toutes les spécialités" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes les spécialités</SelectItem>
+                <SelectItem value="all">Toutes les spécialités</SelectItem>
                 {SPECIALITIES.map((spec) => (
                   <SelectItem key={spec.value} value={spec.value}>
                     {spec.label}

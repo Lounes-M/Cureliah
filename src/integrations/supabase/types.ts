@@ -195,49 +195,61 @@ export type Database = {
       }
       doctor_profiles: {
         Row: {
+          id: string
           avatar_url: string | null
           bio: string | null
           created_at: string | null
           experience_years: number | null
           hourly_rate: number | null
-          id: string
           is_verified: boolean | null
           license_number: string
           speciality: string | null
           updated_at: string | null
+          availability: {
+            days: string[]
+            hours: string
+          } | null
         }
         Insert: {
+          id: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           experience_years?: number | null
           hourly_rate?: number | null
-          id: string
           is_verified?: boolean | null
           license_number: string
           speciality?: string | null
           updated_at?: string | null
+          availability?: {
+            days: string[]
+            hours: string
+          } | null
         }
         Update: {
+          id?: string
           avatar_url?: string | null
           bio?: string | null
           created_at?: string | null
           experience_years?: number | null
           hourly_rate?: number | null
-          id?: string
           is_verified?: boolean | null
           license_number?: string
           speciality?: string | null
           updated_at?: string | null
+          availability?: {
+            days: string[]
+            hours: string
+          } | null
         }
         Relationships: [
           {
             foreignKeyName: "doctor_profiles_id_fkey"
             columns: ["id"]
             isOneToOne: true
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
       documents: {

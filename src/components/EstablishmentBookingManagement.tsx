@@ -24,7 +24,11 @@ interface BookingWithDetails extends VacationBooking {
   doctor_info: DoctorInfo | null;
 }
 
-const EstablishmentBookingManagement = () => {
+interface EstablishmentBookingManagementProps {
+  status?: string;
+}
+
+const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManagementProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -48,14 +52,13 @@ const EstablishmentBookingManagement = () => {
     if (user) {
       fetchBookings();
     }
-  }, [user]);
+  }, [user, status]);
 
   const fetchBookings = async () => {
     if (!user) return;
 
     try {
-      // First, get the bookings with vacation posts
-      const { data: bookingsData, error: bookingsError } = await supabase
+      let query = supabase
         .from('vacation_bookings')
         .select(`
           *,
@@ -63,6 +66,12 @@ const EstablishmentBookingManagement = () => {
         `)
         .eq('establishment_id', user.id)
         .order('created_at', { ascending: false });
+
+      if (status) {
+        query = query.eq('status', status);
+      }
+
+      const { data: bookingsData, error: bookingsError } = await query;
 
       if (bookingsError) throw bookingsError;
 

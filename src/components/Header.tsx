@@ -1,15 +1,35 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Calendar, Search, BookOpen } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import NotificationDropdown from './NotificationDropdown';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [establishmentName, setEstablishmentName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEstablishmentName = async () => {
+      if (user && profile?.user_type === 'establishment') {
+        const { data, error } = await supabase
+          .from('establishment_profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+        
+        if (!error && data) {
+          setEstablishmentName(data.name);
+        }
+      }
+    };
+
+    fetchEstablishmentName();
+  }, [user, profile]);
 
   const handleSignOut = async () => {
     try {
@@ -27,6 +47,16 @@ const Header = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const getDisplayName = () => {
+    if (profile?.user_type === 'establishment' && establishmentName) {
+      return establishmentName;
+    }
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return user?.email || 'Utilisateur';
   };
 
   return (
@@ -54,18 +84,20 @@ const Header = () => {
                       Tableau de bord
                     </Link>
                     <Link
-                      to="/doctor/create-vacation"
-                      className="text-gray-700 hover:text-medical-blue transition-colors"
-                    >
-                      Créer une vacation
-                    </Link>
-                    <Link
                       to="/bookings"
                       className="text-gray-700 hover:text-medical-blue transition-colors flex items-center"
                     >
                       <BookOpen className="w-4 h-4 mr-1" />
                       Mes réservations
                     </Link>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/doctor/manage-vacations')}
+                      className="flex items-center gap-2"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Mes vacations
+                    </Button>
                   </>
                 ) : (
                   <>
@@ -76,10 +108,9 @@ const Header = () => {
                       Tableau de bord
                     </Link>
                     <Link
-                      to="/search"
-                      className="text-gray-700 hover:text-medical-blue transition-colors flex items-center"
+                      to="/establishment/search"
+                      className="text-gray-700 hover:text-medical-blue transition-colors"
                     >
-                      <Search className="w-4 h-4 mr-1" />
                       Rechercher
                     </Link>
                     <Link
@@ -112,7 +143,7 @@ const Header = () => {
               <>
                 <NotificationDropdown />
                 <span className="text-sm text-gray-700">
-                  {profile.first_name ? `${profile.first_name} ${profile.last_name}` : user.email}
+                  {getDisplayName()}
                 </span>
                 <Button variant="outline" size="sm" onClick={() => navigate('/profile/complete')}>
                   <User className="w-4 h-4 mr-2" />

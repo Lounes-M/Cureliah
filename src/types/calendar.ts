@@ -1,3 +1,4 @@
+import { VacationStatus } from './database';
 
 export interface CalendarEvent {
   id: string;
@@ -11,21 +12,38 @@ export interface CalendarEvent {
   created_at: string;
 }
 
+export interface TimeSlot {
+  id: string;
+  type: 'morning' | 'afternoon' | 'custom';
+  start_time?: string;
+  end_time?: string;
+  vacation_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface VacationBooking {
   id: string;
   vacation_post_id: string;
-  establishment_id: string;
   doctor_id: string;
-  status: string;
+  establishment_id: string;
+  status: VacationStatus;
+  payment_status: string;
+  message: string;
+  total_amount: number;
   created_at: string;
+  updated_at: string;
   vacation_posts: {
+    id: string;
     title: string;
     start_date: string;
     end_date: string;
-    location: string | null;
-    speciality: string | null;
+    location: string;
+    speciality: string;
+    time_slots: TimeSlot[];
   };
   establishment_profiles: {
+    id: string;
     name: string;
   };
 }

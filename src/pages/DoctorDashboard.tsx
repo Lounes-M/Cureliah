@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import { useRecentVacations } from '@/hooks/useRecentVacations';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { vacations, loading } = useRecentVacations();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -42,14 +41,10 @@ const DoctorDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <Calendar className="w-4 h-4" />
               <span>Vue d'ensemble</span>
-            </TabsTrigger>
-            <TabsTrigger value="vacations" className="flex items-center space-x-2">
-              <Plus className="w-4 h-4" />
-              <span>Vacations</span>
             </TabsTrigger>
             <TabsTrigger value="messages" className="flex items-center space-x-2">
               <MessageSquare className="w-4 h-4" />
@@ -71,69 +66,15 @@ const DoctorDashboard = () => {
 
           <TabsContent value="overview" className="space-y-6">
             <DashboardStats userType="doctor" />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Actions rapides</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => navigate('/create-vacation')} 
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Créer une nouvelle vacation
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate('/manage-vacations')}
-                    className="w-full"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Gérer mes vacations
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate('/my-bookings')}
-                    className="w-full"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Voir mes réservations
-                  </Button>
-                </CardContent>
-              </Card>
-              
-              <RecentVacations 
-                vacations={vacations}
-                title="Vacations récentes"
-                emptyMessage="Aucune vacation créée"
-                onViewAll={() => navigate('/manage-vacations')}
-                showActions={true}
-                onActionClick={(vacation) => navigate(`/vacation/${vacation.id}`)}
-                actionLabel="Voir détails"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="vacations">
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold">Mes vacations</h2>
-                <Button onClick={() => navigate('/create-vacation')}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Nouvelle vacation
-                </Button>
-              </div>
-              <RecentVacations 
-                vacations={vacations}
-                title="Toutes mes vacations"
-                emptyMessage="Aucune vacation créée"
-                showActions={true}
-                onActionClick={(vacation) => navigate(`/vacation/${vacation.id}`)}
-                actionLabel="Gérer"
-              />
-            </div>
+            <RecentVacations
+              vacations={vacations}
+              title="Vacations récentes"
+              emptyMessage="Aucune vacation trouvée"
+              onViewAll={() => navigate('/doctor/manage-vacations')}
+              showActions={true}
+              onActionClick={(vacation) => navigate(`/doctor/vacation/${vacation.id}`)}
+              actionLabel="Voir détails"
+            />
           </TabsContent>
 
           <TabsContent value="messages">

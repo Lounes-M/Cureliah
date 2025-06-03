@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,7 +22,16 @@ export function useRecentVacations() {
     try {
       let query = supabase
         .from('vacation_posts')
-        .select('*')
+        .select(`
+          *,
+          time_slots (
+            id,
+            type,
+            start_time,
+            end_time,
+            vacation_id
+          )
+        `)
         .order('created_at', { ascending: false })
         .limit(5);
 
@@ -35,6 +43,7 @@ export function useRecentVacations() {
       const { data, error } = await query;
 
       if (error) throw error;
+      console.log('Vacations data with time slots:', data);
       setVacations(data || []);
     } catch (error: any) {
       console.error('Error fetching vacations:', error);

@@ -1,87 +1,139 @@
-
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { VacationPost, TimeSlot, VacationStatus } from '@/types/database';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import SpecialitySelector from './SpecialitySelector';
+import DateSelector from './DateSelector';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import VacationFormFields, { VacationFormData } from './VacationFormFields';
+import TimeSlotSelector from './TimeSlotSelector';
 
-interface VacationFormProps {
+export interface VacationFormProps {
   vacationId?: string;
-  isEditing: boolean;
-  onLoadingChange: (loading: boolean) => void;
+  isEditing?: boolean;
+  onLoadingChange?: (loading: boolean) => void;
+  vacationData: Partial<VacationPost>;
+  onChange: (data: Partial<VacationPost>) => void;
 }
 
-const VacationForm = ({ vacationId, isEditing, onLoadingChange }: VacationFormProps) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const VacationForm = ({
+  vacationId,
+  isEditing = false,
+  onLoadingChange,
+  vacationData,
+  onChange
+}: VacationFormProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-
-  const [vacationData, setVacationData] = useState<VacationFormData>({
-    title: '',
-    description: '',
-    speciality: '',
-    hourly_rate: '',
-    location: '',
-    requirements: ''
-  });
-
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(vacationData.time_slots || []);
+  
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    if (isEditing && vacationId && user) {
-      fetchVacationData();
-    }
-  }, [isEditing, vacationId, user]);
-
-  const fetchVacationData = async () => {
-    if (!user || !vacationId) return;
-
-    onLoadingChange(true);
-    try {
-      const { data, error } = await supabase
-        .from('vacation_posts')
-        .select('*')
-        .eq('id', vacationId)
-        .eq('doctor_id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      setVacationData({
-        title: data.title,
-        description: data.description || '',
-        speciality: data.speciality || '',
-        hourly_rate: data.hourly_rate.toString(),
-        location: data.location || '',
-        requirements: data.requirements || ''
-      });
-      setStartDate(new Date(data.start_date));
-      setEndDate(new Date(data.end_date));
-    } catch (error: any) {
-      console.error('Error fetching vacation:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger cette vacation",
-        variant: "destructive"
-      });
-      navigate('/doctor/manage-vacations');
-    } finally {
+    if (onLoadingChange) {
       onLoadingChange(false);
     }
+  }, [onLoadingChange]);
+
+  const handleChange = (field: keyof VacationPost, value: any) => {
+    onChange({ ...vacationData, [field]: value });
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateField = (field: keyof VacationPost, value: any): boolean => {
+    switch (field) {
+      case 'title':
+        if (!value) {
+          setErrors(prev => ({ ...prev, [field]: 'Le titre est requis' }));
+          return false;
+        }
+        if (value.length < 5) {
+          setErrors(prev => ({ ...prev, [field]: 'Le titre doit faire au moins 5 caractères' }));
+          return false;
+        }
+        break;
+      case 'speciality':
+        if (!value) {
+          setErrors(prev => ({ ...prev, [field]: 'La spécialité est requise' }));
+          return false;
+        }
+        break;
+      case 'start_date':
+        if (!value) {
+          setErrors(prev => ({ ...prev, [field]: 'La date de début est requise' }));
+          return false;
+        }
+        break;
+      case 'end_date':
+        if (!value) {
+          setErrors(prev => ({ ...prev, [field]: 'La date de fin est requise' }));
+          return false;
+        }
+        if (value && vacationData.start_date && new Date(value) <= new Date(vacationData.start_date)) {
+          setErrors(prev => ({ ...prev, [field]: 'La date de fin doit être postérieure à la date de début' }));
+          return false;
+        }
+        break;
+      case 'hourly_rate':
+        if (!value) {
+          setErrors(prev => ({ ...prev, [field]: 'Le tarif horaire est requis' }));
+          return false;
+        }
+        if (isNaN(value) || value <= 0) {
+          setErrors(prev => ({ ...prev, [field]: 'Le tarif horaire doit être un nombre positif' }));
+          return false;
+        }
+        break;
+    }
+    return true;
+  };
+
+  const handleBlur = (field: keyof VacationPost) => {
+    const error = validateField(field, vacationData[field]);
+    if (error) {
+      setErrors(prev => ({ ...prev, [field]: error }));
+    }
+  };
+
+  const handleTimeSlotsChange = (newTimeSlots: TimeSlot[]) => {
+    setTimeSlots(newTimeSlots);
+    onChange({
+      ...vacationData,
+      time_slots: newTimeSlots
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !startDate || !endDate) return;
+    setErrors({});
 
-    if (startDate >= endDate) {
+    // Validate all required fields
+    const isTitleValid = validateField('title', vacationData.title);
+    const isSpecialityValid = validateField('speciality', vacationData.speciality);
+    const isHourlyRateValid = validateField('hourly_rate', vacationData.hourly_rate);
+    const isStartDateValid = validateField('start_date', vacationData.start_date);
+    const isEndDateValid = validateField('end_date', vacationData.end_date);
+
+    // Validate time slots
+    if (!timeSlots || timeSlots.length === 0) {
+      setErrors(prev => ({ ...prev, time_slots: 'Au moins un créneau horaire est requis' }));
       toast({
-        title: "Erreur",
-        description: "La date de fin doit être postérieure à la date de début",
+        title: "Erreur de validation",
+        description: "Veuillez sélectionner au moins un créneau horaire",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isTitleValid || !isSpecialityValid || !isHourlyRateValid || !isStartDateValid || !isEndDateValid) {
+      toast({
+        title: "Erreur de validation",
+        description: "Veuillez corriger les erreurs dans le formulaire",
         variant: "destructive"
       });
       return;
@@ -89,49 +141,18 @@ const VacationForm = ({ vacationId, isEditing, onLoadingChange }: VacationFormPr
 
     setLoading(true);
     try {
-      const vacationPayload = {
-        title: vacationData.title,
-        description: vacationData.description || null,
-        speciality: vacationData.speciality,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        hourly_rate: parseFloat(vacationData.hourly_rate),
-        location: vacationData.location || null,
-        requirements: vacationData.requirements || null
+      const vacationPayload: Partial<VacationPost> = {
+        ...vacationData,
+        time_slots: timeSlots,
+        status: 'available' as VacationStatus
       };
 
-      let error;
-
-      if (isEditing && vacationId) {
-        ({ error } = await supabase
-          .from('vacation_posts')
-          .update(vacationPayload)
-          .eq('id', vacationId)
-          .eq('doctor_id', user.id));
-      } else {
-        ({ error } = await supabase
-          .from('vacation_posts')
-          .insert({
-            ...vacationPayload,
-            doctor_id: user.id
-          }));
-      }
-
-      if (error) throw error;
-
-      toast({
-        title: isEditing ? "Vacation modifiée !" : "Vacation publiée !",
-        description: isEditing 
-          ? "Votre vacation a été modifiée avec succès."
-          : "Votre vacation a été publiée avec succès.",
-      });
-
-      navigate('/doctor/manage-vacations');
+      onChange(vacationPayload);
     } catch (error: any) {
       console.error('Error saving vacation:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Une erreur est survenue",
+        description: error.message || "Impossible de sauvegarder la vacation",
         variant: "destructive"
       });
     } finally {
@@ -141,20 +162,116 @@ const VacationForm = ({ vacationId, isEditing, onLoadingChange }: VacationFormPr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <VacationFormFields
-        vacationData={vacationData}
-        setVacationData={setVacationData}
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-      />
+      <div className="space-y-2">
+        <Label htmlFor="title">Titre</Label>
+        <Input
+          id="title"
+          value={vacationData.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
+          onBlur={() => handleBlur('title')}
+          placeholder="Ex: Remplacement urgent en cardiologie"
+          className={errors.title ? 'border-red-500' : ''}
+        />
+        {errors.title && (
+          <p className="text-sm text-red-500">{errors.title}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="speciality">Spécialité</Label>
+        <SpecialitySelector
+          value={vacationData.speciality || ''}
+          onChange={(value) => handleChange('speciality', value)}
+          onBlur={() => handleBlur('speciality')}
+          className={errors.speciality ? 'border-red-500' : ''}
+        />
+        {errors.speciality && (
+          <p className="text-sm text-red-500">{errors.speciality}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="start_date">Date de début *</Label>
+        <Input
+          id="start_date"
+          type="date"
+          min={today}
+          value={vacationData.start_date}
+          onChange={(e) => onChange({ ...vacationData, start_date: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="end_date">Date de fin *</Label>
+        <Input
+          id="end_date"
+          type="date"
+          min={vacationData.start_date || today}
+          value={vacationData.end_date}
+          onChange={(e) => onChange({ ...vacationData, end_date: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Créneaux horaires *</Label>
+        <TimeSlotSelector
+          timeSlots={timeSlots}
+          onChange={handleTimeSlotsChange}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="hourly_rate">Tarif horaire (€)</Label>
+        <Input
+          id="hourly_rate"
+          type="number"
+          value={vacationData.hourly_rate || ''}
+          onChange={(e) => handleChange('hourly_rate', parseFloat(e.target.value))}
+          onBlur={() => handleBlur('hourly_rate')}
+          placeholder="Ex: 150"
+          className={errors.hourly_rate ? 'border-red-500' : ''}
+        />
+        {errors.hourly_rate && (
+          <p className="text-sm text-red-500">{errors.hourly_rate}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="location">Lieu</Label>
+        <Input
+          id="location"
+          value={vacationData.location || ''}
+          onChange={(e) => handleChange('location', e.target.value)}
+          placeholder="Ex: Paris, 75001"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={vacationData.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="Décrivez les détails de la vacation..."
+          rows={4}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="requirements">Exigences</Label>
+        <Textarea
+          id="requirements"
+          value={vacationData.requirements || ''}
+          onChange={(e) => handleChange('requirements', e.target.value)}
+          placeholder="Listez les exigences spécifiques..."
+          rows={4}
+        />
+      </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading 
-          ? (isEditing ? 'Modification...' : 'Publication...') 
-          : (isEditing ? 'Modifier la vacation' : 'Publier la vacation')
-        }
+        {loading ? 'Enregistrement...' : 'Publier la vacation'}
       </Button>
     </form>
   );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { startOfDay, endOfDay } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +15,8 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [vacationBookings, setVacationBookings] = useState<VacationBooking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [vacations, setVacations] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchEvents = async () => {
     if (!user) return;
@@ -76,7 +77,19 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
       // Fetch vacation posts
       const { data: vacationPostsData, error: vacationPostsError } = await supabase
         .from('vacation_posts')
-        .select('*')
+        .select(`
+          *,
+          doctor_profiles (
+            bio,
+            experience_years,
+            license_number
+          ),
+          profiles (
+            first_name,
+            last_name
+          ),
+          time_slots (*)
+        `)
         .in('id', vacationPostIds);
 
       if (vacationPostsError) {
@@ -154,6 +167,49 @@ export const useCalendarData = ({ user, profile, selectedDate }: UseCalendarData
         description: "Impossible de charger les vacations réservées",
         variant: "destructive"
       });
+    }
+  };
+
+  const fetchVacations = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('vacation_posts')
+        .select(`
+          *,
+          doctor_profiles (
+            bio,
+            experience_years,
+            license_number
+          ),
+          profiles (
+            first_name,
+            last_name
+          ),
+          time_slots (*)
+        `)
+        .order('start_date', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedVacations = data?.map(vacation => ({
+        ...vacation,
+        start: new Date(vacation.start_date),
+        end: new Date(vacation.end_date),
+        title: vacation.title,
+        description: vacation.description,
+        location: vacation.location,
+        speciality: vacation.speciality,
+        doctor: vacation.profiles ? `${vacation.profiles.first_name} ${vacation.profiles.last_name}` : 'Médecin inconnu',
+        time_slots: vacation.time_slots
+      })) || [];
+
+      setVacations(formattedVacations);
+    } catch (error) {
+      console.error('Error fetching vacations:', error);
+      setError('Erreur lors du chargement des vacations');
+    } finally {
+      setLoading(false);
     }
   };
 

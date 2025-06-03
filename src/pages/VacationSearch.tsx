@@ -1,9 +1,9 @@
-
+import { useEffect } from 'react';
 import Header from '@/components/Header';
 import { VacationSearchFilters } from '@/components/vacation/VacationSearchFilters';
 import { VacationCardList } from '@/components/vacation/VacationCardList';
 import { SearchResultsHeader } from '@/components/vacation/SearchResultsHeader';
-import { useVacationSearch } from '@/hooks/useVacationSearch';
+import useVacationSearch from '@/hooks/useVacationSearch';
 
 const VacationSearch = () => {
   const {

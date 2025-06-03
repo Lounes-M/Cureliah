@@ -1,39 +1,32 @@
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { Speciality } from '@/types/database';
+import { SPECIALITIES } from '@/utils/specialities';
 
-interface SpecialitySelectorProps {
+export interface SpecialitySelectorProps {
   value: string;
-  onChange: (value: string) => void;
-  required?: boolean;
+  onChange: (value: Speciality) => void;
+  onBlur?: () => void;
+  className?: string;
 }
 
-const SpecialitySelector = ({ value, onChange, required = false }: SpecialitySelectorProps) => {
+const SpecialitySelector = ({ value, onChange, onBlur, className }: SpecialitySelectorProps) => {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="speciality">Spécialité {required && '*'}</Label>
-      <Select 
-        value={value} 
-        onValueChange={onChange}
-        required={required}
-      >
-        <SelectTrigger>
-          <SelectValue placeholder="Spécialité" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="cardiology">Cardiologie</SelectItem>
-          <SelectItem value="neurology">Neurologie</SelectItem>
-          <SelectItem value="orthopedics">Orthopédie</SelectItem>
-          <SelectItem value="pediatrics">Pédiatrie</SelectItem>
-          <SelectItem value="psychiatry">Psychiatrie</SelectItem>
-          <SelectItem value="radiology">Radiologie</SelectItem>
-          <SelectItem value="surgery">Chirurgie</SelectItem>
-          <SelectItem value="general_medicine">Médecine générale</SelectItem>
-          <SelectItem value="dermatology">Dermatologie</SelectItem>
-          <SelectItem value="gynecology">Gynécologie</SelectItem>
-        </SelectContent>
-      </Select>
-    </div>
+    <Select
+      value={value}
+      onValueChange={(value) => onChange(value as Speciality)}
+      onOpenChange={(open) => !open && onBlur?.()}
+    >
+      <SelectTrigger className={className}>
+        <SelectValue placeholder="Sélectionnez une spécialité" />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(SPECIALITIES).map(([key, speciality]) => (
+          <SelectItem key={key} value={key}>
+            {speciality.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 };
 

@@ -2,26 +2,24 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useUserPresence } from '@/hooks/useUserPresence';
 import MessagingModal from './MessagingModal';
-import BookingStatusWorkflow from './BookingStatusWorkflow';
+import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
-import OnlineStatusIndicator from './OnlineStatusIndicator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface EstablishmentInfo {
   id: string;
   name: string;
-  establishment_type?: string;
-  city?: string;
-}
-
-interface UserInfo {
-  id: string;
+  establishment_type: string;
+  city: string;
   first_name: string;
   last_name: string;
 }
@@ -29,44 +27,34 @@ interface UserInfo {
 interface BookingWithDetails extends VacationBooking {
   vacation_post: VacationPost;
   establishment_info: EstablishmentInfo | null;
-  user_info: UserInfo | null;
 }
 
-const BookingManagement = () => {
+interface BookingManagementProps {
+  status?: string;
+}
+
+const BookingManagement = ({ status }: BookingManagementProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { getUserStatus } = useUserPresence();
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedBooking, setExpandedBooking] = useState<string | null>(null);
-  const [messagingModal, setMessagingModal] = useState<{
-    isOpen: boolean;
-    bookingId: string;
-    receiverId: string;
-    receiverName: string;
-    receiverType: 'doctor' | 'establishment';
-  }>({
-    isOpen: false,
-    bookingId: '',
-    receiverId: '',
-    receiverName: '',
-    receiverType: 'establishment'
+  const [selectedBooking, setSelectedBooking] = useState<BookingWithDetails | null>(null);
+  const [showMessaging, setShowMessaging] = useState(false);
+  const [filters, setFilters] = useState({
+    dateRange: 'all',
+    establishmentType: 'all',
+    city: '',
+    status: status || 'all'
   });
-
-  useEffect(() => {
-    if (user) {
-      fetchBookings();
-    }
-  }, [user]);
 
   const fetchBookings = async () => {
     if (!user) return;
 
     try {
+      setLoading(true);
       console.log('Fetching bookings for doctor:', user.id);
       
-      // First, get the basic bookings with vacation posts
-      const { data: bookingsData, error: bookingsError } = await supabase
+      let query = supabase
         .from('vacation_bookings')
         .select(`
           *,
@@ -75,66 +63,99 @@ const BookingManagement = () => {
         .eq('doctor_id', user.id)
         .order('created_at', { ascending: false });
 
+      // Apply status filter
+      if (filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      const { data: bookingsData, error: bookingsError } = await query;
+
       if (bookingsError) {
         console.error('Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
-
-      console.log('Bookings data:', bookingsData);
 
       if (!bookingsData || bookingsData.length === 0) {
         setBookings([]);
         return;
       }
 
-      // Get establishment IDs for additional info
+      // Get establishment IDs
       const establishmentIds = bookingsData.map(booking => booking.establishment_id);
       
       // Get establishment profiles
-      let establishmentProfiles: any[] = [];
-      if (establishmentIds.length > 0) {
-        const { data: establishments, error: establishmentError } = await supabase
-          .from('establishment_profiles')
-          .select('id, name, establishment_type, city')
-          .in('id', establishmentIds);
+      const { data: establishments, error: establishmentError } = await supabase
+        .from('establishment_profiles')
+        .select('id, name, establishment_type, city')
+        .in('id', establishmentIds);
 
-        if (establishmentError) {
-          console.warn('Error fetching establishment profiles:', establishmentError);
-        } else {
-          establishmentProfiles = establishments || [];
-        }
+      if (establishmentError) {
+        console.warn('Error fetching establishment profiles:', establishmentError);
       }
 
-      // Get user profiles for establishment info
-      let userProfiles: any[] = [];
-      if (establishmentIds.length > 0) {
-        const { data: users, error: userError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name')
-          .in('id', establishmentIds);
+      // Get user profiles
+      const { data: users, error: userError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', establishmentIds);
 
-        if (userError) {
-          console.warn('Error fetching user profiles:', userError);
-        } else {
-          userProfiles = users || [];
-        }
+      if (userError) {
+        console.warn('Error fetching user profiles:', userError);
       }
 
       // Combine the data
-      const combinedBookings = bookingsData.map(booking => ({
-        ...booking,
-        vacation_post: booking.vacation_posts,
-        establishment_info: establishmentProfiles.find(est => est.id === booking.establishment_id) || null,
-        user_info: userProfiles.find(user => user.id === booking.establishment_id) || null
-      }));
+      const combinedBookings = bookingsData.map(booking => {
+        const establishment = establishments?.find(e => e.id === booking.establishment_id);
+        const user = users?.find(u => u.id === booking.establishment_id);
+        
+        return {
+          ...booking,
+          establishment_info: establishment && user ? {
+            ...establishment,
+            first_name: user.first_name,
+            last_name: user.last_name
+          } : null
+        };
+      });
 
-      console.log('Combined bookings:', combinedBookings);
-      setBookings(combinedBookings as BookingWithDetails[]);
+      // Apply additional filters
+      let filteredBookings = combinedBookings;
+
+      if (filters.dateRange !== 'all') {
+        const now = new Date();
+        filteredBookings = filteredBookings.filter(booking => {
+          const startDate = new Date(booking.vacation_post.start_date);
+          switch (filters.dateRange) {
+            case 'upcoming':
+              return startDate > now;
+            case 'past':
+              return startDate < now;
+            case 'current':
+              return startDate <= now && new Date(booking.vacation_post.end_date) >= now;
+            default:
+              return true;
+          }
+        });
+      }
+
+      if (filters.establishmentType !== 'all') {
+        filteredBookings = filteredBookings.filter(booking => 
+          booking.establishment_info?.establishment_type === filters.establishmentType
+        );
+      }
+
+      if (filters.city) {
+        filteredBookings = filteredBookings.filter(booking => 
+          booking.establishment_info?.city.toLowerCase().includes(filters.city.toLowerCase())
+        );
+      }
+
+      setBookings(filteredBookings);
     } catch (error: any) {
-      console.error('Error fetching bookings:', error);
+      console.error('Error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les réservations",
+        description: error.message || "Une erreur est survenue lors du chargement des réservations",
         variant: "destructive"
       });
     } finally {
@@ -142,347 +163,205 @@ const BookingManagement = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'booked': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
+  useEffect(() => {
+    fetchBookings();
+  }, [user, filters]);
+
+  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('vacation_bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Statut de la réservation mis à jour"
+      });
+
+      fetchBookings();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de la mise à jour du statut",
+        variant: "destructive"
+      });
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending': return 'En attente';
-      case 'booked': return 'Confirmée';
-      case 'cancelled': return 'Annulée';
-      case 'completed': return 'Terminée';
-      default: return status;
-    }
-  };
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: 'En attente', variant: 'warning' },
+      confirmed: { label: 'Confirmée', variant: 'success' },
+      completed: { label: 'Terminée', variant: 'default' },
+      cancelled: { label: 'Annulée', variant: 'destructive' }
+    };
 
-  const getPaymentStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPaymentStatusText = (status: string | null) => {
-    switch (status) {
-      case 'paid': return 'Payé';
-      case 'pending': return 'En attente';
-      case 'failed': return 'Échec';
-      default: return 'Non payé';
-    }
-  };
-
-  const openMessaging = (booking: BookingWithDetails) => {
-    const establishmentName = booking.establishment_info?.name || 
-                            `${booking.user_info?.first_name || ''} ${booking.user_info?.last_name || ''}`.trim() || 
-                            'Établissement';
-    
-    setMessagingModal({
-      isOpen: true,
-      bookingId: booking.id,
-      receiverId: booking.establishment_id,
-      receiverName: establishmentName,
-      receiverType: 'establishment'
-    });
-  };
-
-  const closeMessaging = () => {
-    setMessagingModal(prev => ({ ...prev, isOpen: false }));
-  };
-
-  const toggleExpanded = (bookingId: string) => {
-    setExpandedBooking(expandedBooking === bookingId ? null : bookingId);
-  };
-
-  if (loading) {
-    return <div className="text-center py-8">Chargement des réservations...</div>;
-  }
-
-  const groupedBookings = {
-    pending: bookings.filter(b => b.status === 'pending'),
-    active: bookings.filter(b => b.status === 'booked'),
-    completed: bookings.filter(b => b.status === 'completed'),
-    cancelled: bookings.filter(b => b.status === 'cancelled')
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'default' };
+    return <Badge variant={config.variant as any}>{config.label}</Badge>;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Gestion des Réservations</h2>
-        <div className="flex space-x-2">
-          <Badge variant="outline" className="bg-yellow-50">
-            {groupedBookings.pending.length} en attente
-          </Badge>
-          <Badge variant="outline" className="bg-green-50">
-            {groupedBookings.active.length} actives
-          </Badge>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtres</CardTitle>
+          <CardDescription>Filtrer vos réservations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Select
+              value={filters.dateRange}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, dateRange: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Période" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les périodes</SelectItem>
+                <SelectItem value="upcoming">À venir</SelectItem>
+                <SelectItem value="current">En cours</SelectItem>
+                <SelectItem value="past">Passées</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.establishmentType}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, establishmentType: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Type d'établissement" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les types</SelectItem>
+                <SelectItem value="hospital">Hôpital</SelectItem>
+                <SelectItem value="clinic">Clinique</SelectItem>
+                <SelectItem value="private_practice">Cabinet privé</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Input
+              placeholder="Ville"
+              value={filters.city}
+              onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+            />
+
+            <Select
+              value={filters.status}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="confirmed">Confirmée</SelectItem>
+                <SelectItem value="completed">Terminée</SelectItem>
+                <SelectItem value="cancelled">Annulée</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        {bookings.map((booking) => (
+          <Card key={booking.id} className="overflow-hidden">
+            <CardHeader className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Building2 className="w-8 h-8 text-primary" />
+                  <div>
+                    <CardTitle className="text-lg">
+                      {booking.establishment_info?.name || 'Établissement inconnu'}
+                    </CardTitle>
+                    <CardDescription>
+                      {booking.establishment_info?.establishment_type} - {booking.establishment_info?.city}
+                    </CardDescription>
+                  </div>
+                </div>
+                {getStatusBadge(booking.status)}
+              </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-sm">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>
+                      Du {format(new Date(booking.vacation_post.start_date), 'PP', { locale: fr })} au{' '}
+                      {format(new Date(booking.vacation_post.end_date), 'PP', { locale: fr })}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    <span>{booking.vacation_post.location}</span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Euro className="w-4 h-4 mr-2" />
+                    <span>{booking.vacation_post.hourly_rate}€/heure</span>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <BookingTimeline status={booking.status} />
+                  <div className="flex space-x-2">
+                    {booking.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
+                        >
+                          Annuler
+                        </Button>
+                        <Button
+                          onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+                        >
+                          Confirmer
+                        </Button>
+                      </>
+                    )}
+                    {booking.status === 'confirmed' && (
+                      <Button
+                        onClick={() => handleStatusUpdate(booking.id, 'completed')}
+                      >
+                        Marquer comme terminé
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedBooking(booking);
+                        setShowMessaging(true);
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Message
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {bookings.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucune réservation
-            </h3>
-            <p className="text-gray-600">
-              Les demandes de réservation apparaîtront ici
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Priority: Pending bookings first */}
-          {groupedBookings.pending.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-yellow-700 mb-3 flex items-center">
-                <Badge className="bg-yellow-100 text-yellow-800 mr-2">
-                  {groupedBookings.pending.length}
-                </Badge>
-                Demandes en attente
-              </h3>
-              <div className="grid gap-4">
-                {groupedBookings.pending.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                    getUserStatus={getUserStatus}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active bookings */}
-          {groupedBookings.active.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center">
-                <Badge className="bg-green-100 text-green-800 mr-2">
-                  {groupedBookings.active.length}
-                </Badge>
-                Réservations confirmées
-              </h3>
-              <div className="grid gap-4">
-                {groupedBookings.active.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                    getUserStatus={getUserStatus}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Completed and cancelled bookings */}
-          {(groupedBookings.completed.length > 0 || groupedBookings.cancelled.length > 0) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">Historique</h3>
-              <div className="grid gap-4">
-                {[...groupedBookings.completed, ...groupedBookings.cancelled].map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                    getUserStatus={getUserStatus}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+      {selectedBooking && (
+        <MessagingModal
+          isOpen={showMessaging}
+          onClose={() => {
+            setShowMessaging(false);
+            setSelectedBooking(null);
+          }}
+          bookingId={selectedBooking.id}
+          receiverId={selectedBooking.establishment_id}
+          receiverName={selectedBooking.establishment_info?.name || 'Établissement'}
+          receiverType="establishment"
+        />
       )}
-
-      <MessagingModal
-        isOpen={messagingModal.isOpen}
-        onClose={closeMessaging}
-        bookingId={messagingModal.bookingId}
-        receiverId={messagingModal.receiverId}
-        receiverName={messagingModal.receiverName}
-        receiverType={messagingModal.receiverType}
-      />
     </div>
-  );
-};
-
-interface BookingCardProps {
-  booking: BookingWithDetails;
-  isExpanded: boolean;
-  onToggleExpanded: () => void;
-  onOpenMessaging: () => void;
-  onStatusUpdate: () => void;
-  getStatusColor: (status: string) => string;
-  getStatusText: (status: string) => string;
-  getPaymentStatusColor: (status: string | null) => string;
-  getPaymentStatusText: (status: string | null) => string;
-  getUserStatus: (userId: string) => any;
-}
-
-const BookingCard = ({
-  booking,
-  isExpanded,
-  onToggleExpanded,
-  onOpenMessaging,
-  onStatusUpdate,
-  getStatusColor,
-  getStatusText,
-  getPaymentStatusColor,
-  getPaymentStatusText,
-  getUserStatus
-}: BookingCardProps) => {
-  const establishmentName = booking.establishment_info?.name || 
-                          `${booking.user_info?.first_name || ''} ${booking.user_info?.last_name || ''}`.trim() || 
-                          'Établissement';
-
-  const establishmentStatus = getUserStatus(booking.establishment_id);
-
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-1">
-              <CardTitle className="text-lg">{booking.vacation_post?.title || 'Vacation'}</CardTitle>
-              <OnlineStatusIndicator status={establishmentStatus} size="sm" />
-            </div>
-            <CardDescription className="mt-1">
-              Demande de {establishmentName}
-            </CardDescription>
-          </div>
-          <div className="flex flex-col space-y-2">
-            <Badge className={getStatusColor(booking.status)}>
-              {getStatusText(booking.status)}
-            </Badge>
-            <Badge className={getPaymentStatusColor(booking.payment_status)}>
-              Paiement: {getPaymentStatusText(booking.payment_status)}
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="space-y-2">
-            {booking.vacation_post && (
-              <>
-                <div className="flex items-center text-sm">
-                  <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                  <span>
-                    {new Date(booking.vacation_post.start_date).toLocaleDateString('fr-FR')} - 
-                    {new Date(booking.vacation_post.end_date).toLocaleDateString('fr-FR')}
-                  </span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-                  <span>{booking.vacation_post.location || 'Non spécifié'}</span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                  <span>{booking.vacation_post.hourly_rate}€/h</span>
-                </div>
-              </>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center text-sm">
-              <User className="w-4 h-4 text-gray-400 mr-2" />
-              <span>
-                {booking.establishment_info?.establishment_type || 'Type non spécifié'}
-              </span>
-            </div>
-            {booking.total_amount && (
-              <div className="flex items-center text-sm font-medium">
-                <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                <span>Total estimé: {booking.total_amount}€</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {booking.message && (
-          <div className="bg-gray-50 p-3 rounded-lg mb-4">
-            <p className="text-sm text-gray-700">
-              <strong>Message:</strong> {booking.message}
-            </p>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={onOpenMessaging}>
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Messages
-            </Button>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onToggleExpanded}>
-            {isExpanded ? (
-              <>
-                <ChevronUp className="w-4 h-4 mr-1" />
-                Réduire
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-4 h-4 mr-1" />
-                Détails
-              </>
-            )}
-          </Button>
-        </div>
-
-        {isExpanded && (
-          <div className="mt-6 pt-4 border-t border-gray-200 space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <BookingStatusWorkflow
-                bookingId={booking.id}
-                currentStatus={booking.status as any}
-                userType="doctor"
-                partnerId={booking.establishment_id}
-                partnerName={establishmentName}
-                onStatusUpdate={onStatusUpdate}
-              />
-              <BookingTimeline
-                currentStatus={booking.status as any}
-                createdAt={booking.created_at}
-                updatedAt={booking.updated_at}
-                userType="doctor"
-              />
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 

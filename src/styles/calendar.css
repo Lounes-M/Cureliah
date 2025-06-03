@@ -1,0 +1,170 @@
+/* Styles du conteneur principal */
+.fc {
+  background: white;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* En-tête du calendrier */
+.fc .fc-toolbar {
+  padding: 1.5rem;
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  text-transform: capitalize;
+}
+
+/* Boutons de navigation */
+.fc .fc-button {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-transform: capitalize;
+}
+
+.fc .fc-button:hover {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* Grille horaire */
+.fc .fc-timegrid-slot {
+  height: 3rem;
+}
+
+.fc .fc-timegrid-slot-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* En-têtes des jours */
+.fc .fc-col-header-cell {
+  background: linear-gradient(to right, #f8fafc, #f1f5f9);
+  padding: 1rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.fc .fc-col-header-cell-cushion {
+  font-weight: 600;
+  color: #1e293b;
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+/* Indicateur de temps actuel */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: #ef4444;
+  border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: #ef4444;
+  border-width: 5px;
+}
+
+/* Événements */
+.fc-event {
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  transition: all 0.3s ease;
+  margin: 2px 0;
+}
+
+.fc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.fc-event-main {
+  padding: 0.5rem;
+}
+
+.fc-event-time {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.fc-event-title {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+/* Événements disponibles */
+.fc-timegrid-event {
+  background: linear-gradient(to right, #dbeafe, #bfdbfe);
+  border: 1px solid #93c5fd;
+}
+
+/* Événements réservés */
+.fc-timegrid-event.fc-event-booked {
+  background: linear-gradient(to right, #dcfce7, #bbf7d0);
+  border: 1px solid #86efac;
+}
+
+/* Grille */
+.fc-timegrid-slot-minor {
+  border-top-style: dashed;
+}
+
+.fc-timegrid-slot-lane {
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Axe des heures */
+.fc-timegrid-axis {
+  padding: 0.5rem;
+  background: #f8fafc;
+}
+
+.fc-timegrid-axis-cushion {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Cellules */
+.fc-timegrid-col {
+  background: white;
+}
+
+.fc-timegrid-col-frame {
+  border-right: 1px solid #e2e8f0;
+}
+
+/* Boutons de vue */
+.fc-timeGridWeek-button,
+.fc-timeGridDay-button {
+  background: white !important;
+  color: #64748b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.fc-timeGridWeek-button.fc-button-active,
+.fc-timeGridDay-button.fc-button-active {
+  background: #3b82f6 !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Lien "plus d'événements" */
+.fc-more-link {
+  color: #3b82f6;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.fc-more-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+} 

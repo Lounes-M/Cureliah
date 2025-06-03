@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   NavigationMenu,
@@ -15,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   User, 
   Settings, 
@@ -31,11 +30,36 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import NotificationBell from './NotificationBell';
+import { Link } from 'react-router-dom';
+import { Database } from '@/integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type EstablishmentProfile = Database['public']['Tables']['establishment_profiles']['Row'];
 
 const UserNavigation = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [establishmentProfile, setEstablishmentProfile] = useState<EstablishmentProfile | null>(null);
+
+  useEffect(() => {
+    const fetchEstablishmentProfile = async () => {
+      if (user && profile?.user_type === 'establishment') {
+        const { data, error } = await supabase
+          .from('establishment_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (!error && data) {
+          setEstablishmentProfile(data);
+        }
+      }
+    };
+
+    fetchEstablishmentProfile();
+  }, [user, profile]);
 
   const handleSignOut = async () => {
     try {
@@ -55,7 +79,6 @@ const UserNavigation = () => {
   };
 
   const getUserType = () => {
-    // First check profile, then fallback to user metadata
     return profile?.user_type || user?.user_metadata?.user_type;
   };
 
@@ -74,18 +97,18 @@ const UserNavigation = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
     }
-    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
-      return `${user.user_metadata.first_name[0]}${user.user_metadata.last_name[0]}`.toUpperCase();
+    if (establishmentProfile?.name) {
+      return establishmentProfile.name[0].toUpperCase();
     }
     return user?.email?.[0].toUpperCase() || 'U';
   };
 
   const getUserDisplayName = () => {
+    if (profile?.user_type === 'establishment' && establishmentProfile?.name) {
+      return establishmentProfile.name;
+    }
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
-    }
-    if (user?.user_metadata?.first_name && user?.user_metadata?.last_name) {
-      return `${user.user_metadata.first_name} ${user.user_metadata.last_name}`;
     }
     return user?.email || 'Utilisateur';
   };

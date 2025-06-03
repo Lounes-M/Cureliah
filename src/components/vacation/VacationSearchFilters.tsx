@@ -1,21 +1,12 @@
-
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { SearchFilters } from '@/hooks/useVacationSearch';
 import { SPECIALITIES } from '@/utils/specialities';
-
-interface SearchFilters {
-  speciality: string;
-  location: string;
-  minRate: string;
-  maxRate: string;
-  startDate: string;
-  endDate: string;
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 interface VacationSearchFiltersProps {
   filters: SearchFilters;
@@ -35,37 +26,70 @@ export const VacationSearchFilters = ({
   const [showFilters, setShowFilters] = useState(false);
 
   const updateFilter = (key: keyof SearchFilters, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
+    // Validation des valeurs numériques
+    if (key === 'minRate' || key === 'maxRate') {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue) || numValue < 0) return;
+    }
+
+    // Validation des dates
+    if (key === 'startDate' || key === 'endDate') {
+      if (value && !isValidDate(value)) return;
+    }
+
+    // Mettre à jour le filtre
+    const newFilters = {
+      ...filters,
+      [key]: value
+    };
+    onFiltersChange(newFilters);
+  };
+
+  const isValidDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date.getTime());
+  };
+
+  const handleClearFilters = () => {
+    onClearFilters();
+    setShowFilters(false);
   };
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center">
-            <Search className="w-5 h-5 mr-2" />
-            Recherche et filtres
-          </CardTitle>
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            {showFilters ? 'Masquer' : 'Afficher'} les filtres
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
+    <div className="mb-8">
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-2"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+        </Button>
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            className="flex items-center gap-2"
+          >
+            <X className="w-4 h-4" />
+            Réinitialiser
+          </Button>
+        )}
+      </div>
+
+      {showFilters && (
+        <Card className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label htmlFor="speciality">Spécialité</Label>
-              <Select 
-                value={filters.speciality} 
+              <Select
+                value={filters.speciality}
                 onValueChange={(value) => updateFilter('speciality', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Toutes les spécialités" />
+                  <SelectValue placeholder="Sélectionner une spécialité" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Toutes les spécialités</SelectItem>
@@ -79,10 +103,10 @@ export const VacationSearchFilters = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="location">Lieu</Label>
+              <Label htmlFor="location">Localisation</Label>
               <Input
                 id="location"
-                placeholder="Ville, région..."
+                placeholder="Ville, département..."
                 value={filters.location}
                 onChange={(e) => updateFilter('location', e.target.value)}
               />
@@ -95,6 +119,7 @@ export const VacationSearchFilters = ({
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => updateFilter('startDate', e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
               />
             </div>
 
@@ -105,42 +130,46 @@ export const VacationSearchFilters = ({
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => updateFilter('endDate', e.target.value)}
+                min={filters.startDate || new Date().toISOString().split('T')[0]}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="minRate">Tarif min (€/h)</Label>
+              <Label htmlFor="minRate">Taux horaire minimum (€)</Label>
               <Input
                 id="minRate"
                 type="number"
-                placeholder="0"
+                min="0"
+                step="0.01"
                 value={filters.minRate}
                 onChange={(e) => updateFilter('minRate', e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="maxRate">Tarif max (€/h)</Label>
+              <Label htmlFor="maxRate">Taux horaire maximum (€)</Label>
               <Input
                 id="maxRate"
                 type="number"
-                placeholder="200"
+                min={filters.minRate || "0"}
+                step="0.01"
                 value={filters.maxRate}
                 onChange={(e) => updateFilter('maxRate', e.target.value)}
               />
             </div>
           </div>
-        )}
 
-        <div className="flex gap-2">
-          <Button onClick={onSearch} disabled={searchLoading}>
-            {searchLoading ? 'Recherche...' : 'Rechercher'}
-          </Button>
-          <Button variant="outline" onClick={onClearFilters}>
-            Réinitialiser
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end mt-6">
+            <Button
+              onClick={onSearch}
+              disabled={searchLoading}
+              className="w-full md:w-auto"
+            >
+              {searchLoading ? 'Recherche en cours...' : 'Rechercher'}
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
   );
 };

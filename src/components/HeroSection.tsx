@@ -1,52 +1,45 @@
-
 import { Button } from "@/components/ui/button";
 import { User, Building2, Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
 
   const getUserType = () => {
-    // First check profile, then fallback to user metadata
-    return profile?.user_type || user?.user_metadata?.user_type;
+    if (loading) return null;
+    return user?.user_type || profile?.user_type || user?.user_metadata?.user_type;
   };
 
   const handleDoctorClick = () => {
-    console.log('Doctor button clicked - User type:', getUserType());
+    if (loading) return;
     
     if (user) {
       const userType = getUserType();
       
       if (userType === 'doctor') {
-        console.log('Navigating to doctor dashboard');
         navigate('/doctor/dashboard');
       } else {
-        console.log('User is not a doctor, navigating to establishment dashboard');
         navigate('/establishment/dashboard');
       }
     } else {
-      console.log('User not authenticated, navigating to auth');
       navigate('/auth');
     }
   };
 
   const handleEstablishmentClick = () => {
-    console.log('Establishment button clicked - User type:', getUserType());
+    if (loading) return;
     
     if (user) {
       const userType = getUserType();
       
       if (userType === 'establishment') {
-        console.log('Navigating to establishment dashboard');
         navigate('/establishment/dashboard');
       } else {
-        console.log('User is not an establishment, navigating to doctor dashboard');
         navigate('/doctor/dashboard');
       }
     } else {
-      console.log('User not authenticated, navigating to auth');
       navigate('/auth');
     }
   };
@@ -74,19 +67,21 @@ const HeroSection = () => {
               <Button 
                 size="lg" 
                 onClick={handleDoctorClick}
+                disabled={loading}
                 className="bg-medical-blue hover:bg-medical-blue-dark text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <User className="w-5 h-5 mr-2" />
-                {user && userType === 'doctor' ? 'Mon dashboard' : 'Je suis médecin'}
+                {loading ? 'Chargement...' : user && userType === 'doctor' ? 'Mon dashboard' : 'Je suis médecin'}
               </Button>
               <Button 
                 variant="outline" 
                 size="lg"
                 onClick={handleEstablishmentClick}
+                disabled={loading}
                 className="border-medical-green text-medical-green hover:bg-medical-green hover:text-white px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Building2 className="w-5 h-5 mr-2" />
-                {user && userType === 'establishment' ? 'Mon dashboard' : 'Je suis un établissement'}
+                {loading ? 'Chargement...' : user && userType === 'establishment' ? 'Mon dashboard' : 'Je suis un établissement'}
               </Button>
             </div>
 

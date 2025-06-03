@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Calendar, Users } from 'lucide-react';
@@ -14,7 +13,7 @@ const EstablishmentQuickActions = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <Button 
-          onClick={() => navigate('/vacation-search')} 
+          onClick={() => navigate('/establishment/search')} 
           className="w-full"
         >
           <Search className="w-4 h-4 mr-2" />
@@ -30,7 +29,7 @@ const EstablishmentQuickActions = () => {
         </Button>
         <Button 
           variant="outline" 
-          onClick={() => navigate('/establishment-search')}
+          onClick={() => navigate('/establishment/search')}
           className="w-full"
         >
           <Users className="w-4 h-4 mr-2" />

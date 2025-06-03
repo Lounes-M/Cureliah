@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -68,7 +67,7 @@ const EstablishmentTabsNavigation = ({ activeTab, setActiveTab }: EstablishmentT
           <CardContent>
             <div className="space-y-4">
               <Button 
-                onClick={() => navigate('/vacation-search')}
+                onClick={() => navigate('/establishment/search')}
                 className="w-full"
               >
                 <Search className="w-4 h-4 mr-2" />

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -11,10 +10,34 @@ interface DoctorInfo {
   first_name: string;
   last_name: string;
   experience_years?: number;
+  avatar_url?: string;
+  bio?: string;
+  education?: Array<{
+    degree: string;
+    institution: string;
+    year: number;
+  }>;
+  languages?: string[];
+  license_number?: string;
+  email?: string;
+  phone?: string;
+  created_at?: string;
+  updated_at?: string;
+  speciality?: string;
+  availability?: {
+    days: string[];
+    hours: string;
+  };
+  sub_specialties?: string[];
+  is_verified?: boolean;
+  is_active?: boolean;
+  hourly_rate?: string;
+  user_type?: string;
 }
 
 export interface VacationWithDoctor extends VacationPost {
   doctor_info: DoctorInfo | null;
+  doctor: DoctorInfo | null;
 }
 
 interface FilterState {
@@ -64,14 +87,49 @@ export const useEstablishmentSearch = () => {
 
   const fetchVacations = async () => {
     try {
+      setLoading(true);
       // Récupérer les vacations disponibles
       const { data: vacationsData, error: vacationsError } = await supabase
         .from('vacation_posts')
-        .select('*')
+        .select(`
+          *,
+          doctor:doctor_profiles!vacation_posts_doctor_id_fkey (
+            id,
+            license_number,
+            experience_years,
+            hourly_rate,
+            bio,
+            avatar_url,
+            is_verified,
+            created_at,
+            updated_at,
+            speciality,
+            availability,
+            education,
+            languages,
+            sub_specialties,
+            profiles!doctor_profiles_id_fkey (
+              id,
+              first_name,
+              last_name,
+              email,
+              phone,
+              user_type,
+              is_active,
+              created_at,
+              updated_at
+            )
+          )
+        `)
         .gte('end_date', new Date().toISOString())
         .order('created_at', { ascending: false });
 
-      if (vacationsError) throw vacationsError;
+      if (vacationsError) {
+        console.error('Error fetching vacations:', vacationsError);
+        throw vacationsError;
+      }
+
+      console.log('Raw vacations data:', JSON.stringify(vacationsData, null, 2));
 
       if (!vacationsData || vacationsData.length === 0) {
         setVacations([]);
@@ -79,58 +137,59 @@ export const useEstablishmentSearch = () => {
         return;
       }
 
-      // Récupérer les informations des médecins
-      const doctorIds = vacationsData.map(vacation => vacation.doctor_id);
-      const { data: doctorsData, error: doctorsError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .in('id', doctorIds);
+      // Transformer les données
+      const vacationsWithDoctors = vacationsData.map(vacation => {
+        console.log('Processing vacation:', vacation.id);
+        console.log('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2));
+        console.log('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2));
+        console.log('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name);
+        console.log('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name);
 
-      if (doctorsError) {
-        console.warn('Error fetching doctor profiles:', doctorsError);
-      }
-
-      // Récupérer les informations détaillées des médecins
-      const { data: doctorProfiles, error: doctorProfilesError } = await supabase
-        .from('doctor_profiles')
-        .select('id, experience_years')
-        .in('id', doctorIds);
-
-      if (doctorProfilesError) {
-        console.warn('Error fetching doctor detailed profiles:', doctorProfilesError);
-      }
-
-      // Combiner les données
-      const combinedVacations = vacationsData.map(vacation => {
-        const doctorProfile = doctorsData && doctorsData.length > 0 
-          ? doctorsData.find(doc => doc.id === vacation.doctor_id) 
-          : null;
-        
-        const doctorDetailedProfile = doctorProfiles && doctorProfiles.length > 0 
-          ? doctorProfiles.find(dp => dp.id === vacation.doctor_id) 
-          : null;
-
-        const doctor_info = doctorProfile ? {
-          id: doctorProfile.id,
-          first_name: doctorProfile.first_name,
-          last_name: doctorProfile.last_name,
-          experience_years: doctorDetailedProfile?.experience_years
+        const doctorInfo = vacation.doctor ? {
+          id: vacation.doctor.id,
+          first_name: vacation.doctor.profiles?.first_name || '',
+          last_name: vacation.doctor.profiles?.last_name || '',
+          email: vacation.doctor.profiles?.email,
+          phone: vacation.doctor.profiles?.phone,
+          experience_years: vacation.doctor.experience_years,
+          avatar_url: vacation.doctor.avatar_url,
+          bio: vacation.doctor.bio,
+          education: vacation.doctor.education,
+          languages: vacation.doctor.languages,
+          license_number: vacation.doctor.license_number,
+          created_at: vacation.doctor.profiles?.created_at,
+          updated_at: vacation.doctor.profiles?.updated_at,
+          speciality: vacation.doctor.speciality,
+          availability: vacation.doctor.availability,
+          sub_specialties: vacation.doctor.sub_specialties,
+          is_verified: vacation.doctor.is_verified,
+          is_active: vacation.doctor.profiles?.is_active,
+          user_type: vacation.doctor.profiles?.user_type,
+          hourly_rate: vacation.doctor.hourly_rate
         } : null;
+
+        console.log('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2));
 
         return {
           ...vacation,
-          doctor_info
+          doctor_info: doctorInfo,
+          doctor: doctorInfo
         };
       });
 
-      setVacations(combinedVacations as VacationWithDoctor[]);
-    } catch (error: any) {
+      console.log('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2));
+
+      setVacations(vacationsWithDoctors);
+      setFilteredVacations(vacationsWithDoctors);
+    } catch (error) {
       console.error('Error fetching vacations:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les vacations",
+        description: "Une erreur est survenue lors du chargement des vacations",
         variant: "destructive"
       });
+      setVacations([]);
+      setFilteredVacations([]);
     } finally {
       setLoading(false);
     }

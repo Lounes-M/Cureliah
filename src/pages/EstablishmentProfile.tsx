@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -9,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Building, MapPin, Phone, Mail, FileText, Calendar, Users, TrendingUp } from 'lucide-react';
+import { Building, MapPin, Phone, Mail, FileText, Calendar, Users, TrendingUp, ArrowLeft, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
@@ -187,14 +186,18 @@ const EstablishmentProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Profil de l'établissement
-          </h1>
-          <p className="text-gray-600">
-            Gérez les informations de votre établissement
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/establishment/dashboard')}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour au tableau de bord
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">Profil Établissement</h1>
+          <p className="text-gray-600">Gérez les informations de votre établissement</p>
         </div>
 
         <div className="space-y-6">

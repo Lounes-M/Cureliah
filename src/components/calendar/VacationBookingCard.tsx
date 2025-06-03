@@ -1,8 +1,7 @@
-
 import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import { VacationBooking } from '@/types/calendar';
+import { VacationBooking, TimeSlot } from '@/types/calendar';
 import { getVacationStatusColor, getVacationStatusLabel } from '@/utils/calendarUtils';
 
 interface VacationBookingCardProps {
@@ -10,6 +9,25 @@ interface VacationBookingCardProps {
 }
 
 const VacationBookingCard = ({ vacation }: VacationBookingCardProps) => {
+  const formatTimeSlots = (timeSlots: TimeSlot[]) => {
+    if (!timeSlots || timeSlots.length === 0) return '';
+    
+    const slots = timeSlots.map(slot => {
+      switch (slot.type) {
+        case 'morning':
+          return 'Matin';
+        case 'afternoon':
+          return 'Après-midi';
+        case 'custom':
+          return `${slot.start_time} - ${slot.end_time}`;
+        default:
+          return '';
+      }
+    }).filter(Boolean);
+
+    return slots.join(', ');
+  };
+
   return (
     <div className="border rounded-lg p-4 bg-blue-50 hover:bg-blue-100 transition-colors">
       <div className="flex items-start justify-between">
@@ -41,6 +59,9 @@ const VacationBookingCard = ({ vacation }: VacationBookingCardProps) => {
             <p><strong>Établissement:</strong> {vacation.establishment_profiles.name}</p>
             {vacation.vacation_posts.speciality && (
               <p><strong>Spécialité:</strong> {vacation.vacation_posts.speciality}</p>
+            )}
+            {vacation.vacation_posts.time_slots && vacation.vacation_posts.time_slots.length > 0 && (
+              <p><strong>Horaires:</strong> {formatTimeSlots(vacation.vacation_posts.time_slots)}</p>
             )}
           </div>
         </div>
