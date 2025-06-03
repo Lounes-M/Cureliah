@@ -1,4 +1,3 @@
-
 import { AlertCircle, Clock, UserX, Building } from "lucide-react";
 
 const ProblemSection = () => {
@@ -10,8 +9,8 @@ const ProblemSection = () => {
             Les défis actuels du secteur médical
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Le système traditionnel de recrutement médical présente des inefficacités majeures 
-            pour tous les acteurs du secteur.
+            Le système traditionnel de recrutement médical présente des
+            inefficacités majeures pour tous les acteurs du secteur.
           </p>
         </div>
 
@@ -22,31 +21,45 @@ const ProblemSection = () => {
               <div className="bg-red-100 p-3 rounded-full mr-4">
                 <UserX className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Pour les médecins</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Pour les médecins
+              </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <AlertCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Manque de visibilité</h4>
-                  <p className="text-gray-600">Difficile de faire connaître ses disponibilités aux établissements</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Manque de visibilité
+                  </h4>
+                  <p className="text-gray-600">
+                    Faire connaître ses disponibilités aux établissements
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <Clock className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Processus longs</h4>
-                  <p className="text-gray-600">Négociations interminables, contrats complexes, démarches administratives</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Processus longs
+                  </h4>
+                  <p className="text-gray-600">
+                    Contrats complexes et démarches administratives
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <AlertCircle className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Revenus imprévisibles</h4>
-                  <p className="text-gray-600">Difficile de planifier ses revenus et optimiser son planning</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Revenus imprévisibles
+                  </h4>
+                  <p className="text-gray-600">
+                    Difficile de planifier ses revenus et optimiser son planning
+                  </p>
                 </div>
               </div>
             </div>
@@ -58,31 +71,45 @@ const ProblemSection = () => {
               <div className="bg-orange-100 p-3 rounded-full mr-4">
                 <Building className="w-6 h-6 text-orange-600" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900">Pour les établissements</h3>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Pour les établissements
+              </h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <Clock className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Urgences non couvertes</h4>
-                  <p className="text-gray-600">Besoin immédiat de médecins sans solution rapide</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Urgences non couvertes
+                  </h4>
+                  <p className="text-gray-600">
+                    Besoin immédiat de médecins sans solution rapide
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <AlertCircle className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Recrutement complexe</h4>
-                  <p className="text-gray-600">Réseau limité, validation des compétences chronophage</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Recrutement complexe
+                  </h4>
+                  <p className="text-gray-600">
+                    Réseau limité, validation des compétences chronophage
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex items-start space-x-3">
                 <UserX className="w-5 h-5 text-orange-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-gray-900">Manque de transparence</h4>
-                  <p className="text-gray-600">Tarifs opaques, disponibilités inconnues</p>
+                  <h4 className="font-semibold text-gray-900">
+                    Manque de transparence
+                  </h4>
+                  <p className="text-gray-600">
+                    Tarifs opaques et disponibilités souvent inconnues
+                  </p>
                 </div>
               </div>
             </div>
@@ -96,7 +123,8 @@ const ProblemSection = () => {
               Il est temps de changer la donne
             </h3>
             <p className="text-medical-blue">
-              Projet Med apporte une solution moderne et efficace à ces problématiques
+              Projet Med apporte une solution moderne et efficace à ces
+              problématiques
             </p>
           </div>
         </div>
