@@ -317,7 +317,7 @@ const Auth = () => {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Rejoignez Projet Med
+              Rejoignez Cureliah
             </CardTitle>
             <CardDescription>
               La plateforme qui révolutionne les vacations médicales

@@ -1,4 +1,4 @@
-# Med-Vacant-Connect
+# Cureliah
 
 Une plateforme de mise en relation entre médecins et établissements de santé pour la gestion des vacations médicales.
 
@@ -34,8 +34,8 @@ Une plateforme de mise en relation entre médecins et établissements de santé 
 
 1. Clonez le repository :
 ```bash
-git clone https://github.com/Lounes-M/med-vacant-connect.git
-cd med-vacant-connect
+git clone https://github.com/Lounes-M/cureliah.git
+cd cureliah
 ```
 
 2. Installez les dépendances :

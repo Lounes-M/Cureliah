@@ -10,9 +10,9 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-medical-blue rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">PM</span>
+                <span className="text-white font-bold text-sm">CL</span>
               </div>
-              <span className="text-xl font-bold">Projet Med</span>
+              <span className="text-xl font-bold">Cureliah</span>
             </div>
             <p className="text-gray-300 mb-6 leading-relaxed">
               La plateforme qui révolutionne les vacations médicales en France. 
@@ -62,7 +62,7 @@ const Footer = () => {
           <div className="grid md:grid-cols-3 gap-6 text-sm">
             <div className="flex items-center space-x-3">
               <Mail className="w-4 h-4 text-medical-blue" />
-              <span className="text-gray-300">contact@projetmed.fr</span>
+              <span className="text-gray-300">contact@cureliah.fr</span>
             </div>
             <div className="flex items-center space-x-3">
               <Phone className="w-4 h-4 text-medical-blue" />
@@ -78,7 +78,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 Projet Med. Tous droits réservés. 
+            © 2024 Cureliah. Tous droits réservés. 
             <span className="ml-2">Plateforme conforme aux normes HDS et RGPD.</span>
           </p>
         </div>

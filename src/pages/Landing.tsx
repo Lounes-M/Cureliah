@@ -8,7 +8,7 @@ export default function Landing() {
       <header className="bg-white shadow">
         <div className="container mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Projet Med</h1>
+            <h1 className="text-2xl font-bold">Cureliah</h1>
             <div className="space-x-4">
               <Button variant="outline" asChild>
                 <Link to="/auth?type=doctor">Je suis médecin</Link>
