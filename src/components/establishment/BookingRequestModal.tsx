@@ -1,15 +1,19 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, User, Clock } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card } from '@/components/ui/card';
+import { Calendar, MapPin, Euro, User, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { VacationPost } from '@/types/database';
+import { VacationPost, TimeSlot } from '@/types/database';
+import { addDays, format, parseISO, eachDayOfInterval } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface DoctorInfo {
   id: string;
@@ -29,18 +33,111 @@ interface BookingRequestModalProps {
   onSuccess: () => void;
 }
 
+interface SelectedSlot {
+  date: string;
+  timeSlotId: string;
+  timeSlot: TimeSlot;
+  hours: number;
+}
+
 const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRequestModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
 
-  const calculateTotalAmount = () => {
-    const startDate = new Date(vacation.start_date);
-    const endDate = new Date(vacation.end_date);
-    const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const hoursPerDay = 8; // Estimation de 8h par jour
-    return days * hoursPerDay * vacation.hourly_rate;
+  // Charger les créneaux disponibles
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      if (!vacation.id) return;
+
+      try {
+        const { data: slots, error } = await supabase
+          .from('time_slots')
+          .select('*')
+          .eq('vacation_id', vacation.id);
+
+        if (error) throw error;
+        
+        console.log('Loaded time slots:', slots);
+        setTimeSlots(slots || []);
+
+        // Générer les dates disponibles entre start_date et end_date
+        const startDate = parseISO(vacation.start_date);
+        const endDate = parseISO(vacation.end_date);
+        const dates = eachDayOfInterval({ start: startDate, end: endDate });
+        setAvailableDates(dates.map(date => format(date, 'yyyy-MM-dd')));
+        
+      } catch (error) {
+        console.error('Error fetching time slots:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les créneaux disponibles",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (isOpen) {
+      fetchTimeSlots();
+    }
+  }, [isOpen, vacation.id]);
+
+  // Calculer les heures pour un créneau
+  const calculateSlotHours = (slot: TimeSlot): number => {
+    if (slot.type === 'morning') return 4; // 8h-12h
+    if (slot.type === 'afternoon') return 4; // 14h-18h
+    if (slot.type === 'custom' && slot.start_time && slot.end_time) {
+      const start = new Date(`2000-01-01T${slot.start_time}`);
+      const end = new Date(`2000-01-01T${slot.end_time}`);
+      return (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    }
+    return 0;
+  };
+
+  // Formater l'affichage d'un créneau
+  const formatTimeSlot = (slot: TimeSlot): string => {
+    switch (slot.type) {
+      case 'morning':
+        return 'Matin (8h-12h)';
+      case 'afternoon':
+        return 'Après-midi (14h-18h)';
+      case 'custom':
+        return `${slot.start_time} - ${slot.end_time}`;
+      default:
+        return 'Créneau inconnu';
+    }
+  };
+
+  // Gérer la sélection d'un créneau
+  const handleSlotSelection = (date: string, slot: TimeSlot, checked: boolean) => {
+    if (checked) {
+      const newSlot: SelectedSlot = {
+        date,
+        timeSlotId: slot.id,
+        timeSlot: slot,
+        hours: calculateSlotHours(slot)
+      };
+      setSelectedSlots([...selectedSlots, newSlot]);
+    } else {
+      setSelectedSlots(selectedSlots.filter(s => 
+        !(s.date === date && s.timeSlotId === slot.id)
+      ));
+    }
+  };
+
+  // Calculer le coût total
+  const calculateTotalAmount = (): number => {
+    const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
+    return totalHours * vacation.hourly_rate;
+  };
+
+  // Vérifier si un créneau est sélectionné
+  const isSlotSelected = (date: string, slotId: string): boolean => {
+    return selectedSlots.some(s => s.date === date && s.timeSlotId === slotId);
   };
 
   const handleSubmit = async () => {
@@ -53,21 +150,39 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
       return;
     }
 
+    if (selectedSlots.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner au moins un créneau",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const totalAmount = calculateTotalAmount();
+      const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
+
+      // Créer la demande de réservation avec les détails des créneaux
+      const bookingData = {
+        vacation_post_id: vacation.id,
+        doctor_id: vacation.doctor_id,
+        establishment_id: user.id,
+        message: message || null,
+        total_amount: totalAmount,
+        status: 'pending' as const,
+        payment_status: 'pending' as const,
+        selected_slots: selectedSlots.map(slot => ({
+          date: slot.date,
+          time_slot_id: slot.timeSlotId,
+          hours: slot.hours
+        }))
+      };
 
       const { data, error } = await supabase
         .from('vacation_bookings')
-        .insert({
-          vacation_post_id: vacation.id,
-          doctor_id: vacation.doctor_id,
-          establishment_id: user.id,
-          message: message || null,
-          total_amount: totalAmount,
-          status: 'pending',
-          payment_status: 'pending'
-        })
+        .insert(bookingData)
         .select()
         .single();
 
@@ -75,15 +190,20 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
       console.log('Booking request created:', data);
 
-      // Update vacation status to pending if this is the first booking request
+      // Créer une notification pour le médecin
       await supabase
-        .from('vacation_posts')
-        .update({ status: 'pending' })
-        .eq('id', vacation.id);
+        .from('notifications')
+        .insert({
+          user_id: vacation.doctor_id,
+          title: 'Nouvelle demande de réservation',
+          message: `Un établissement souhaite réserver ${totalHours}h de vacation`,
+          type: 'booking_request',
+          related_booking_id: data.id
+        });
 
       toast({
         title: "Demande envoyée",
-        description: "Votre demande de réservation a été envoyée au médecin",
+        description: `Votre demande pour ${totalHours}h de vacation a été envoyée au médecin`,
       });
 
       onSuccess();
@@ -101,15 +221,15 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
   };
 
   const totalAmount = calculateTotalAmount();
-  const days = Math.ceil((new Date(vacation.end_date).getTime() - new Date(vacation.start_date).getTime()) / (1000 * 60 * 60 * 24));
+  const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Demande de réservation</DialogTitle>
           <DialogDescription>
-            Envoyez une demande de réservation pour cette vacation
+            Sélectionnez les créneaux souhaités pour cette vacation
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +247,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
                 <div className="flex items-center text-sm">
                   <Calendar className="w-4 h-4 text-gray-400 mr-2" />
                   <span>
-                    Du {new Date(vacation.start_date).toLocaleDateString('fr-FR')} au {new Date(vacation.end_date).toLocaleDateString('fr-FR')}
+                    Du {format(parseISO(vacation.start_date), 'dd MMMM yyyy', { locale: fr })} au {format(parseISO(vacation.end_date), 'dd MMMM yyyy', { locale: fr })}
                   </span>
                 </div>
                 <div className="flex items-center text-sm">
@@ -140,10 +260,6 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
                 <div className="flex items-center text-sm">
                   <Euro className="w-4 h-4 text-gray-400 mr-2" />
                   <span>{vacation.hourly_rate}€/heure</span>
-                </div>
-                <div className="flex items-center text-sm">
-                  <Clock className="w-4 h-4 text-gray-400 mr-2" />
-                  <span>{days} jour{days > 1 ? 's' : ''}</span>
                 </div>
                 {vacation.speciality && (
                   <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue">
@@ -168,27 +284,72 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
             )}
           </div>
 
-          {/* Estimation du coût */}
-          <div className="border border-medical-green/20 bg-medical-green/5 p-4 rounded-lg">
-            <h4 className="font-semibold text-medical-green mb-2">Estimation du coût total</h4>
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span>Durée estimée:</span>
-                <span>{days} jour{days > 1 ? 's' : ''} × 8h/jour = {days * 8}h</span>
+          {/* Sélection des créneaux */}
+          <div className="space-y-4">
+            <h4 className="font-semibold text-lg">Créneaux disponibles</h4>
+            
+            {timeSlots.length === 0 ? (
+              <Card className="p-4">
+                <div className="flex items-center gap-2 text-amber-600">
+                  <AlertCircle className="w-5 h-5" />
+                  <span>Aucun créneau défini pour cette vacation. Contactez le médecin pour plus d'informations.</span>
+                </div>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {availableDates.map(date => (
+                  <Card key={date} className="p-4">
+                    <h5 className="font-medium mb-3">
+                      {format(parseISO(date), 'EEEE dd MMMM yyyy', { locale: fr })}
+                    </h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {timeSlots.map(slot => (
+                        <div key={`${date}-${slot.id}`} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${date}-${slot.id}`}
+                            checked={isSlotSelected(date, slot.id)}
+                            onCheckedChange={(checked) => handleSlotSelection(date, slot, checked as boolean)}
+                          />
+                          <Label 
+                            htmlFor={`${date}-${slot.id}`}
+                            className="flex-1 cursor-pointer"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span>{formatTimeSlot(slot)}</span>
+                              <span className="text-sm text-gray-500">
+                                {calculateSlotHours(slot)}h - {calculateSlotHours(slot) * vacation.hourly_rate}€
+                              </span>
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span>Tarif horaire:</span>
-                <span>{vacation.hourly_rate}€/h</span>
-              </div>
-              <div className="flex justify-between font-semibold border-t pt-2">
-                <span>Total estimé:</span>
-                <span>{totalAmount}€</span>
+            )}
+          </div>
+
+          {/* Résumé de la sélection */}
+          {selectedSlots.length > 0 && (
+            <div className="border border-medical-green/20 bg-medical-green/5 p-4 rounded-lg">
+              <h4 className="font-semibold text-medical-green mb-3">Résumé de votre sélection</h4>
+              <div className="space-y-2">
+                {selectedSlots.map((slot, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>
+                      {format(parseISO(slot.date), 'dd/MM', { locale: fr })} - {formatTimeSlot(slot.timeSlot)}
+                    </span>
+                    <span>{slot.hours}h - {slot.hours * vacation.hourly_rate}€</span>
+                  </div>
+                ))}
+                <div className="border-t pt-2 flex justify-between font-semibold">
+                  <span>Total: {totalHours}h</span>
+                  <span>{totalAmount}€</span>
+                </div>
               </div>
             </div>
-            <p className="text-xs text-gray-600 mt-2">
-              * Estimation basée sur 8h/jour. Le montant final sera confirmé avec le médecin.
-            </p>
-          </div>
+          )}
 
           {/* Message personnel */}
           <div className="space-y-2">
@@ -197,7 +358,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
               id="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Présentez votre établissement, précisez vos besoins spécifiques, horaires souhaités..."
+              placeholder="Présentez votre établissement, précisez vos besoins spécifiques..."
               rows={4}
               className="resize-none"
             />
@@ -213,10 +374,10 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={loading}
+            disabled={loading || selectedSlots.length === 0}
             className="bg-medical-green hover:bg-medical-green-dark"
           >
-            {loading ? 'Envoi en cours...' : 'Envoyer la demande'}
+            {loading ? 'Envoi en cours...' : `Envoyer la demande (${totalHours}h - ${totalAmount}€)`}
           </Button>
         </DialogFooter>
       </DialogContent>

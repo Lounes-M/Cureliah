@@ -28,7 +28,7 @@ const VacationForm = ({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>(vacationData.time_slots || []);
-  
+
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 

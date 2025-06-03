@@ -83,13 +83,10 @@ export interface EstablishmentProfile {
 
 export interface TimeSlot {
   id: string;
-  doctor_id: string;
-  start_time: string;
-  end_time: string;
-  status: 'available' | 'booked';
-  location: string;
-  act_type: 'consultation' | 'urgence' | 'visite' | 'teleconsultation';
-  rate: number;
+  vacation_id: string;
+  type: TimeSlotType;
+  start_time?: string;
+  end_time?: string;
   created_at: string;
   updated_at: string;
 }
@@ -141,6 +138,11 @@ export interface VacationBooking {
   payment_status?: 'pending' | 'paid' | 'failed' | 'refunded';
   stripe_session_id?: string;
   stripe_payment_intent_id?: string;
+  selected_slots?: Array<{
+    date: string;
+    time_slot_id: string;
+    hours: number;
+  }>;
   created_at: string;
   updated_at: string;
 }
