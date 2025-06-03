@@ -289,10 +289,18 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
             <h4 className="font-semibold text-lg">Créneaux disponibles</h4>
             
             {timeSlots.length === 0 ? (
-              <Card className="p-4">
-                <div className="flex items-center gap-2 text-amber-600">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>Aucun créneau défini pour cette vacation. Contactez le médecin pour plus d'informations.</span>
+              <Card className="p-6 text-center">
+                <div className="flex flex-col items-center gap-3 text-amber-600">
+                  <AlertCircle className="w-8 h-8" />
+                  <div>
+                    <h4 className="font-medium mb-1">Créneaux non définis</h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Le médecin n'a pas encore défini de créneaux horaires pour cette vacation.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Vous pouvez contacter le médecin directement pour connaître ses disponibilités ou attendre qu'il mette à jour sa vacation.
+                    </p>
+                  </div>
                 </div>
               </Card>
             ) : (

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { VacationPost, TimeSlot, VacationStatus } from '@/types/database';
 import { validateVacationDates } from './dateConflictService';
@@ -61,18 +62,20 @@ export const getVacationById = async (id: string) => {
   }
 };
 
-export const createVacation = async (vacation: Omit<VacationPost, 'id' | 'created_at' | 'updated_at'>) => {
+export const createVacation = async (vacationData: Omit<VacationPost, 'id' | 'created_at' | 'updated_at'>) => {
   try {
+    console.log('Creating vacation with data:', vacationData);
+
     // Get existing vacations for date validation
     const { data: existingVacations } = await supabase
       .from('vacation_posts')
       .select('*')
-      .eq('doctor_id', vacation.doctor_id);
+      .eq('doctor_id', vacationData.doctor_id);
 
     // Validate dates
     const dateValidation = validateVacationDates(
-      vacation.start_date,
-      vacation.end_date,
+      vacationData.start_date,
+      vacationData.end_date,
       existingVacations || []
     );
 
@@ -81,35 +84,76 @@ export const createVacation = async (vacation: Omit<VacationPost, 'id' | 'create
     }
 
     // Validate time slots
-    if (!vacation.time_slots || vacation.time_slots.length === 0) {
+    if (!vacationData.time_slots || vacationData.time_slots.length === 0) {
       throw new Error('Au moins un créneau horaire doit être spécifié');
     }
 
     // Validate time slot types
-    for (const slot of vacation.time_slots) {
+    for (const slot of vacationData.time_slots) {
       if (slot.type === 'custom' && (!slot.start_time || !slot.end_time)) {
         throw new Error('Les créneaux personnalisés doivent avoir une heure de début et de fin');
       }
     }
 
-    const { data, error } = await supabase
+    // Extract time slots from vacation data
+    const { time_slots, ...vacationWithoutSlots } = vacationData;
+
+    // Create vacation post first
+    const { data: vacation, error: vacationError } = await supabase
       .from('vacation_posts')
-      .insert([vacation])
+      .insert([vacationWithoutSlots])
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    if (vacationError) throw vacationError;
+
+    console.log('Vacation created:', vacation);
+
+    // Create time slots with vacation_id
+    if (time_slots && time_slots.length > 0) {
+      const slotsToInsert = time_slots.map(slot => ({
+        vacation_id: vacation.id,
+        type: slot.type,
+        start_time: slot.start_time || null,
+        end_time: slot.end_time || null
+      }));
+
+      console.log('Creating time slots:', slotsToInsert);
+
+      const { data: slots, error: slotsError } = await supabase
+        .from('time_slots')
+        .insert(slotsToInsert)
+        .select();
+
+      if (slotsError) {
+        console.error('Error creating time slots:', slotsError);
+        // Rollback vacation creation
+        await supabase.from('vacation_posts').delete().eq('id', vacation.id);
+        throw slotsError;
+      }
+
+      console.log('Time slots created:', slots);
+
+      // Return vacation with time slots
+      return {
+        ...vacation,
+        time_slots: slots
+      };
+    }
+
+    return vacation;
   } catch (error: any) {
     console.error('Error creating vacation:', error);
     throw error;
   }
 };
 
-export const updateVacation = async (id: string, vacation: Partial<VacationPost>) => {
+export const updateVacation = async (id: string, vacationData: Partial<VacationPost>) => {
   try {
+    console.log('Updating vacation:', id, vacationData);
+
     // If dates are being updated, validate them
-    if (vacation.start_date || vacation.end_date) {
+    if (vacationData.start_date || vacationData.end_date) {
       const existingVacation = await getVacationById(id);
       const { data: existingVacations } = await supabase
         .from('vacation_posts')
@@ -118,8 +162,8 @@ export const updateVacation = async (id: string, vacation: Partial<VacationPost>
         .neq('id', id);
 
       const dateValidation = validateVacationDates(
-        vacation.start_date || existingVacation.start_date,
-        vacation.end_date || existingVacation.end_date,
+        vacationData.start_date || existingVacation.start_date,
+        vacationData.end_date || existingVacation.end_date,
         existingVacations || []
       );
 
@@ -128,28 +172,62 @@ export const updateVacation = async (id: string, vacation: Partial<VacationPost>
       }
     }
 
-    // If time slots are being updated, validate them
-    if (vacation.time_slots) {
-      if (vacation.time_slots.length === 0) {
-        throw new Error('Au moins un créneau horaire doit être spécifié');
-      }
+    // Handle time slots update separately
+    const { time_slots, ...vacationWithoutSlots } = vacationData;
 
-      for (const slot of vacation.time_slots) {
-        if (slot.type === 'custom' && (!slot.start_time || !slot.end_time)) {
-          throw new Error('Les créneaux personnalisés doivent avoir une heure de début et de fin');
-        }
-      }
-    }
-
-    const { data, error } = await supabase
+    // Update vacation post
+    const { data: vacation, error: vacationError } = await supabase
       .from('vacation_posts')
-      .update(vacation)
+      .update(vacationWithoutSlots)
       .eq('id', id)
       .select()
       .single();
 
-    if (error) throw error;
-    return data;
+    if (vacationError) throw vacationError;
+
+    // If time slots are being updated
+    if (time_slots !== undefined) {
+      // Validate time slots
+      if (time_slots.length === 0) {
+        throw new Error('Au moins un créneau horaire doit être spécifié');
+      }
+
+      for (const slot of time_slots) {
+        if (slot.type === 'custom' && (!slot.start_time || !slot.end_time)) {
+          throw new Error('Les créneaux personnalisés doivent avoir une heure de début et de fin');
+        }
+      }
+
+      // Delete existing time slots
+      await supabase
+        .from('time_slots')
+        .delete()
+        .eq('vacation_id', id);
+
+      // Create new time slots
+      if (time_slots.length > 0) {
+        const slotsToInsert = time_slots.map(slot => ({
+          vacation_id: id,
+          type: slot.type,
+          start_time: slot.start_time || null,
+          end_time: slot.end_time || null
+        }));
+
+        const { data: slots, error: slotsError } = await supabase
+          .from('time_slots')
+          .insert(slotsToInsert)
+          .select();
+
+        if (slotsError) throw slotsError;
+
+        return {
+          ...vacation,
+          time_slots: slots
+        };
+      }
+    }
+
+    return vacation;
   } catch (error: any) {
     console.error('Error updating vacation:', error);
     throw error;
@@ -158,6 +236,13 @@ export const updateVacation = async (id: string, vacation: Partial<VacationPost>
 
 export const deleteVacation = async (id: string) => {
   try {
+    // Delete time slots first (foreign key constraint)
+    await supabase
+      .from('time_slots')
+      .delete()
+      .eq('vacation_id', id);
+
+    // Delete vacation
     const { error } = await supabase
       .from('vacation_posts')
       .delete()
@@ -176,4 +261,4 @@ export const vacationService = {
   createVacation,
   updateVacation,
   deleteVacation
-}; 
+};
