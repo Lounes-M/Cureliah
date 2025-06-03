@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# Med-Vacant-Connect
 
-## Project info
+Une plateforme de mise en relation entre médecins et établissements de santé pour la gestion des vacations médicales.
 
-**URL**: https://lovable.dev/projects/c6a7a605-f7a9-4ca9-a686-9d6d2e82dd81
+## 🚀 Fonctionnalités
 
-## How can I edit this code?
+- **Planning Médical** : Interface de gestion des créneaux horaires avec FullCalendar
+- **Gestion des Vacations** : Création, modification et suppression des vacations
+- **Recherche Avancée** : Filtrage par spécialité, localisation, tarifs
+- **Système de Réservation** : Réservation et gestion des rendez-vous
+- **Profils** : Gestion des profils médecins et établissements
+- **Administration** : Interface d'administration complète
+- **Notifications** : Système de notifications en temps réel
+- **Messagerie** : Communication entre médecins et établissements
 
-There are several ways of editing your application.
+## 🛠️ Technologies
 
-**Use Lovable**
+- **Frontend** : React, TypeScript, TailwindCSS
+- **Backend** : Supabase
+- **Base de données** : PostgreSQL
+- **Authentification** : Supabase Auth
+- **Stockage** : Supabase Storage
+- **Paiements** : Stripe
+- **Calendrier** : FullCalendar
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c6a7a605-f7a9-4ca9-a686-9d6d2e82dd81) and start prompting.
+## 📋 Prérequis
 
-Changes made via Lovable will be committed automatically to this repo.
+- Node.js (v18 ou supérieur)
+- npm ou yarn
+- Compte Supabase
+- Compte Stripe (pour les paiements)
 
-**Use your preferred IDE**
+## 🚀 Installation
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+1. Clonez le repository :
+```bash
+git clone https://github.com/Lounes-M/med-vacant-connect.git
+cd med-vacant-connect
 ```
 
-**Edit a file directly in GitHub**
+2. Installez les dépendances :
+```bash
+npm install
+# ou
+yarn install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Configurez les variables d'environnement :
+```bash
+cp .env.example .env
+```
+Remplissez les variables dans le fichier `.env` avec vos propres valeurs.
 
-**Use GitHub Codespaces**
+4. Lancez le serveur de développement :
+```bash
+npm run dev
+# ou
+yarn dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📁 Structure du Projet
 
-## What technologies are used for this project?
+```
+src/
+├── components/         # Composants React
+│   ├── admin/         # Composants d'administration
+│   ├── establishment/ # Composants établissement
+│   ├── vacation/      # Composants vacation
+│   └── ui/           # Composants UI réutilisables
+├── hooks/            # Custom hooks
+├── integrations/     # Intégrations externes
+├── pages/           # Pages de l'application
+├── services/        # Services et API
+├── styles/          # Styles globaux
+└── types/           # Types TypeScript
+```
 
-This project is built with:
+## 🔧 Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Variables d'Environnement
 
-## How can I deploy this project?
+```env
+VITE_SUPABASE_URL=votre_url_supabase
+VITE_SUPABASE_ANON_KEY=votre_clé_anon_supabase
+VITE_STRIPE_PUBLIC_KEY=votre_clé_publique_stripe
+```
 
-Simply open [Lovable](https://lovable.dev/projects/c6a7a605-f7a9-4ca9-a686-9d6d2e82dd81) and click on Share -> Publish.
+### Base de Données
 
-## Can I connect a custom domain to my Lovable project?
+Les migrations Supabase sont disponibles dans le dossier `supabase/migrations/`.
 
-Yes, you can!
+## 🤝 Contribution
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+1. Fork le projet
+2. Créez votre branche de fonctionnalité (`git checkout -b feature/AmazingFeature`)
+3. Committez vos changements (`git commit -m 'feat: Add some AmazingFeature'`)
+4. Poussez vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrez une Pull Request
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📝 Licence
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+## 👥 Auteurs
+
+- **Lounes Moumou** - *Développeur Principal*
+
+## 🙏 Remerciements
+
+- [Supabase](https://supabase.io)
+- [FullCalendar](https://fullcalendar.io)
+- [TailwindCSS](https://tailwindcss.com)
+- [React](https://reactjs.org)
