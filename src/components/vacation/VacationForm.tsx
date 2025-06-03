@@ -141,13 +141,25 @@ const VacationForm = ({
 
     setLoading(true);
     try {
+      // Ensure time slots are properly formatted and included
+      const finalTimeSlots = timeSlots.map(slot => ({
+        ...slot,
+        vacation_id: vacationData.id || '', // Will be updated when vacation is saved
+      }));
+
       const vacationPayload: Partial<VacationPost> = {
         ...vacationData,
-        time_slots: timeSlots,
+        time_slots: finalTimeSlots,
         status: 'available' as VacationStatus
       };
 
+      console.log('Submitting vacation with time slots:', finalTimeSlots);
       onChange(vacationPayload);
+
+      toast({
+        title: "Succès",
+        description: "Vacation sauvegardée avec succès",
+      });
     } catch (error: any) {
       console.error('Error saving vacation:', error);
       toast({
@@ -196,7 +208,7 @@ const VacationForm = ({
           id="start_date"
           type="date"
           min={today}
-          value={vacationData.start_date}
+          value={vacationData.start_date || ''}
           onChange={(e) => onChange({ ...vacationData, start_date: e.target.value })}
           required
         />
@@ -208,7 +220,7 @@ const VacationForm = ({
           id="end_date"
           type="date"
           min={vacationData.start_date || today}
-          value={vacationData.end_date}
+          value={vacationData.end_date || ''}
           onChange={(e) => onChange({ ...vacationData, end_date: e.target.value })}
           required
         />

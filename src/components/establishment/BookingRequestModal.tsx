@@ -57,7 +57,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
     try {
       const totalAmount = calculateTotalAmount();
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('vacation_bookings')
         .insert({
           vacation_post_id: vacation.id,
@@ -67,11 +67,27 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
           total_amount: totalAmount,
           status: 'pending',
           payment_status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      console.log('Booking request created:', data);
+
+      // Update vacation status to pending if this is the first booking request
+      await supabase
+        .from('vacation_posts')
+        .update({ status: 'pending' })
+        .eq('id', vacation.id);
+
+      toast({
+        title: "Demande envoyée",
+        description: "Votre demande de réservation a été envoyée au médecin",
+      });
+
       onSuccess();
+      onClose();
     } catch (error: any) {
       console.error('Error creating booking request:', error);
       toast({

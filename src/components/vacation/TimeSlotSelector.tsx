@@ -18,6 +18,17 @@ const TimeSlotSelector = ({ timeSlots, onChange }: TimeSlotSelectorProps) => {
   const [newEndTime, setNewEndTime] = useState('');
 
   const addTimeSlot = () => {
+    // Validate custom time slots
+    if (newSlotType === 'custom') {
+      if (!newStartTime || !newEndTime) {
+        return;
+      }
+      if (newStartTime >= newEndTime) {
+        alert('L\'heure de fin doit être postérieure à l\'heure de début');
+        return;
+      }
+    }
+
     const newSlot: TimeSlot = {
       id: crypto.randomUUID(),
       vacation_id: '', // Will be set when saving the vacation
@@ -28,6 +39,7 @@ const TimeSlotSelector = ({ timeSlots, onChange }: TimeSlotSelectorProps) => {
       updated_at: new Date().toISOString(),
     };
 
+    console.log('Adding time slot:', newSlot);
     onChange([...timeSlots, newSlot]);
     setNewStartTime('');
     setNewEndTime('');
