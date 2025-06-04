@@ -1,9 +1,11 @@
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
+  useCallback,
+  useMemo,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,6 +15,7 @@ interface User {
   id: string;
   email: string;
   user_type: "doctor" | "establishment" | "admin";
+  email_confirmed_at?: string;
   user_metadata?: {
     user_type?: "doctor" | "establishment" | "admin";
   };
@@ -21,8 +24,6 @@ interface User {
     last_name?: string;
     specialty?: string;
     establishment_name?: string;
-    is_active?: boolean;
-    is_verified?: boolean;
     user_type?: "doctor" | "establishment" | "admin";
   };
 }
@@ -46,8 +47,7 @@ interface AuthContextType {
   isAdmin: () => boolean;
   isDoctor: () => boolean;
   isEstablishment: () => boolean;
-  isVerified: () => boolean;
-  isActive: () => boolean;
+  isEmailConfirmed: () => boolean;
   getDashboardRoute: () => string;
   redirectToDashboard: () => void;
 }
@@ -62,140 +62,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Pages d'authentification où on doit rediriger après connexion
-  const authPages = [
-    "/auth",
-    "/login",
-    "/register",
-    "/signin",
-    "/signup",
-    "/reset-password",
-  ];
+  // Auth pages configuration
+  const authPages = useMemo(
+    () => [
+      "/auth",
+      "/login",
+      "/register",
+      "/signin",
+      "/signup",
+      "/reset-password",
+    ],
+    []
+  );
 
-  // Pages publiques où on ne doit pas rediriger automatiquement
-  const publicPages = ["/", "/about", "/contact", "/pricing", "/features"];
+  // Public pages configuration
+  const publicPages = useMemo(
+    () => ["/", "/about", "/contact", "/pricing", "/features"],
+    []
+  );
 
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-        setInitialLoad(false);
-      }
-    });
+  // Special pages configuration
+  const specialPages = useMemo(() => ["/verify-email"], []);
 
-    // Listen for changes on auth state
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setUser(null);
-        setLoading(false);
-        setInitialLoad(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Gestion intelligente de la redirection
-  useEffect(() => {
-    // Ne pas rediriger pendant le chargement initial ou si pas d'utilisateur
-    if (loading || !user || initialLoad) return;
-
-    const currentPath = location.pathname;
-    const isAuthPage = authPages.some((page) => currentPath.includes(page));
-    const isPublicPage = publicPages.includes(currentPath);
-
-    // Cas 1: Utilisateur sur une page d'auth -> rediriger vers dashboard
-    if (isAuthPage) {
-      redirectToDashboard();
-      return;
-    }
-
-    // Cas 2: Utilisateur non vérifié -> permettre seulement certaines pages
-    if (
-      !user.profile?.is_verified &&
-      !isPublicPage &&
-      !currentPath.includes("/verify")
-    ) {
-      navigate("/verify-email");
-      return;
-    }
-
-    // Cas 3: Utilisateur inactif -> rediriger vers page d'activation
-    if (
-      !user.profile?.is_active &&
-      !isPublicPage &&
-      !currentPath.includes("/activation")
-    ) {
-      navigate("/account-activation");
-      return;
-    }
-
-    // Cas 4: Vérifier les permissions d'accès aux dashboards
-    if (currentPath.includes("/doctor/") && user.user_type !== "doctor") {
-      redirectToDashboard();
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (
-      currentPath.includes("/establishment/") &&
-      user.user_type !== "establishment"
-    ) {
-      redirectToDashboard();
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentPath.includes("/admin/") && user.user_type !== "admin") {
-      redirectToDashboard();
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-  }, [user, loading, location.pathname, initialLoad, navigate]);
-
-  const fetchUserProfile = async (userId: string) => {
+  // Fetch user profile function
+  const fetchUserProfile = useCallback(async (authUser: any) => {
     try {
-      // First get the base profile
+      console.log(
+        "Fetching profile for user:",
+        authUser.id,
+        authUser.email,
+        "Email confirmed:",
+        !!authUser.email_confirmed_at
+      );
+
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", userId)
+        .eq("id", authUser.id)
         .single();
 
-      // Si le profil n'existe pas, on utilise les métadonnées de l'utilisateur
-      if (profileError) {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) throw new Error("User not found");
-
-        const userType = user.user_metadata?.user_type || "doctor";
+      if (profileError && profileError.code === "PGRST116") {
+        console.log("Profile not found, using auth user metadata");
+        const userType = authUser.user_metadata?.user_type || "doctor";
         const userData: User = {
-          id: userId,
-          email: user.email || "",
+          id: authUser.id,
+          email: authUser.email || "",
           user_type: userType,
+          email_confirmed_at: authUser.email_confirmed_at,
           user_metadata: {
             user_type: userType,
           },
@@ -210,28 +123,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw profileError;
+      }
+
       let userData: User = {
-        id: userId,
-        email: profile.email,
+        id: authUser.id,
+        email: authUser.email,
         user_type: profile.user_type,
+        email_confirmed_at: authUser.email_confirmed_at,
         user_metadata: {
           user_type: profile.user_type,
         },
         profile: {
           first_name: profile.first_name,
           last_name: profile.last_name,
-          is_active: profile.is_active,
-          is_verified: profile.is_verified,
           user_type: profile.user_type,
         },
       };
 
-      // Then get the specific profile based on user type
+      // Get specialized profile
       if (profile.user_type === "doctor") {
         const { data: doctorProfile, error: doctorError } = await supabase
           .from("doctor_profiles")
           .select("*")
-          .eq("id", userId)
+          .eq("id", authUser.id)
           .single();
 
         if (!doctorError && doctorProfile) {
@@ -245,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await supabase
             .from("establishment_profiles")
             .select("*")
-            .eq("id", userId)
+            .eq("id", authUser.id)
             .single();
 
         if (!establishmentError && establishmentProfile) {
@@ -256,17 +173,176 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      console.log("User data loaded:", {
+        id: userData.id,
+        email: userData.email,
+        user_type: userData.user_type,
+        email_confirmed: !!userData.email_confirmed_at,
+      });
+
       setUser(userData);
     } catch (error) {
       console.error("Error fetching user profile:", error);
-      // Ne pas afficher de toast d'erreur car c'est un cas normal
+
+      const userType = authUser.user_metadata?.user_type || "doctor";
+      const fallbackUser: User = {
+        id: authUser.id,
+        email: authUser.email || "",
+        user_type: userType,
+        email_confirmed_at: authUser.email_confirmed_at,
+        user_metadata: {
+          user_type: userType,
+        },
+        profile: {
+          user_type: userType,
+        },
+      };
+
+      setUser(fallbackUser);
     } finally {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, []);
 
-  const getDashboardRoute = () => {
+  // Initialize auth session
+  useEffect(() => {
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (mounted) {
+          if (session) {
+            await fetchUserProfile(session.user);
+          } else {
+            setLoading(false);
+            setInitialLoad(false);
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        if (mounted) {
+          setLoading(false);
+          setInitialLoad(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.email);
+
+      if (mounted) {
+        if (session) {
+          await fetchUserProfile(session.user);
+        } else {
+          setUser(null);
+          setLoading(false);
+          setInitialLoad(false);
+        }
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchUserProfile]);
+
+  // Handle navigation based on auth state
+  useEffect(() => {
+    if (loading || initialLoad) return;
+
+    const currentPath = location.pathname;
+    const isAuthPage = authPages.some((page) => currentPath.includes(page));
+    const isPublicPage = publicPages.includes(currentPath);
+    const isSpecialPage = specialPages.some((page) =>
+      currentPath.includes(page)
+    );
+
+    // No user logged in
+    if (!user) {
+      if (!isPublicPage && !isAuthPage && !isSpecialPage) {
+        navigate("/auth");
+      }
+      return;
+    }
+
+    // User logged in but email not confirmed
+    if (!user.email_confirmed_at) {
+      if (!isPublicPage && !isSpecialPage) {
+        navigate("/verify-email");
+        return;
+      }
+    }
+
+    // Email confirmed but on auth page
+    if (user.email_confirmed_at && isAuthPage) {
+      const dashboardRoute = getDashboardRoute();
+      navigate(dashboardRoute);
+      return;
+    }
+
+    // Check dashboard permissions
+    if (currentPath.includes("/doctor/") && user.user_type !== "doctor") {
+      const dashboardRoute = getDashboardRoute();
+      navigate(dashboardRoute);
+      toast({
+        title: "Accès refusé",
+        description:
+          "Vous n'avez pas les permissions pour accéder à cette page",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      currentPath.includes("/establishment/") &&
+      user.user_type !== "establishment"
+    ) {
+      const dashboardRoute = getDashboardRoute();
+      navigate(dashboardRoute);
+      toast({
+        title: "Accès refusé",
+        description:
+          "Vous n'avez pas les permissions pour accéder à cette page",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentPath.includes("/admin/") && user.user_type !== "admin") {
+      const dashboardRoute = getDashboardRoute();
+      navigate(dashboardRoute);
+      toast({
+        title: "Accès refusé",
+        description:
+          "Vous n'avez pas les permissions pour accéder à cette page",
+        variant: "destructive",
+      });
+      return;
+    }
+  }, [
+    user,
+    loading,
+    location.pathname,
+    initialLoad,
+    navigate,
+    toast,
+    authPages,
+    publicPages,
+    specialPages,
+  ]);
+
+  const getDashboardRoute = useCallback(() => {
     if (!user) return "/";
 
     switch (user.user_type) {
@@ -279,184 +355,194 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       default:
         return "/dashboard";
     }
-  };
+  }, [user]);
 
-  const redirectToDashboard = () => {
+  const redirectToDashboard = useCallback(() => {
     const dashboardRoute = getDashboardRoute();
     navigate(dashboardRoute);
-  };
+  }, [getDashboardRoute, navigate]);
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        await fetchUserProfile(data.user.id);
-
-        // Toast de succès
-        toast({
-          title: "Connexion réussie",
-          description: "Bienvenue ! Vous êtes maintenant connecté.",
-          variant: "default",
-        });
-      }
-
-      return { data, error: null };
-    } catch (error: any) {
-      console.error("Error signing in:", error);
-
-      // Messages d'erreur personnalisés
-      let errorMessage = "Une erreur est survenue lors de la connexion";
-
-      if (error.message.includes("Invalid login credentials")) {
-        errorMessage = "Email ou mot de passe incorrect";
-      } else if (error.message.includes("Email not confirmed")) {
-        errorMessage = "Veuillez confirmer votre email avant de vous connecter";
-      } else if (error.message.includes("Too many requests")) {
-        errorMessage =
-          "Trop de tentatives de connexion. Veuillez réessayer plus tard";
-      }
-
-      toast({
-        title: "Erreur de connexion",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return { data: null, error };
-    }
-  };
-
-  const signUp = async (
-    email: string,
-    password: string,
-    userType: "doctor" | "establishment",
-    profileData: any
-  ) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            user_type: userType,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Create base profile first using service role
-        const { error: profileError } = await supabase.auth.admin.createUser({
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          user_metadata: {
-            user_type: userType,
-          },
         });
 
-        if (profileError) {
-          console.error("Error creating base profile:", profileError);
-          throw profileError;
+        if (error) throw error;
+
+        if (data.user) {
+          console.log(
+            "User signed in:",
+            data.user.email,
+            "Email confirmed:",
+            !!data.user.email_confirmed_at
+          );
+
+          if (data.user.email_confirmed_at) {
+            toast({
+              title: "Connexion réussie",
+              description: "Bienvenue ! Vous êtes maintenant connecté.",
+              variant: "default",
+            });
+          }
         }
 
-        // Create base profile
-        const { error: profileInsertError } = await supabase
-          .from("profiles")
-          .insert([
-            {
-              id: data.user.id,
-              email,
+        return { data, error: null };
+      } catch (error: any) {
+        console.error("Error signing in:", error);
+
+        let errorMessage = "Une erreur est survenue lors de la connexion";
+
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Email ou mot de passe incorrect";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage =
+            "Veuillez confirmer votre email avant de vous connecter";
+        } else if (error.message.includes("Too many requests")) {
+          errorMessage =
+            "Trop de tentatives de connexion. Veuillez réessayer plus tard";
+        }
+
+        toast({
+          title: "Erreur de connexion",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return { data: null, error };
+      }
+    },
+    [toast]
+  );
+
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      userType: "doctor" | "establishment",
+      profileData: any
+    ) => {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
               user_type: userType,
               first_name: profileData.firstName,
               last_name: profileData.lastName,
             },
-          ]);
-
-        if (profileInsertError) {
-          console.error("Error inserting profile:", profileInsertError);
-          throw profileInsertError;
-        }
-
-        // Wait a moment to ensure the profile is created
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Create specific profile based on user type
-        if (userType === "doctor") {
-          const { error: doctorError } = await supabase
-            .from("doctor_profiles")
-            .insert([
-              {
-                id: data.user.id,
-                speciality: profileData.specialty,
-              },
-            ]);
-
-          if (doctorError) {
-            console.error("Error creating doctor profile:", doctorError);
-            throw doctorError;
-          }
-        } else if (userType === "establishment") {
-          const { error: establishmentError } = await supabase
-            .from("establishment_profiles")
-            .insert([
-              {
-                id: data.user.id,
-                name: profileData.establishmentName,
-                establishment_type: profileData.establishmentType,
-              },
-            ]);
-
-          if (establishmentError) {
-            console.error(
-              "Error creating establishment profile:",
-              establishmentError
-            );
-            throw establishmentError;
-          }
-        }
-
-        await fetchUserProfile(data.user.id);
-
-        // Toast de succès pour l'inscription
-        toast({
-          title: "Inscription réussie",
-          description:
-            "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer votre compte.",
-          variant: "default",
+          },
         });
+
+        if (error) throw error;
+
+        if (data.user) {
+          console.log(
+            "User signed up:",
+            data.user.email,
+            "Needs confirmation:",
+            !data.user.email_confirmed_at
+          );
+
+          if (data.user.id) {
+            try {
+              const { error: profileInsertError } = await supabase
+                .from("profiles")
+                .insert([
+                  {
+                    id: data.user.id,
+                    email,
+                    user_type: userType,
+                    first_name: profileData.firstName,
+                    last_name: profileData.lastName,
+                  },
+                ]);
+
+              if (profileInsertError) {
+                console.warn(
+                  "Could not create profile immediately:",
+                  profileInsertError
+                );
+              }
+
+              if (userType === "doctor") {
+                const { error: doctorError } = await supabase
+                  .from("doctor_profiles")
+                  .insert([
+                    {
+                      id: data.user.id,
+                      speciality: profileData.specialty,
+                    },
+                  ]);
+
+                if (doctorError) {
+                  console.warn(
+                    "Could not create doctor profile immediately:",
+                    doctorError
+                  );
+                }
+              } else if (userType === "establishment") {
+                const { error: establishmentError } = await supabase
+                  .from("establishment_profiles")
+                  .insert([
+                    {
+                      id: data.user.id,
+                      name: profileData.establishmentName,
+                      establishment_type: profileData.establishmentType,
+                    },
+                  ]);
+
+                if (establishmentError) {
+                  console.warn(
+                    "Could not create establishment profile immediately:",
+                    establishmentError
+                  );
+                }
+              }
+            } catch (profileError) {
+              console.warn(
+                "Profile creation error (non-blocking):",
+                profileError
+              );
+            }
+          }
+
+          toast({
+            title: "Inscription réussie",
+            description:
+              "Votre compte a été créé. Vérifiez votre email pour confirmer votre compte.",
+            variant: "default",
+          });
+        }
+
+        return { data, error: null };
+      } catch (error: any) {
+        console.error("Error signing up:", error);
+
+        let errorMessage = "Une erreur est survenue lors de l'inscription";
+
+        if (error.message.includes("User already registered")) {
+          errorMessage = "Un compte existe déjà avec cette adresse email";
+        } else if (error.message.includes("Password should be at least")) {
+          errorMessage = "Le mot de passe doit contenir au moins 6 caractères";
+        } else if (error.message.includes("Invalid email")) {
+          errorMessage = "Format d'email invalide";
+        }
+
+        toast({
+          title: "Erreur d'inscription",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        return { data: null, error };
       }
+    },
+    [toast]
+  );
 
-      return { data, error: null };
-    } catch (error: any) {
-      console.error("Error signing up:", error);
-
-      // Messages d'erreur personnalisés pour l'inscription
-      let errorMessage = "Une erreur est survenue lors de l'inscription";
-
-      if (error.message.includes("User already registered")) {
-        errorMessage = "Un compte existe déjà avec cette adresse email";
-      } else if (error.message.includes("Password should be at least")) {
-        errorMessage = "Le mot de passe doit contenir au moins 6 caractères";
-      } else if (error.message.includes("Invalid email")) {
-        errorMessage = "Format d'email invalide";
-      }
-
-      toast({
-        title: "Erreur d'inscription",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return { data: null, error };
-    }
-  };
-
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
@@ -478,81 +564,103 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "destructive",
       });
     }
-  };
+  }, [navigate, toast]);
 
-  const updateProfile = async (profileData: any) => {
-    try {
-      if (!user) throw new Error("No user logged in");
+  const updateProfile = useCallback(
+    async (profileData: any) => {
+      try {
+        if (!user) throw new Error("No user logged in");
 
-      const { error } = await supabase
-        .from("profiles")
-        .update(profileData)
-        .eq("id", user.id);
+        const { error } = await supabase
+          .from("profiles")
+          .update(profileData)
+          .eq("id", user.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      await fetchUserProfile(user.id);
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+        if (authUser) {
+          await fetchUserProfile(authUser);
+        }
 
-      toast({
-        title: "Profil mis à jour",
-        description: "Vos informations ont été mises à jour avec succès",
-        variant: "default",
-      });
+        toast({
+          title: "Profil mis à jour",
+          description: "Vos informations ont été mises à jour avec succès",
+          variant: "default",
+        });
 
-      return { data: null, error: null };
-    } catch (error: any) {
-      console.error("Error updating profile:", error);
-      toast({
-        title: "Erreur de mise à jour",
-        description:
-          error.message ||
-          "Une erreur est survenue lors de la mise à jour du profil",
-        variant: "destructive",
-      });
-      return { data: null, error };
-    }
-  };
+        return { data: null, error: null };
+      } catch (error: any) {
+        console.error("Error updating profile:", error);
+        toast({
+          title: "Erreur de mise à jour",
+          description:
+            error.message ||
+            "Une erreur est survenue lors de la mise à jour du profil",
+          variant: "destructive",
+        });
+        return { data: null, error };
+      }
+    },
+    [user, fetchUserProfile, toast]
+  );
 
-  const isAdmin = () => {
+  const isAdmin = useCallback(() => {
     return user?.user_type === "admin";
-  };
+  }, [user]);
 
-  const isDoctor = () => {
+  const isDoctor = useCallback(() => {
     return user?.user_type === "doctor";
-  };
+  }, [user]);
 
-  const isEstablishment = () => {
+  const isEstablishment = useCallback(() => {
     return user?.user_type === "establishment";
-  };
+  }, [user]);
 
-  const isVerified = () => {
-    return user?.profile?.is_verified || false;
-  };
+  const isEmailConfirmed = useCallback(() => {
+    return !!user?.email_confirmed_at;
+  }, [user]);
 
-  const isActive = () => {
-    return user?.profile?.is_active || false;
-  };
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user,
+      profile: user?.profile || null,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      updateProfile,
+      isAdmin,
+      isDoctor,
+      isEstablishment,
+      isEmailConfirmed,
+      getDashboardRoute,
+      redirectToDashboard,
+    }),
+    [
+      user,
+      loading,
+      signIn,
+      signUp,
+      signOut,
+      updateProfile,
+      isAdmin,
+      isDoctor,
+      isEstablishment,
+      isEmailConfirmed,
+      getDashboardRoute,
+      redirectToDashboard,
+    ]
+  );
 
-  const value = {
-    user,
-    profile: user?.profile,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-    updateProfile,
-    isAdmin,
-    isDoctor,
-    isEstablishment,
-    isVerified,
-    isActive,
-    getDashboardRoute,
-    redirectToDashboard,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  );
 }
 
+// Export the hook with proper name to avoid Fast Refresh issues
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

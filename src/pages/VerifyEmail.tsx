@@ -32,6 +32,8 @@ const Button = ({
     outline:
       "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500",
     ghost: "text-gray-600 hover:text-gray-800 hover:bg-gray-100",
+    success:
+      "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl focus:ring-green-500",
   };
 
   const handleClick = (e) => {
@@ -55,17 +57,25 @@ const Button = ({
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, redirectToDashboard } = useAuth();
   const { toast } = useToast();
 
   const [verificationStatus, setVerificationStatus] = useState("pending");
   const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
 
   const token = searchParams.get("token");
   const type = searchParams.get("type");
   const email = searchParams.get("email") || user?.email || "";
+
+  // Vérification automatique du token au chargement
+  useEffect(() => {
+    if (token && type) {
+      verifyToken();
+    }
+  }, [token, type]);
 
   // Gestion du cooldown
   useEffect(() => {
@@ -78,6 +88,81 @@ const VerifyEmail = () => {
     }
   }, [resendCooldown]);
 
+  // Vérification du token
+  const verifyToken = async () => {
+    if (!token || !type) return;
+
+    try {
+      setIsVerifying(true);
+      setVerificationStatus("verifying");
+
+      let result;
+
+      if (type === "signup") {
+        result = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: "signup",
+        });
+      } else if (type === "email_change") {
+        result = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: "email_change",
+        });
+      } else if (type === "recovery") {
+        result = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: "recovery",
+        });
+      } else {
+        throw new Error("Type de vérification non reconnu");
+      }
+
+      if (result.error) throw result.error;
+
+      setVerificationStatus("success");
+
+      toast({
+        title: "Email vérifié !",
+        description: "Votre adresse email a été confirmée avec succès.",
+        variant: "default",
+      });
+
+      // Redirection après 2 secondes
+      setTimeout(() => {
+        if (user) {
+          redirectToDashboard();
+        } else {
+          navigate("/auth");
+        }
+      }, 2000);
+    } catch (error) {
+      console.error("Erreur lors de la vérification:", error);
+      setVerificationStatus("error");
+
+      let errorMsg = "Une erreur est survenue lors de la vérification.";
+
+      if (error.message.includes("Token has expired")) {
+        errorMsg =
+          "Le lien de vérification a expiré. Veuillez en demander un nouveau.";
+      } else if (error.message.includes("Invalid token")) {
+        errorMsg = "Le lien de vérification est invalide.";
+      } else if (error.message.includes("Email already confirmed")) {
+        errorMsg = "Cette adresse email est déjà confirmée.";
+        setVerificationStatus("already_verified");
+      }
+
+      setErrorMessage(errorMsg);
+
+      toast({
+        title: "Erreur de vérification",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   // Navigation vers login
   const handleNavigateToAuth = () => {
     try {
@@ -88,6 +173,7 @@ const VerifyEmail = () => {
     }
   };
 
+  // Renvoyer l'email de vérification
   const handleResendEmail = async () => {
     if (!email || isResending || resendCooldown > 0) return;
 
@@ -100,19 +186,31 @@ const VerifyEmail = () => {
 
       if (error) throw error;
 
-      toast?.({
+      toast({
         title: "Email envoyé !",
-        description: "Un nouveau lien de vérification a été envoyé.",
+        description:
+          "Un nouveau lien de vérification a été envoyé à votre adresse email.",
         variant: "default",
       });
 
       setResendCooldown(60);
+      setVerificationStatus("pending"); // Reset status après renvoi
+      setErrorMessage("");
     } catch (error) {
       console.error("Erreur lors du renvoi:", error);
-      toast?.({
+
+      let errorMsg =
+        "Impossible d'envoyer l'email. Veuillez réessayer plus tard.";
+
+      if (error.message.includes("Email rate limit exceeded")) {
+        errorMsg =
+          "Trop d'emails envoyés. Veuillez attendre avant de réessayer.";
+        setResendCooldown(300); // 5 minutes de cooldown
+      }
+
+      toast({
         title: "Erreur",
-        description:
-          "Impossible d'envoyer l'email. Veuillez réessayer plus tard.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -120,68 +218,193 @@ const VerifyEmail = () => {
     }
   };
 
-  const renderContent = () => (
-    <div className="text-center">
-      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <Mail className="w-8 h-8 text-yellow-600" />
-      </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">
-        Vérifiez votre adresse email
-      </h2>
-      <p className="text-gray-600 mb-6">
-        Nous avons envoyé un lien à <strong>{email}</strong>. Cliquez dessus
-        pour activer votre compte.
-      </p>
+  // Rendu du contenu selon le statut
+  const renderContent = () => {
+    // Statut de vérification en cours
+    if (verificationStatus === "verifying" || isVerifying) {
+      return (
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Vérification en cours...
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Nous vérifions votre adresse email. Veuillez patienter.
+          </p>
+        </div>
+      );
+    }
 
-      <div className="bg-blue-50 rounded-xl p-4 mb-6">
-        <div className="flex items-start">
-          <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-          <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
-            <ul className="space-y-1 text-blue-700">
-              <li>• Vérifiez vos spams</li>
-              <li>• Confirmez l'adresse email</li>
-              <li>• L'email peut prendre quelques minutes</li>
-            </ul>
+    // Statut de succès
+    if (verificationStatus === "success") {
+      return (
+        <div className="text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Email vérifié avec succès !
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Votre adresse email a été confirmée. Vous allez être redirigé
+            automatiquement.
+          </p>
+          <Button
+            variant="success"
+            onClick={() =>
+              user ? redirectToDashboard() : handleNavigateToAuth()
+            }
+            className="w-full"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Continuer
+          </Button>
+        </div>
+      );
+    }
+
+    // Statut déjà vérifié
+    if (verificationStatus === "already_verified") {
+      return (
+        <div className="text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-blue-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Email déjà vérifié
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Cette adresse email est déjà confirmée. Vous pouvez vous connecter.
+          </p>
+          <Button onClick={handleNavigateToAuth} className="w-full">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Aller à la connexion
+          </Button>
+        </div>
+      );
+    }
+
+    // Statut d'erreur
+    if (verificationStatus === "error") {
+      return (
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <XCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Erreur de vérification
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {errorMessage ||
+              "Une erreur est survenue lors de la vérification de votre email."}
+          </p>
+
+          <div className="space-y-4">
+            {email && (
+              <Button
+                onClick={handleResendEmail}
+                disabled={isResending || resendCooldown > 0}
+                className="w-full"
+              >
+                {isResending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Envoi en cours...
+                  </>
+                ) : resendCooldown > 0 ? (
+                  <>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Renvoyer dans {resendCooldown}s
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Renvoyer l'email de vérification
+                  </>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              onClick={handleNavigateToAuth}
+              className="w-full"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour à la connexion
+            </Button>
           </div>
         </div>
-      </div>
+      );
+    }
 
-      <div className="space-y-4">
-        <Button
-          onClick={handleResendEmail}
-          disabled={isResending || resendCooldown > 0}
-          className="w-full"
-        >
-          {isResending ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Envoi en cours...
-            </>
-          ) : resendCooldown > 0 ? (
-            <>
-              <Clock className="w-4 h-4 mr-2" />
-              Renvoyer dans {resendCooldown}s
-            </>
-          ) : (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Renvoyer l'email de vérification
-            </>
-          )}
-        </Button>
+    // Statut par défaut (en attente)
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Mail className="w-8 h-8 text-yellow-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Vérifiez votre adresse email
+        </h2>
+        <p className="text-gray-600 mb-6">
+          Nous avons envoyé un lien de vérification à <strong>{email}</strong>.
+          Cliquez dessus pour activer votre compte.
+        </p>
 
-        <Button
-          variant="outline"
-          onClick={handleNavigateToAuth}
-          className="w-full"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour à la connexion
-        </Button>
+        <div className="bg-blue-50 rounded-xl p-4 mb-6">
+          <div className="flex items-start">
+            <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
+              <ul className="space-y-1 text-blue-700">
+                <li>• Vérifiez votre dossier spam/courrier indésirable</li>
+                <li>• Confirmez que l'adresse email est correcte</li>
+                <li>• L'email peut prendre quelques minutes à arriver</li>
+                <li>• Vérifiez que votre boîte mail n'est pas pleine</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Button
+            onClick={handleResendEmail}
+            disabled={isResending || resendCooldown > 0 || !email}
+            className="w-full"
+          >
+            {isResending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Envoi en cours...
+              </>
+            ) : resendCooldown > 0 ? (
+              <>
+                <Clock className="w-4 h-4 mr-2" />
+                Renvoyer dans {resendCooldown}s
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Renvoyer l'email de vérification
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleNavigateToAuth}
+            className="w-full"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Retour à la connexion
+          </Button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center p-4">

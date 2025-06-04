@@ -1,12 +1,18 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { SearchFilters } from '@/hooks/useVacationSearch';
-import { SPECIALITIES } from '@/utils/specialities';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { SearchFilters } from "@/hooks/useVacationSearch";
+import { SPECIALITIES } from "@/utils/specialities";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SlidersHorizontal, X } from "lucide-react";
 
 interface VacationSearchFiltersProps {
   filters: SearchFilters;
@@ -21,26 +27,26 @@ export const VacationSearchFilters = ({
   onFiltersChange,
   onSearch,
   onClearFilters,
-  searchLoading
+  searchLoading,
 }: VacationSearchFiltersProps) => {
   const [showFilters, setShowFilters] = useState(false);
 
   const updateFilter = (key: keyof SearchFilters, value: string) => {
     // Validation des valeurs numériques
-    if (key === 'minRate' || key === 'maxRate') {
+    if (key === "minRate" || key === "maxRate") {
       const numValue = parseFloat(value);
       if (isNaN(numValue) || numValue < 0) return;
     }
 
     // Validation des dates
-    if (key === 'startDate' || key === 'endDate') {
+    if (key === "startDate" || key === "endDate") {
       if (value && !isValidDate(value)) return;
     }
 
     // Mettre à jour le filtre
     const newFilters = {
       ...filters,
-      [key]: value
+      [key]: value,
     };
     onFiltersChange(newFilters);
   };
@@ -64,7 +70,7 @@ export const VacationSearchFilters = ({
           className="flex items-center gap-2"
         >
           <SlidersHorizontal className="w-4 h-4" />
-          {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+          {showFilters ? "Masquer les filtres" : "Afficher les filtres"}
         </Button>
         {showFilters && (
           <Button
@@ -86,7 +92,7 @@ export const VacationSearchFilters = ({
               <Label htmlFor="speciality">Spécialité</Label>
               <Select
                 value={filters.speciality}
-                onValueChange={(value) => updateFilter('speciality', value)}
+                onValueChange={(value) => updateFilter("speciality", value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner une spécialité" />
@@ -108,7 +114,7 @@ export const VacationSearchFilters = ({
                 id="location"
                 placeholder="Ville, département..."
                 value={filters.location}
-                onChange={(e) => updateFilter('location', e.target.value)}
+                onChange={(e) => updateFilter("location", e.target.value)}
               />
             </div>
 
@@ -118,8 +124,8 @@ export const VacationSearchFilters = ({
                 id="startDate"
                 type="date"
                 value={filters.startDate}
-                onChange={(e) => updateFilter('startDate', e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => updateFilter("startDate", e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
               />
             </div>
 
@@ -129,8 +135,10 @@ export const VacationSearchFilters = ({
                 id="endDate"
                 type="date"
                 value={filters.endDate}
-                onChange={(e) => updateFilter('endDate', e.target.value)}
-                min={filters.startDate || new Date().toISOString().split('T')[0]}
+                onChange={(e) => updateFilter("endDate", e.target.value)}
+                min={
+                  filters.startDate || new Date().toISOString().split("T")[0]
+                }
               />
             </div>
 
@@ -142,7 +150,7 @@ export const VacationSearchFilters = ({
                 min="0"
                 step="0.01"
                 value={filters.minRate}
-                onChange={(e) => updateFilter('minRate', e.target.value)}
+                onChange={(e) => updateFilter("minRate", e.target.value)}
               />
             </div>
 
@@ -154,7 +162,7 @@ export const VacationSearchFilters = ({
                 min={filters.minRate || "0"}
                 step="0.01"
                 value={filters.maxRate}
-                onChange={(e) => updateFilter('maxRate', e.target.value)}
+                onChange={(e) => updateFilter("maxRate", e.target.value)}
               />
             </div>
           </div>
@@ -165,7 +173,7 @@ export const VacationSearchFilters = ({
               disabled={searchLoading}
               className="w-full md:w-auto"
             >
-              {searchLoading ? 'Recherche en cours...' : 'Rechercher'}
+              {searchLoading ? "Recherche en cours..." : "Rechercher"}
             </Button>
           </div>
         </Card>
