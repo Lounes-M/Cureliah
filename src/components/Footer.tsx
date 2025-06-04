@@ -150,16 +150,13 @@ const Footer = () => {
                 : "translate-y-8 opacity-0"
             }`}
           >
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="relative">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg">C</span>
-                </div>
-                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-2xl opacity-20 blur"></div>
-              </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-                Cureliah
-              </span>
+            <div className="flex items-center space-x-2 mb-6">
+              <img
+                src="/logo.png"
+                alt="Cureliah"
+                style={{ height: "200px" }}
+                className="w-auto object-contain"
+              />
             </div>
 
             <p className="text-gray-300 mb-6 leading-relaxed text-lg">
