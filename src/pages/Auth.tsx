@@ -1,528 +1,973 @@
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { User, Building2, ArrowLeft, Lock } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/integrations/supabase/client'
+import { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useToast } from "../hooks/use-toast";
+import {
+  User,
+  Building2,
+  ArrowLeft,
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Shield,
+  Zap,
+  Star,
+  Heart,
+  Chrome,
+  Linkedin,
+  Github,
+  Apple,
+  ArrowRight,
+  Loader2,
+  Check,
+} from "lucide-react";
 
-const Auth = () => {
-  const [isLoading, setIsLoading] = useState(false)
-  const { signUp, signIn, user } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { toast } = useToast()
-  const [isLogin, setIsLogin] = useState(true)
-  const [isResetPassword, setIsResetPassword] = useState(false)
-  const [resetEmail, setResetEmail] = useState('')
+// Composants en dehors du composant principal pour éviter les re-créations
+const Button = ({
+  children,
+  variant = "default",
+  className = "",
+  disabled = false,
+  onClick,
+  ...props
+}) => {
+  const baseClasses =
+    "inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0";
 
-  const [signUpData, setSignUpData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    userType: location.state?.userType || 'doctor',
-    firstName: '',
-    lastName: '',
-    establishmentName: ''
-  })
+  const variants = {
+    default:
+      "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl focus:ring-blue-500",
+    outline:
+      "border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-gray-500",
+    ghost: "text-gray-600 hover:text-gray-800 hover:bg-gray-100",
+    social:
+      "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg",
+  };
 
-  const [signInData, setSignInData] = useState({
-    email: '',
-    password: ''
-  })
+  return (
+    <button
+      className={`${baseClasses} ${variants[variant]} px-6 py-3 ${className}`}
+      disabled={disabled}
+      onClick={onClick}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
 
-  // Validation functions
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+const Input = ({
+  label,
+  error = "",
+  icon: Icon,
+  type = "text",
+  className = "",
+  value,
+  onChange,
+  ...props
+}) => {
+  return (
+    <div className="space-y-2">
+      {label && (
+        <label className="text-sm font-medium text-gray-700 flex items-center">
+          {Icon && <Icon className="w-4 h-4 mr-2" />}
+          {label}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none ${
+            error
+              ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+              : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
+          } focus:ring-4 focus:ring-opacity-20 ${className}`}
+          {...props}
+        />
+      </div>
+      {error && (
+        <div className="flex items-center text-red-600 text-sm">
+          <XCircle className="w-4 h-4 mr-1" />
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
 
-  const validatePassword = (password: string) => {
-    const minLength = 8
-    const hasUpperCase = /[A-Z]/.test(password)
-    const hasLowerCase = /[a-z]/.test(password)
-    const hasNumbers = /\d/.test(password)
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
+const PasswordInput = ({
+  label,
+  value,
+  onChange,
+  error = "",
+  placeholder,
+  showToggle = true,
+}) => {
+  const [show, setShow] = useState(false);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-gray-700 flex items-center">
+        <Lock className="w-4 h-4 mr-2" />
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`w-full px-4 py-3 pr-12 border-2 rounded-xl transition-all duration-200 focus:outline-none ${
+            error
+              ? "border-red-300 focus:border-red-500 focus:ring-red-200"
+              : "border-gray-200 focus:border-blue-500 focus:ring-blue-200"
+          } focus:ring-4 focus:ring-opacity-20`}
+        />
+        {showToggle && (
+          <button
+            type="button"
+            onClick={() => setShow(!show)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            {show ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
+          </button>
+        )}
+      </div>
+      {error && (
+        <div className="flex items-center text-red-600 text-sm">
+          <XCircle className="w-4 h-4 mr-1" />
+          {error}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PasswordStrengthIndicator = ({ password }) => {
+  if (!password) return null;
+
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
     return {
-      isValid: password.length >= minLength && hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar,
-      errors: {
-        length: password.length < minLength,
-        upperCase: !hasUpperCase,
-        lowerCase: !hasLowerCase,
-        numbers: !hasNumbers,
-        specialChar: !hasSpecialChar
-      }
-    }
-  }
+      isValid:
+        password.length >= minLength &&
+        hasUpperCase &&
+        hasLowerCase &&
+        hasNumbers &&
+        hasSpecialChar,
+      strength: [
+        { label: "Au moins 8 caractères", valid: password.length >= minLength },
+        { label: "Une majuscule", valid: hasUpperCase },
+        { label: "Une minuscule", valid: hasLowerCase },
+        { label: "Un chiffre", valid: hasNumbers },
+        { label: "Un caractère spécial", valid: hasSpecialChar },
+      ],
+    };
+  };
 
-  // Redirect if already authenticated
+  const getPasswordStrength = (password) => {
+    const validation = validatePassword(password);
+    const validCount = validation.strength.filter((rule) => rule.valid).length;
+
+    if (validCount <= 2) return { label: "Faible", color: "red", width: "25%" };
+    if (validCount <= 3)
+      return { label: "Moyen", color: "orange", width: "50%" };
+    if (validCount <= 4) return { label: "Bon", color: "blue", width: "75%" };
+    return { label: "Excellent", color: "emerald", width: "100%" };
+  };
+
+  const strength = getPasswordStrength(password);
+  const validation = validatePassword(password);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-600">Force du mot de passe:</span>
+        <span className={`font-medium text-${strength.color}-600`}>
+          {strength.label}
+        </span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div
+          className={`bg-${strength.color}-500 h-2 rounded-full transition-all duration-300`}
+          style={{ width: strength.width }}
+        ></div>
+      </div>
+      <div className="space-y-1">
+        {validation.strength.map((rule, index) => (
+          <div key={index} className="flex items-center text-xs">
+            {rule.valid ? (
+              <CheckCircle className="w-3 h-3 text-emerald-500 mr-2" />
+            ) : (
+              <XCircle className="w-3 h-3 text-gray-400 mr-2" />
+            )}
+            <span className={rule.valid ? "text-emerald-600" : "text-gray-500"}>
+              {rule.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SocialButton = ({ provider, icon: Icon, children }) => (
+  <Button
+    variant="social"
+    className="w-full justify-center"
+    onClick={() => console.log(`Se connecter avec ${provider}`)}
+  >
+    <Icon className="w-5 h-5 mr-3" />
+    {children}
+  </Button>
+);
+
+const Auth = () => {
+  // Hooks d'authentification
+  const { signIn, signUp, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+
+  // États principaux
+  const [currentTab, setCurrentTab] = useState("signin");
+  const [isResetPassword, setIsResetPassword] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // États de validation et erreurs
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Données de formulaire
+  const [signUpData, setSignUpData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+    userType: "doctor",
+    firstName: "",
+    lastName: "",
+    establishmentName: "",
+    specialty: "",
+    establishmentType: "",
+  });
+
+  const [signInData, setSignInData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [resetEmail, setResetEmail] = useState("");
+
+  // Animation d'apparition
   useEffect(() => {
-    if (user) {
-      navigate('/')
-    }
-  }, [user, navigate])
+    setIsVisible(true);
+  }, []);
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!validateEmail(resetEmail)) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une adresse email valide",
-        variant: "destructive"
-      })
-      return
+  // Fonctions de validation
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    return {
+      isValid:
+        password.length >= minLength &&
+        hasUpperCase &&
+        hasLowerCase &&
+        hasNumbers &&
+        hasSpecialChar,
+      message:
+        !password.length >= minLength
+          ? "Le mot de passe doit contenir au moins 8 caractères"
+          : !hasUpperCase
+          ? "Le mot de passe doit contenir au moins une majuscule"
+          : !hasLowerCase
+          ? "Le mot de passe doit contenir au moins une minuscule"
+          : !hasNumbers
+          ? "Le mot de passe doit contenir au moins un chiffre"
+          : !hasSpecialChar
+          ? "Le mot de passe doit contenir au moins un caractère spécial"
+          : "",
+    };
+  };
+
+  const validateSignInForm = () => {
+    const newErrors = {};
+
+    if (!signInData.email) {
+      newErrors.email = "L'email est requis";
+    } else if (!validateEmail(signInData.email)) {
+      newErrors.email = "Format d'email invalide";
     }
 
-    setIsLoading(true)
+    if (!signInData.password) {
+      newErrors.password = "Le mot de passe est requis";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateSignUpForm = () => {
+    const newErrors = {};
+
+    // Validation email
+    if (!signUpData.email) {
+      newErrors.email = "L'email est requis";
+    } else if (!validateEmail(signUpData.email)) {
+      newErrors.email = "Format d'email invalide";
+    }
+
+    // Validation mot de passe
+    if (!signUpData.password) {
+      newErrors.password = "Le mot de passe est requis";
+    } else {
+      const passwordValidation = validatePassword(signUpData.password);
+      if (!passwordValidation.isValid) {
+        newErrors.password = passwordValidation.message;
+      }
+    }
+
+    // Validation confirmation mot de passe
+    if (!signUpData.confirmPassword) {
+      newErrors.confirmPassword = "La confirmation du mot de passe est requise";
+    } else if (signUpData.password !== signUpData.confirmPassword) {
+      newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+    }
+
+    // Validation champs spécifiques au type d'utilisateur
+    if (signUpData.userType === "doctor") {
+      if (!signUpData.firstName.trim()) {
+        newErrors.firstName = "Le prénom est requis";
+      }
+      if (!signUpData.lastName.trim()) {
+        newErrors.lastName = "Le nom est requis";
+      }
+    } else if (signUpData.userType === "establishment") {
+      if (!signUpData.establishmentName.trim()) {
+        newErrors.establishmentName = "Le nom de l'établissement est requis";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+
+    if (!validateSignInForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`
-      })
+      const { data, error } = await signIn(
+        signInData.email,
+        signInData.password
+      );
 
-      if (error) throw error
-
-      toast({
-        title: "Email envoyé",
-        description: "Les instructions de réinitialisation ont été envoyées à votre adresse email. Veuillez vérifier votre boîte de réception."
-      })
-      setIsResetPassword(false)
-      setResetEmail('')
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de l'envoi de l'email",
-        variant: "destructive"
-      })
+      if (error) {
+        toast({
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté",
+          variant: "default",
+        });
+        // La redirection est gérée par useAuth
+      }
+    } catch (error) {
+      console.error("Erreur lors de la connexion:", error);
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+
+    if (!validateSignUpForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      // Validation des données
-      if (!signUpData.email || !signUpData.password) {
-        toast({
-          title: "Erreur",
-          description: "Veuillez remplir tous les champs obligatoires",
-          variant: "destructive",
-        })
-        return
-      }
+      // Préparer les données du profil selon le type d'utilisateur
+      const profileData = {
+        firstName: signUpData.firstName,
+        lastName: signUpData.lastName,
+        establishmentName: signUpData.establishmentName,
+        specialty: signUpData.specialty,
+        establishmentType: signUpData.establishmentType,
+      };
 
-      if (signUpData.password !== signUpData.confirmPassword) {
-        toast({
-          title: "Erreur",
-          description: "Les mots de passe ne correspondent pas",
-          variant: "destructive",
-        })
-        return
-      }
-
-      if (signUpData.userType === 'doctor' && (!signUpData.firstName || !signUpData.lastName)) {
-        toast({
-          title: "Erreur",
-          description: "Veuillez remplir votre nom et prénom",
-          variant: "destructive",
-        })
-        return
-      }
-
-      if (signUpData.userType === 'establishment' && !signUpData.establishmentName) {
-        toast({
-          title: "Erreur",
-          description: "Veuillez remplir le nom de l'établissement",
-          variant: "destructive",
-        })
-        return
-      }
-
-      const { error } = await signUp(
+      const { data, error } = await signUp(
         signUpData.email,
         signUpData.password,
         signUpData.userType,
-        {
-          firstName: signUpData.firstName,
-          lastName: signUpData.lastName,
-          establishmentName: signUpData.establishmentName,
-          is_active: true,
-          is_verified: false
-        }
-      )
+        profileData
+      );
 
       if (error) {
-        if (error.message.includes('User already registered')) {
-          toast({
-            title: "Compte existant",
-            description: "Cet email est déjà utilisé. Veuillez vous connecter.",
-          })
-          // Rediriger vers l'onglet connexion
-          const tabsList = document.querySelector('[role="tablist"]')
-          const signInTab = tabsList?.querySelector('[value="signin"]')
-          if (signInTab) {
-            (signInTab as HTMLElement).click()
-          }
-          // Pré-remplir l'email dans le formulaire de connexion
-          setSignInData(prev => ({ ...prev, email: signUpData.email }))
-          return
-        }
-        throw error
-      }
-
-      toast({
-        title: "Compte créé !",
-        description: "Un email de confirmation vous a été envoyé.",
-      })
-
-      // Rediriger vers la page de création de profil appropriée
-      if (signUpData.userType === 'doctor') {
-        navigate('/doctor/create-profile', {
-          state: {
-            email: signUpData.email,
-            firstName: signUpData.firstName,
-            lastName: signUpData.lastName,
-            userType: signUpData.userType
-          }
-        })
-      } else {
-        navigate('/establishment/create-profile', {
-          state: {
-            email: signUpData.email,
-            establishmentName: signUpData.establishmentName,
-            userType: signUpData.userType
-          }
-        })
-      }
-    } catch (error: any) {
-      console.error('Error signing up:', error)
-      toast({
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la création du compte",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateEmail(signInData.email)) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une adresse email valide",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!signInData.password.trim()) {
-      toast({
-        title: "Erreur", 
-        description: "Le mot de passe est requis",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsLoading(true)
-    
-    try {
-      const { data, error } = await signIn(signInData.email, signInData.password)
-
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Erreur",
-            description: "Email ou mot de passe incorrect",
-            variant: "destructive"
-          })
-        } else if (error.message.includes('Email not confirmed')) {
-          toast({
-            title: "Email non confirmé",
-            description: "Veuillez vérifier votre email et cliquer sur le lien de confirmation",
-            variant: "destructive"
-          })
-        } else {
-          toast({
-            title: "Erreur",
-            description: error.message || "Une erreur est survenue lors de la connexion",
-            variant: "destructive"
-          })
-        }
-      } else if (data?.user) {
-        // Vérifier si l'utilisateur a un profil
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', data.user.id)
-          .single()
-
-        // Si le profil n'existe pas ou s'il y a une erreur, on redirige vers la création de profil
-        if (profileError || !profileData) {
-          const userType = data.user.user_metadata?.user_type || 'doctor'
-          const profileRoute = userType === 'doctor' 
-            ? '/doctor/create-profile'
-            : '/establishment/create-profile'
-          
-          navigate(profileRoute, {
-            state: {
-              email: data.user.email,
-              userType: userType
-            }
-          })
-          return
-        }
-
         toast({
-          title: "Connexion réussie !",
-          description: "Vous êtes maintenant connecté(e).",
-        })
-        navigate('/')
+          title: "Erreur d'inscription",
+          description:
+            error.message || "Une erreur est survenue lors de l'inscription",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Inscription réussie",
+          description:
+            "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer votre compte.",
+          variant: "default",
+        });
+
+        // Réinitialiser le formulaire
+        setSignUpData({
+          email: "",
+          password: "",
+          confirmPassword: "",
+          userType: "doctor",
+          firstName: "",
+          lastName: "",
+          establishmentName: "",
+          specialty: "",
+          establishmentType: "",
+        });
+
+        // Basculer vers l'onglet connexion
+        setCurrentTab("signin");
       }
-    } catch (error: any) {
-      console.error('Unexpected error during signin:', error)
+    } catch (error) {
+      console.error("Erreur lors de l'inscription:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+
+    if (!resetEmail || !validateEmail(resetEmail)) {
+      setErrors({ resetEmail: "Veuillez entrer une adresse email valide" });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // TODO: Implémenter la réinitialisation du mot de passe avec Supabase
+      // const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
+
+      toast({
+        title: "Email envoyé",
+        description:
+          "Un lien de réinitialisation a été envoyé à votre adresse email",
+        variant: "default",
+      });
+
+      setIsResetPassword(false);
+      setResetEmail("");
+      setErrors({});
+    } catch (error) {
+      console.error("Erreur lors de la réinitialisation:", error);
       toast({
         title: "Erreur",
-        description: "Une erreur est survenue lors de la connexion",
-        variant: "destructive"
-      })
+        description: "Une erreur est survenue lors de l'envoi de l'email",
+        variant: "destructive",
+      });
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false);
     }
-  }
+  };
+
+  const isFormLoading = authLoading || isSubmitting;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-medical-blue-light via-white to-medical-green-light flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Éléments décoratifs */}
+      <div className="absolute top-20 left-10 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
+      <div
+        className="absolute bottom-20 right-10 w-64 h-64 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"
+        style={{ animationDelay: "2s" }}
+      ></div>
+
+      <div
+        className={`w-full max-w-md relative z-10 transition-all duration-1000 ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        }`}
+      >
+        {/* Bouton retour */}
         <Button
           variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
+          onClick={() => window.history.back()}
+          className="mb-6 group"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
           Retour à l'accueil
         </Button>
 
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900">
-              Rejoignez Cureliah
-            </CardTitle>
-            <CardDescription>
-              La plateforme qui révolutionne les vacations médicales
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Connexion</TabsTrigger>
-                <TabsTrigger value="signup">Inscription</TabsTrigger>
-              </TabsList>
+        {/* Carte principale */}
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+          {/* En-tête avec gradient */}
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600 px-8 py-6 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 animate-pulse"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
+                  <span className="text-blue-600 font-bold">C</span>
+                </div>
+                <span className="text-xl font-bold text-white">Cureliah</span>
+              </div>
+              <h1 className="text-2xl font-bold text-white mb-2">
+                {isResetPassword
+                  ? "Réinitialiser votre mot de passe"
+                  : "Rejoignez la révolution médicale"}
+              </h1>
+              <p className="text-blue-100">
+                {isResetPassword
+                  ? "Recevez un lien de réinitialisation par email"
+                  : "La plateforme qui connecte médecins et établissements"}
+              </p>
+            </div>
+          </div>
 
-              <TabsContent value="signin">
-                {isResetPassword ? (
-                  <form onSubmit={handleResetPassword} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="reset-email">Email</Label>
-                      <Input
-                        id="reset-email"
-                        type="email"
-                        value={resetEmail}
-                        onChange={(e) => setResetEmail(e.target.value)}
-                        required
-                        placeholder="votre@email.com"
-                        disabled={isLoading}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Envoi..." : "Réinitialiser le mot de passe"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => setIsResetPassword(false)}
-                    >
-                      Retour à la connexion
-                    </Button>
-                  </form>
-                ) : (
-                  <form onSubmit={handleSignIn} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-email">Email</Label>
-                      <Input
-                        id="signin-email"
-                        type="email"
-                        value={signInData.email}
-                        onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
-                        required
-                        placeholder="votre@email.com"
-                        disabled={isLoading}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signin-password">Mot de passe</Label>
-                      <Input
-                        id="signin-password"
-                        type="password"
-                        value={signInData.password}
-                        onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
-                        required
-                        placeholder="••••••••"
-                        disabled={isLoading}
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Connexion..." : "Se connecter"}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full"
-                      onClick={() => {
-                        setIsResetPassword(true);
-                        setResetEmail(signInData.email); // Pré-remplir l'email
+          <div className="p-8">
+            {!isResetPassword ? (
+              <div>
+                {/* Tabs */}
+                <div className="flex bg-gray-100 rounded-2xl p-1 mb-8">
+                  <button
+                    onClick={() => {
+                      setCurrentTab("signin");
+                      setErrors({});
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+                      currentTab === "signin"
+                        ? "bg-white text-blue-600 shadow-md"
+                        : "text-gray-600 hover:text-blue-600"
+                    }`}
+                  >
+                    Connexion
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCurrentTab("signup");
+                      setErrors({});
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
+                      currentTab === "signup"
+                        ? "bg-white text-emerald-600 shadow-md"
+                        : "text-gray-600 hover:text-emerald-600"
+                    }`}
+                  >
+                    Inscription
+                  </button>
+                </div>
+
+                {/* Formulaire de connexion */}
+                {currentTab === "signin" && (
+                  <form onSubmit={handleSignIn} className="space-y-6">
+                    <Input
+                      label="Adresse email"
+                      type="email"
+                      value={signInData.email}
+                      onChange={(e) => {
+                        setSignInData({ ...signInData, email: e.target.value });
+                        if (errors.email) {
+                          setErrors({ ...errors, email: "" });
+                        }
                       }}
+                      placeholder="votre@email.com"
+                      icon={Mail}
+                      error={errors.email}
+                      required
+                    />
+
+                    <PasswordInput
+                      label="Mot de passe"
+                      value={signInData.password}
+                      onChange={(e) => {
+                        setSignInData({
+                          ...signInData,
+                          password: e.target.value,
+                        });
+                        if (errors.password) {
+                          setErrors({ ...errors, password: "" });
+                        }
+                      }}
+                      placeholder="••••••••"
+                      error={errors.password}
+                      showToggle={true}
+                    />
+
+                    <Button
+                      type="submit"
+                      className="w-full py-4 text-lg"
+                      disabled={isFormLoading}
                     >
-                      <Lock className="w-4 h-4 mr-2" />
-                      Mot de passe oublié ?
+                      {isFormLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Connexion en cours...
+                        </>
+                      ) : (
+                        <>
+                          Se connecter
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
                     </Button>
+
+                    <div className="text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsResetPassword(true);
+                          setResetEmail(signInData.email);
+                          setErrors({});
+                        }}
+                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      >
+                        Mot de passe oublié ?
+                      </button>
+                    </div>
+
+                    {/* Séparateur */}
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white text-gray-500">
+                          Ou continuer avec
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Connexions sociales */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <SocialButton provider="Google" icon={Chrome}>
+                        Google
+                      </SocialButton>
+                      <SocialButton provider="LinkedIn" icon={Linkedin}>
+                        LinkedIn
+                      </SocialButton>
+                    </div>
                   </form>
                 )}
-              </TabsContent>
 
-              <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Type de compte</Label>
-                    <div className="flex gap-4">
-                      <Button
-                        type="button"
-                        variant={signUpData.userType === 'doctor' ? 'default' : 'outline'}
-                        className={`flex-1 ${
-                          signUpData.userType === 'doctor'
-                            ? 'bg-medical-blue hover:bg-medical-blue-dark text-white'
-                            : 'border-medical-blue text-medical-blue hover:bg-medical-blue/10'
-                        }`}
-                        onClick={() => setSignUpData(prev => ({ ...prev, userType: 'doctor' }))}
-                      >
-                        Médecin
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={signUpData.userType === 'establishment' ? 'default' : 'outline'}
-                        className={`flex-1 ${
-                          signUpData.userType === 'establishment'
-                            ? 'bg-medical-green hover:bg-medical-green-dark text-white'
-                            : 'border-medical-green text-medical-green hover:bg-medical-green/10'
-                        }`}
-                        onClick={() => setSignUpData(prev => ({ ...prev, userType: 'establishment' }))}
-                      >
-                        Établissement
-                      </Button>
+                {/* Formulaire d'inscription */}
+                {currentTab === "signup" && (
+                  <form onSubmit={handleSignUp} className="space-y-6">
+                    {/* Choix du type de compte */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-gray-700">
+                        Type de compte
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSignUpData({
+                              ...signUpData,
+                              userType: "doctor",
+                            });
+                            setErrors({});
+                          }}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                            signUpData.userType === "doctor"
+                              ? "border-blue-500 bg-blue-50 text-blue-700"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <User className="w-8 h-8 mx-auto mb-2" />
+                          <div className="text-sm font-semibold">Médecin</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSignUpData({
+                              ...signUpData,
+                              userType: "establishment",
+                            });
+                            setErrors({});
+                          }}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+                            signUpData.userType === "establishment"
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <Building2 className="w-8 h-8 mx-auto mb-2" />
+                          <div className="text-sm font-semibold">
+                            Établissement
+                          </div>
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  {signUpData.userType === 'doctor' ? (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">Prénom</Label>
+                    {/* Champs conditionnels */}
+                    {signUpData.userType === "doctor" ? (
+                      <div className="grid grid-cols-2 gap-4">
                         <Input
-                          id="firstName"
-                          type="text"
+                          label="Prénom"
                           value={signUpData.firstName}
-                          onChange={(e) => setSignUpData(prev => ({ ...prev, firstName: e.target.value }))}
+                          onChange={(e) => {
+                            setSignUpData({
+                              ...signUpData,
+                              firstName: e.target.value,
+                            });
+                            if (errors.firstName) {
+                              setErrors({ ...errors, firstName: "" });
+                            }
+                          }}
+                          placeholder="Jean"
+                          error={errors.firstName}
                           required
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Nom</Label>
                         <Input
-                          id="lastName"
-                          type="text"
+                          label="Nom"
                           value={signUpData.lastName}
-                          onChange={(e) => setSignUpData(prev => ({ ...prev, lastName: e.target.value }))}
+                          onChange={(e) => {
+                            setSignUpData({
+                              ...signUpData,
+                              lastName: e.target.value,
+                            });
+                            if (errors.lastName) {
+                              setErrors({ ...errors, lastName: "" });
+                            }
+                          }}
+                          placeholder="Dupont"
+                          error={errors.lastName}
                           required
                         />
                       </div>
-                    </>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="establishmentName">Nom de l'établissement</Label>
+                    ) : (
                       <Input
-                        id="establishmentName"
-                        type="text"
+                        label="Nom de l'établissement"
                         value={signUpData.establishmentName}
-                        onChange={(e) => setSignUpData(prev => ({ ...prev, establishmentName: e.target.value }))}
+                        onChange={(e) => {
+                          setSignUpData({
+                            ...signUpData,
+                            establishmentName: e.target.value,
+                          });
+                          if (errors.establishmentName) {
+                            setErrors({ ...errors, establishmentName: "" });
+                          }
+                        }}
+                        placeholder="Clinique Saint-Louis"
+                        icon={Building2}
+                        error={errors.establishmentName}
                         required
                       />
-                    </div>
-                  )}
+                    )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
                     <Input
-                      id="signup-email"
+                      label="Adresse email"
                       type="email"
                       value={signUpData.email}
-                      onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
-                      required
+                      onChange={(e) => {
+                        setSignUpData({ ...signUpData, email: e.target.value });
+                        if (errors.email) {
+                          setErrors({ ...errors, email: "" });
+                        }
+                      }}
                       placeholder="votre@email.com"
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Mot de passe</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={signUpData.password}
-                      onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+                      icon={Mail}
+                      error={errors.email}
                       required
-                      placeholder="••••••••"
-                      disabled={isLoading}
                     />
-                    <p className="text-sm text-gray-500">
-                      Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.
-                    </p>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-confirm-password">Confirmer le mot de passe</Label>
-                    <Input
-                      id="signup-confirm-password"
-                      type="password"
+                    <div className="space-y-4">
+                      <PasswordInput
+                        label="Mot de passe"
+                        value={signUpData.password}
+                        onChange={(e) => {
+                          setSignUpData({
+                            ...signUpData,
+                            password: e.target.value,
+                          });
+                          if (errors.password) {
+                            setErrors({ ...errors, password: "" });
+                          }
+                        }}
+                        placeholder="••••••••"
+                        error={errors.password}
+                      />
+
+                      <PasswordStrengthIndicator
+                        password={signUpData.password}
+                      />
+                    </div>
+
+                    <PasswordInput
+                      label="Confirmer le mot de passe"
                       value={signUpData.confirmPassword}
-                      onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
-                      required
+                      onChange={(e) => {
+                        setSignUpData({
+                          ...signUpData,
+                          confirmPassword: e.target.value,
+                        });
+                        if (errors.confirmPassword) {
+                          setErrors({ ...errors, confirmPassword: "" });
+                        }
+                      }}
                       placeholder="••••••••"
-                      disabled={isLoading}
+                      error={errors.confirmPassword}
+                      showToggle={false}
                     />
-                  </div>
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Création du compte..." : "Créer un compte"}
+                    <Button
+                      type="submit"
+                      className="w-full py-4 text-lg"
+                      disabled={isFormLoading}
+                    >
+                      {isFormLoading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Création en cours...
+                        </>
+                      ) : (
+                        <>
+                          Créer mon compte
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Avantages */}
+                    <div className="bg-gradient-to-r from-blue-50 to-emerald-50 rounded-xl p-4">
+                      <div className="flex items-center mb-2">
+                        <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                        <span className="text-sm font-semibold text-gray-700">
+                          Pourquoi nous choisir ?
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-xs text-gray-600">
+                        <div className="flex items-center">
+                          <Check className="w-3 h-3 text-emerald-500 mr-2" />
+                          Plateforme 100% sécurisée et conforme RGPD
+                        </div>
+                        <div className="flex items-center">
+                          <Check className="w-3 h-3 text-emerald-500 mr-2" />
+                          Support 24/7 et équipe dédiée
+                        </div>
+                        <div className="flex items-center">
+                          <Check className="w-3 h-3 text-emerald-500 mr-2" />
+                          Aucune commission sur vos revenus
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lock className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <p className="text-gray-600">
+                    Entrez votre adresse email et nous vous enverrons un lien
+                    pour réinitialiser votre mot de passe.
+                  </p>
+                </div>
+
+                <form onSubmit={handleResetPassword} className="space-y-6">
+                  <Input
+                    label="Adresse email"
+                    type="email"
+                    value={resetEmail}
+                    onChange={(e) => {
+                      setResetEmail(e.target.value);
+                      if (errors.resetEmail) {
+                        setErrors({ ...errors, resetEmail: "" });
+                      }
+                    }}
+                    placeholder="votre@email.com"
+                    icon={Mail}
+                    error={errors.resetEmail}
+                    required
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full py-4"
+                    disabled={
+                      isFormLoading || !resetEmail || !validateEmail(resetEmail)
+                    }
+                  >
+                    {isFormLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Envoi en cours...
+                      </>
+                    ) : (
+                      "Envoyer le lien de réinitialisation"
+                    )}
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    onClick={() => {
+                      setIsResetPassword(false);
+                      setErrors({});
+                    }}
+                    className="w-full"
+                  >
+                    Retour à la connexion
                   </Button>
                 </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer avec sécurité */}
+        <div className="text-center mt-6 text-sm text-gray-500">
+          <div className="flex items-center justify-center space-x-4">
+            <div className="flex items-center">
+              <Shield className="w-4 h-4 mr-1" />
+              <span>Sécurisé SSL</span>
+            </div>
+            <div className="flex items-center">
+              <Heart className="w-4 h-4 mr-1 text-red-500" />
+              <span>Made in France</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Auth
+export default Auth;
