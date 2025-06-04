@@ -1,9 +1,3 @@
-console.log("Component state:", {
-  verificationStatus,
-  isResending,
-  resendCooldown,
-  email,
-});
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 
-// Composant Button simple pour éviter les problèmes
+// Composant Button simplifié
 const Button = ({
   children,
   variant = "default",
@@ -40,13 +34,9 @@ const Button = ({
     ghost: "text-gray-600 hover:text-gray-800 hover:bg-gray-100",
   };
 
-  // Gestion du clic avec debug minimal
   const handleClick = (e) => {
     e.preventDefault();
-
-    if (!disabled && onClick) {
-      onClick(e);
-    }
+    if (!disabled && onClick) onClick(e);
   };
 
   return (
@@ -65,41 +55,17 @@ const Button = ({
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  // Charger les hooks
-  let user, redirectToDashboard, toast;
-
-  try {
-    const authHook = useAuth();
-    user = authHook?.user;
-    redirectToDashboard = authHook?.redirectToDashboard;
-  } catch (error) {
-    console.error("Error loading auth hook:", error);
-  }
-
-  try {
-    const toastHook = useToast();
-    toast = toastHook?.toast;
-  } catch (error) {
-    console.error("Error loading toast hook:", error);
-  }
-
-  // États de la page
   const [verificationStatus, setVerificationStatus] = useState("pending");
   const [isResending, setIsResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Récupérer les paramètres de l'URL
   const token = searchParams.get("token");
   const type = searchParams.get("type");
   const email = searchParams.get("email") || user?.email || "";
-
-  // États de la page
-  const [verificationStatus, setVerificationStatus] = useState("pending");
-  const [isResending, setIsResending] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-  const [errorMessage, setErrorMessage] = useState("");
 
   // Gestion du cooldown
   useEffect(() => {
@@ -112,135 +78,110 @@ const VerifyEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Fonction pour naviguer vers auth
+  // Navigation vers login
   const handleNavigateToAuth = () => {
     try {
       navigate("/auth");
     } catch (error) {
       console.error("Navigation error:", error);
-      // Fallback - redirection manuelle
       window.location.href = "/auth";
     }
   };
 
-  // Fonction pour renvoyer l'email
   const handleResendEmail = async () => {
-    if (!email || isResending || resendCooldown > 0) {
-      return;
-    }
+    if (!email || isResending || resendCooldown > 0) return;
 
     try {
       setIsResending(true);
-
       const { error } = await supabase.auth.resend({
         type: "signup",
         email: email,
       });
 
-      if (error) {
-        console.error("Supabase resend error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      // Toast de succès
-      if (toast) {
-        toast({
-          title: "Email envoyé !",
-          description:
-            "Un nouveau lien de vérification a été envoyé à votre adresse email.",
-          variant: "default",
-        });
-      } else {
-        // Fallback si toast ne fonctionne pas
-        alert("Email de vérification envoyé !");
-      }
+      toast?.({
+        title: "Email envoyé !",
+        description: "Un nouveau lien de vérification a été envoyé.",
+        variant: "default",
+      });
 
       setResendCooldown(60);
     } catch (error) {
       console.error("Erreur lors du renvoi:", error);
-
-      if (toast) {
-        toast({
-          title: "Erreur",
-          description:
-            "Impossible d'envoyer l'email de vérification. Veuillez réessayer plus tard.",
-          variant: "destructive",
-        });
-      } else {
-        // Fallback si toast ne fonctionne pas
-        alert(
-          "Erreur lors de l'envoi de l'email. Veuillez réessayer plus tard."
-        );
-      }
+      toast?.({
+        title: "Erreur",
+        description:
+          "Impossible d'envoyer l'email. Veuillez réessayer plus tard.",
+        variant: "destructive",
+      });
     } finally {
       setIsResending(false);
     }
   };
 
-  const renderContent = () => {
-    return (
-      <div className="text-center">
-        <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Mail className="w-8 h-8 text-yellow-600" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Vérifiez votre adresse email
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Nous avons envoyé un lien de vérification à <strong>{email}</strong>.
-          Cliquez sur le lien dans l'email pour activer votre compte.
-        </p>
+  const renderContent = () => (
+    <div className="text-center">
+      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Mail className="w-8 h-8 text-yellow-600" />
+      </div>
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        Vérifiez votre adresse email
+      </h2>
+      <p className="text-gray-600 mb-6">
+        Nous avons envoyé un lien à <strong>{email}</strong>. Cliquez dessus
+        pour activer votre compte.
+      </p>
 
-        <div className="bg-blue-50 rounded-xl p-4 mb-6">
-          <div className="flex items-start">
-            <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
-              <ul className="space-y-1 text-blue-700">
-                <li>• Vérifiez votre dossier spam/courrier indésirable</li>
-                <li>• Assurez-vous que l'adresse email est correcte</li>
-                <li>• L'email peut prendre quelques minutes à arriver</li>
-              </ul>
-            </div>
+      <div className="bg-blue-50 rounded-xl p-4 mb-6">
+        <div className="flex items-start">
+          <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
+            <ul className="space-y-1 text-blue-700">
+              <li>• Vérifiez vos spams</li>
+              <li>• Confirmez l'adresse email</li>
+              <li>• L'email peut prendre quelques minutes</li>
+            </ul>
           </div>
         </div>
-
-        <div className="space-y-4">
-          <Button
-            onClick={handleResendEmail}
-            disabled={isResending || resendCooldown > 0}
-            className="w-full"
-          >
-            {isResending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Envoi en cours...
-              </>
-            ) : resendCooldown > 0 ? (
-              <>
-                <Clock className="w-4 h-4 mr-2" />
-                Renvoyer dans {resendCooldown}s
-              </>
-            ) : (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Renvoyer l'email de vérification
-              </>
-            )}
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={handleNavigateToAuth}
-            className="w-full"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour à la connexion
-          </Button>
-        </div>
       </div>
-    );
-  };
+
+      <div className="space-y-4">
+        <Button
+          onClick={handleResendEmail}
+          disabled={isResending || resendCooldown > 0}
+          className="w-full"
+        >
+          {isResending ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Envoi en cours...
+            </>
+          ) : resendCooldown > 0 ? (
+            <>
+              <Clock className="w-4 h-4 mr-2" />
+              Renvoyer dans {resendCooldown}s
+            </>
+          ) : (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Renvoyer l'email de vérification
+            </>
+          )}
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={handleNavigateToAuth}
+          className="w-full"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour à la connexion
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center p-4">
