@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { useToast } from "../hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth"; // ✅ Import absolu au lieu de relatif
+import { useToast } from "@/components/ui/use-toast"; // ✅ Import absolu
 import {
   User,
   Building2,
@@ -25,6 +25,77 @@ import {
   Check,
 } from "lucide-react";
 
+// Type definitions
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: "default" | "outline" | "ghost" | "social";
+  className?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
+  [key: string]: any;
+}
+
+interface InputProps {
+  label?: string;
+  error?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  type?: string;
+  className?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  required?: boolean;
+  [key: string]: any;
+}
+
+interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  placeholder?: string;
+  showToggle?: boolean;
+}
+
+interface SocialButtonProps {
+  provider: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}
+
+interface SignUpData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  userType: "doctor" | "establishment";
+  firstName: string;
+  lastName: string;
+  establishmentName: string;
+  specialty: string;
+  establishmentType: string;
+}
+
+interface SignInData {
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
+  establishmentName?: string;
+  resetEmail?: string;
+}
+
+interface PasswordValidation {
+  isValid: boolean;
+  message: string;
+}
+
 // Composants en dehors du composant principal pour éviter les re-créations
 const Button = ({
   children,
@@ -32,8 +103,9 @@ const Button = ({
   className = "",
   disabled = false,
   onClick,
+  type = "button",
   ...props
-}) => {
+}: ButtonProps) => {
   const baseClasses =
     "inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5 active:translate-y-0";
 
@@ -49,6 +121,7 @@ const Button = ({
 
   return (
     <button
+      type={type}
       className={`${baseClasses} ${variants[variant]} px-6 py-3 ${className}`}
       disabled={disabled}
       onClick={onClick}
@@ -67,8 +140,10 @@ const Input = ({
   className = "",
   value,
   onChange,
+  placeholder,
+  required = false,
   ...props
-}) => {
+}: InputProps) => {
   return (
     <div className="space-y-2">
       {label && (
@@ -82,6 +157,8 @@ const Input = ({
           type={type}
           value={value}
           onChange={onChange}
+          placeholder={placeholder}
+          required={required}
           className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 focus:outline-none ${
             error
               ? "border-red-300 focus:border-red-500 focus:ring-red-200"
@@ -107,7 +184,7 @@ const PasswordInput = ({
   error = "",
   placeholder,
   showToggle = true,
-}) => {
+}: PasswordInputProps) => {
   const [show, setShow] = useState(false);
 
   return (
@@ -152,10 +229,10 @@ const PasswordInput = ({
   );
 };
 
-const PasswordStrengthIndicator = ({ password }) => {
+const PasswordStrengthIndicator = ({ password }: { password: string }) => {
   if (!password) return null;
 
-  const validatePassword = (password) => {
+  const validatePassword = (password: string) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -179,7 +256,7 @@ const PasswordStrengthIndicator = ({ password }) => {
     };
   };
 
-  const getPasswordStrength = (password) => {
+  const getPasswordStrength = (password: string) => {
     const validation = validatePassword(password);
     const validCount = validation.strength.filter((rule) => rule.valid).length;
 
@@ -225,7 +302,11 @@ const PasswordStrengthIndicator = ({ password }) => {
   );
 };
 
-const SocialButton = ({ provider, icon: Icon, children }) => (
+const SocialButton = ({
+  provider,
+  icon: Icon,
+  children,
+}: SocialButtonProps) => (
   <Button
     variant="social"
     className="w-full justify-center"
@@ -238,20 +319,31 @@ const SocialButton = ({ provider, icon: Icon, children }) => (
 
 const Auth = () => {
   // Hooks d'authentification
-  const { signIn, signUp, loading: authLoading } = useAuth();
+  const { signIn, signUp, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
 
   // États principaux
-  const [currentTab, setCurrentTab] = useState("signin");
+  const [currentTab, setCurrentTab] = useState<"signin" | "signup">("signin");
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   // États de validation et erreurs
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Debug - vérifier l'état de l'auth
+  useEffect(() => {
+    console.log("Auth State:", {
+      user: user
+        ? { id: user.id, email: user.email, user_type: user.user_type }
+        : null,
+      authLoading,
+      isVisible,
+    });
+  }, [user, authLoading, isVisible]);
+
   // Données de formulaire
-  const [signUpData, setSignUpData] = useState({
+  const [signUpData, setSignUpData] = useState<SignUpData>({
     email: "",
     password: "",
     confirmPassword: "",
@@ -263,7 +355,7 @@ const Auth = () => {
     establishmentType: "",
   });
 
-  const [signInData, setSignInData] = useState({
+  const [signInData, setSignInData] = useState<SignInData>({
     email: "",
     password: "",
   });
@@ -272,16 +364,118 @@ const Auth = () => {
 
   // Animation d'apparition
   useEffect(() => {
-    setIsVisible(true);
+    // Délai pour éviter le flash pendant les redirections
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
+  // Si l'utilisateur est déjà connecté et email confirmé, redirection automatique
+  if (user && user.email_confirmed_at && !authLoading) {
+    // DEBUG: Voir les données exactes du profil
+    console.log("🔍 DEBUG USER PROFILE:", {
+      user,
+      profile: user.profile,
+      is_verified: user.profile?.is_verified,
+      is_active: user.profile?.is_active,
+      email_confirmed_at: user.email_confirmed_at,
+    });
+
+    // Redirection automatique
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        const dashboardRoute =
+          user.user_type === "doctor"
+            ? "/doctor/dashboard"
+            : user.user_type === "establishment"
+            ? "/establishment/dashboard"
+            : "/dashboard";
+
+        console.log("🚀 Auto-redirect to:", dashboardRoute);
+        window.location.href = dashboardRoute;
+      }, 1500); // Délai de 1.5s pour laisser voir le message
+
+      return () => clearTimeout(timer);
+    }, []);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-3xl shadow-xl max-w-md">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Déjà connecté
+          </h2>
+          <p className="text-gray-600 mb-4">
+            Bonjour <strong>{user.email}</strong>
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            Type de compte : <strong>{user.user_type}</strong>
+          </p>
+
+          {/* DEBUG INFO */}
+          <div className="text-xs bg-gray-100 p-3 rounded mb-4 text-left">
+            <p>
+              <strong>Email confirmé:</strong>{" "}
+              {user.email_confirmed_at ? "✅" : "❌"}
+            </p>
+            <p>
+              <strong>Profile verified:</strong>{" "}
+              {user.profile?.is_verified ? "✅" : "❌"}
+            </p>
+            <p>
+              <strong>Profile active:</strong>{" "}
+              {user.profile?.is_active ? "✅" : "❌"}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center mb-4">
+            <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
+            <span className="text-blue-600">Redirection en cours...</span>
+          </div>
+
+          <button
+            onClick={() => {
+              const dashboardRoute =
+                user.user_type === "doctor"
+                  ? "/doctor/dashboard"
+                  : user.user_type === "establishment"
+                  ? "/establishment/dashboard"
+                  : "/dashboard";
+              console.log("🎯 Manual redirect to:", dashboardRoute);
+              window.location.href = dashboardRoute;
+            }}
+            className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
+          >
+            Aller au tableau de bord maintenant
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Affichage d'un loader pendant le chargement initial
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Fonctions de validation
-  const validateEmail = (email) => {
+  const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const validatePassword = (password) => {
+  const validatePassword = (password: string): PasswordValidation => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
@@ -296,7 +490,7 @@ const Auth = () => {
         hasNumbers &&
         hasSpecialChar,
       message:
-        !password.length >= minLength
+        password.length < minLength
           ? "Le mot de passe doit contenir au moins 8 caractères"
           : !hasUpperCase
           ? "Le mot de passe doit contenir au moins une majuscule"
@@ -310,8 +504,8 @@ const Auth = () => {
     };
   };
 
-  const validateSignInForm = () => {
-    const newErrors = {};
+  const validateSignInForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
     if (!signInData.email) {
       newErrors.email = "L'email est requis";
@@ -327,8 +521,8 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateSignUpForm = () => {
-    const newErrors = {};
+  const validateSignUpForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
     // Validation email
     if (!signUpData.email) {
@@ -372,7 +566,7 @@ const Auth = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignIn = async (e) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateSignInForm()) {
@@ -382,33 +576,30 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await signIn(
-        signInData.email,
-        signInData.password
-      );
+      console.log("Tentative de connexion avec:", { email: signInData.email });
 
-      if (error) {
-        toast({
-          title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Connexion réussie",
-          description: "Vous êtes maintenant connecté",
-          variant: "default",
-        });
-        // La redirection est gérée par useAuth
+      const result = await signIn(signInData.email, signInData.password);
+
+      console.log("Résultat de la connexion:", result);
+
+      // Le toast et la redirection sont gérés dans le hook useAuth
+      if (result && !result.error) {
+        // Succès - le AuthProvider va gérer la redirection
+        console.log("Connexion réussie, redirection en cours...");
       }
     } catch (error) {
       console.error("Erreur lors de la connexion:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateSignUpForm()) {
@@ -418,6 +609,11 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
+      console.log("Tentative d'inscription avec:", {
+        email: signUpData.email,
+        userType: signUpData.userType,
+      });
+
       // Préparer les données du profil selon le type d'utilisateur
       const profileData = {
         firstName: signUpData.firstName,
@@ -427,29 +623,18 @@ const Auth = () => {
         establishmentType: signUpData.establishmentType,
       };
 
-      const { data, error } = await signUp(
+      const result = await signUp(
         signUpData.email,
         signUpData.password,
         signUpData.userType,
         profileData
       );
 
-      if (error) {
-        toast({
-          title: "Erreur d'inscription",
-          description:
-            error.message || "Une erreur est survenue lors de l'inscription",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Inscription réussie",
-          description:
-            "Votre compte a été créé avec succès. Vérifiez votre email pour confirmer votre compte.",
-          variant: "default",
-        });
+      console.log("Résultat de l'inscription:", result);
 
-        // Réinitialiser le formulaire
+      // Le toast est déjà géré dans le hook useAuth
+      if (result && !result.error) {
+        // Succès - réinitialiser le formulaire et basculer vers connexion
         setSignUpData({
           email: "",
           password: "",
@@ -464,15 +649,21 @@ const Auth = () => {
 
         // Basculer vers l'onglet connexion
         setCurrentTab("signin");
+        setErrors({});
       }
     } catch (error) {
       console.error("Erreur lors de l'inscription:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResetPassword = async (e) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!resetEmail || !validateEmail(resetEmail)) {
@@ -531,7 +722,7 @@ const Auth = () => {
           className="mb-6 group"
         >
           <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Retour à l'accueil
+          Retour
         </Button>
 
         {/* Carte principale */}

@@ -65,15 +65,15 @@ const ProtectedRoute = ({
     return <Navigate to={getDashboardRoute()} replace />;
   }
 
-  // Vérification de l'email (sauf pour les pages de vérification)
-  if (requireVerified && !user.profile?.is_verified) {
+  // MODIFICATION: Utiliser email_confirmed_at au lieu de is_verified
+  if (requireVerified && !user.email_confirmed_at) {
     return <Navigate to="/verify-email" replace />;
   }
 
-  // Vérification du statut actif (sauf pour les pages d'activation)
-  if (requireActive && !user.profile?.is_active) {
-    return <Navigate to="/account-activation" replace />;
-  }
+  // MODIFICATION: Simplifier la vérification d'activation (optionnel pour l'instant)
+  // if (requireActive && !user.profile?.is_active) {
+  //   return <Navigate to="/account-activation" replace />;
+  // }
 
   // Vérification du profil complet (pour certaines pages)
   if (requireComplete && !isProfileComplete(user)) {
@@ -96,8 +96,8 @@ const AuthRoute = ({ children }) => {
     );
   }
 
-  // Si connecté et vérifié, rediriger vers dashboard
-  if (user && user.profile?.is_verified && user.profile?.is_active) {
+  // MODIFICATION: Si connecté et email confirmé, rediriger vers dashboard
+  if (user && user.email_confirmed_at) {
     return <Navigate to={getDashboardRoute()} replace />;
   }
 

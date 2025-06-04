@@ -58,9 +58,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const location = useLocation();
+
+  // Variables pour éviter les hooks conditionnels
+  let toast: any;
+  let navigate: any;
+  let location: any;
+
+  try {
+    toast = useToast().toast;
+    navigate = useNavigate();
+    location = useLocation();
+  } catch (error) {
+    console.error("❌ Hook error in AuthProvider:", error);
+    // Fallbacks
+    toast = (msg: any) => console.log("Toast:", msg);
+    navigate = (path: string) => console.log("Navigate:", path);
+    location = { pathname: window.location.pathname };
+  }
 
   // Auth pages configuration
   const authPages = useMemo(
@@ -84,8 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Special pages configuration
   const specialPages = useMemo(() => ["/verify-email"], []);
 
-  // Fetch user profile function
+  // Fetch user profile function avec timeout
   const fetchUserProfile = useCallback(async (authUser: any) => {
+    console.log("🔍 fetchUserProfile started for:", authUser.email);
+
     try {
       console.log(
         "Fetching profile for user:",
@@ -95,14 +111,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         !!authUser.email_confirmed_at
       );
 
-      const { data: profile, error: profileError } = await supabase
+      // Timeout de sécurité pour la requête Supabase
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Database query timeout")), 5000);
+      });
+
+      // Requête vers la base de données avec timeout
+      const queryPromise = supabase
         .from("profiles")
         .select("*")
         .eq("id", authUser.id)
         .single();
 
-      if (profileError && profileError.code === "PGRST116") {
-        console.log("Profile not found, using auth user metadata");
+      console.log("📡 Querying profiles table...");
+
+      let profile, profileError;
+      try {
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        profile = (result as any).data;
+        profileError = (result as any).error;
+        console.log("✅ Database query completed:", {
+          profile: !!profile,
+          error: !!profileError,
+        });
+      } catch (timeoutError) {
+        console.error("⏰ Database query timeout, using fallback");
+        profileError = { code: "TIMEOUT" };
+      }
+
+      if (
+        profileError &&
+        (profileError.code === "PGRST116" || profileError.code === "TIMEOUT")
+      ) {
+        console.log("Profile not found or timeout, using auth user metadata");
         const userType = authUser.user_metadata?.user_type || "doctor";
         const userData: User = {
           id: authUser.id,
@@ -117,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         };
 
+        console.log("✅ Setting fallback user data:", userData);
         setUser(userData);
         setLoading(false);
         setInitialLoad(false);
@@ -124,9 +166,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (profileError) {
-        console.error("Error fetching profile:", profileError);
+        console.error("❌ Database error:", profileError);
         throw profileError;
       }
+
+      console.log("✅ Profile data received:", profile);
 
       let userData: User = {
         id: authUser.id,
@@ -143,37 +187,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       };
 
-      // Get specialized profile
-      if (profile.user_type === "doctor") {
-        const { data: doctorProfile, error: doctorError } = await supabase
-          .from("doctor_profiles")
-          .select("*")
-          .eq("id", authUser.id)
-          .single();
+      // Get specialized profile avec timeout aussi
+      console.log("📡 Querying specialized profile for:", profile.user_type);
 
-        if (!doctorError && doctorProfile) {
-          userData.profile = {
-            ...userData.profile,
-            specialty: doctorProfile.speciality,
-          };
+      if (profile.user_type === "doctor") {
+        try {
+          const doctorQueryPromise = supabase
+            .from("doctor_profiles")
+            .select("*")
+            .eq("id", authUser.id)
+            .single();
+
+          const doctorResult = await Promise.race([
+            doctorQueryPromise,
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Doctor query timeout")), 3000)
+            ),
+          ]);
+
+          const { data: doctorProfile, error: doctorError } =
+            doctorResult as any;
+
+          if (!doctorError && doctorProfile) {
+            userData.profile = {
+              ...userData.profile,
+              specialty: doctorProfile.speciality,
+            };
+            console.log("✅ Doctor profile loaded");
+          }
+        } catch (error) {
+          console.log("⏰ Doctor profile query timeout, continuing without it");
         }
       } else if (profile.user_type === "establishment") {
-        const { data: establishmentProfile, error: establishmentError } =
-          await supabase
+        try {
+          const establishmentQueryPromise = supabase
             .from("establishment_profiles")
             .select("*")
             .eq("id", authUser.id)
             .single();
 
-        if (!establishmentError && establishmentProfile) {
-          userData.profile = {
-            ...userData.profile,
-            establishment_name: establishmentProfile.name,
-          };
+          const establishmentResult = await Promise.race([
+            establishmentQueryPromise,
+            new Promise((_, reject) =>
+              setTimeout(
+                () => reject(new Error("Establishment query timeout")),
+                3000
+              )
+            ),
+          ]);
+
+          const { data: establishmentProfile, error: establishmentError } =
+            establishmentResult as any;
+
+          if (!establishmentError && establishmentProfile) {
+            userData.profile = {
+              ...userData.profile,
+              establishment_name: establishmentProfile.name,
+            };
+            console.log("✅ Establishment profile loaded");
+          }
+        } catch (error) {
+          console.log(
+            "⏰ Establishment profile query timeout, continuing without it"
+          );
         }
       }
 
-      console.log("User data loaded:", {
+      console.log("✅ User data loaded successfully:", {
         id: userData.id,
         email: userData.email,
         user_type: userData.user_type,
@@ -182,7 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(userData);
     } catch (error) {
-      console.error("Error fetching user profile:", error);
+      console.error("❌ Error fetching user profile:", error);
 
       const userType = authUser.user_metadata?.user_type || "doctor";
       const fallbackUser: User = {
@@ -198,8 +278,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       };
 
+      console.log("⚠️ Using fallback user:", fallbackUser);
       setUser(fallbackUser);
     } finally {
+      console.log("🏁 fetchUserProfile finished, setting loading to false");
       setLoading(false);
       setInitialLoad(false);
     }
@@ -207,24 +289,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth session
   useEffect(() => {
+    console.log("🚀 Auth initialization started");
     let mounted = true;
 
     const initAuth = async () => {
       try {
+        console.log("📡 Getting Supabase session...");
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
+        console.log("📡 Session result:", session ? "Found" : "None");
+
         if (mounted) {
           if (session) {
+            console.log("👤 User found in session, fetching profile...");
             await fetchUserProfile(session.user);
           } else {
+            console.log("👤 No user in session, setting loading to false");
             setLoading(false);
             setInitialLoad(false);
           }
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        console.error("❌ Auth initialization error:", error);
         if (mounted) {
           setLoading(false);
           setInitialLoad(false);
@@ -235,15 +323,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     // Listen for auth state changes
+    console.log("👂 Setting up auth state listener...");
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
+      console.log("🔄 Auth state changed:", event, session?.user?.email);
 
       if (mounted) {
         if (session) {
+          console.log("👤 Session found, fetching profile...");
           await fetchUserProfile(session.user);
         } else {
+          console.log("👤 No session, clearing user");
           setUser(null);
           setLoading(false);
           setInitialLoad(false);
@@ -252,95 +343,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      console.log("🧹 Cleaning up auth initialization");
       mounted = false;
       subscription.unsubscribe();
     };
   }, [fetchUserProfile]);
 
-  // Handle navigation based on auth state
-  useEffect(() => {
-    if (loading || initialLoad) return;
-
-    const currentPath = location.pathname;
-    const isAuthPage = authPages.some((page) => currentPath.includes(page));
-    const isPublicPage = publicPages.includes(currentPath);
-    const isSpecialPage = specialPages.some((page) =>
-      currentPath.includes(page)
-    );
-
-    // No user logged in
-    if (!user) {
-      if (!isPublicPage && !isAuthPage && !isSpecialPage) {
-        navigate("/auth");
-      }
-      return;
-    }
-
-    // User logged in but email not confirmed
-    if (!user.email_confirmed_at) {
-      if (!isPublicPage && !isSpecialPage) {
-        navigate("/verify-email");
-        return;
-      }
-    }
-
-    // Email confirmed but on auth page
-    if (user.email_confirmed_at && isAuthPage) {
-      const dashboardRoute = getDashboardRoute();
-      navigate(dashboardRoute);
-      return;
-    }
-
-    // Check dashboard permissions
-    if (currentPath.includes("/doctor/") && user.user_type !== "doctor") {
-      const dashboardRoute = getDashboardRoute();
-      navigate(dashboardRoute);
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (
-      currentPath.includes("/establishment/") &&
-      user.user_type !== "establishment"
-    ) {
-      const dashboardRoute = getDashboardRoute();
-      navigate(dashboardRoute);
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentPath.includes("/admin/") && user.user_type !== "admin") {
-      const dashboardRoute = getDashboardRoute();
-      navigate(dashboardRoute);
-      toast({
-        title: "Accès refusé",
-        description:
-          "Vous n'avez pas les permissions pour accéder à cette page",
-        variant: "destructive",
-      });
-      return;
-    }
-  }, [
-    user,
-    loading,
-    location.pathname,
-    initialLoad,
-    navigate,
-    toast,
-    authPages,
-    publicPages,
-    specialPages,
-  ]);
+  // SUPPRESSION DE LA LOGIQUE DE NAVIGATION AUTOMATIQUE
+  // Cette partie causait potentiellement des boucles infinies
 
   const getDashboardRoute = useCallback(() => {
     if (!user) return "/";
@@ -359,12 +369,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const redirectToDashboard = useCallback(() => {
     const dashboardRoute = getDashboardRoute();
+    console.log("🚀 Redirecting to dashboard:", dashboardRoute);
     navigate(dashboardRoute);
   }, [getDashboardRoute, navigate]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
       try {
+        console.log("🔐 Signing in user:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -374,7 +386,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (data.user) {
           console.log(
-            "User signed in:",
+            "✅ User signed in:",
             data.user.email,
             "Email confirmed:",
             !!data.user.email_confirmed_at
@@ -391,7 +403,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return { data, error: null };
       } catch (error: any) {
-        console.error("Error signing in:", error);
+        console.error("❌ Error signing in:", error);
 
         let errorMessage = "Une erreur est survenue lors de la connexion";
 
@@ -424,6 +436,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileData: any
     ) => {
       try {
+        console.log("📝 Signing up user:", email, userType);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -440,74 +453,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (data.user) {
           console.log(
-            "User signed up:",
+            "✅ User signed up:",
             data.user.email,
             "Needs confirmation:",
             !data.user.email_confirmed_at
           );
-
-          if (data.user.id) {
-            try {
-              const { error: profileInsertError } = await supabase
-                .from("profiles")
-                .insert([
-                  {
-                    id: data.user.id,
-                    email,
-                    user_type: userType,
-                    first_name: profileData.firstName,
-                    last_name: profileData.lastName,
-                  },
-                ]);
-
-              if (profileInsertError) {
-                console.warn(
-                  "Could not create profile immediately:",
-                  profileInsertError
-                );
-              }
-
-              if (userType === "doctor") {
-                const { error: doctorError } = await supabase
-                  .from("doctor_profiles")
-                  .insert([
-                    {
-                      id: data.user.id,
-                      speciality: profileData.specialty,
-                    },
-                  ]);
-
-                if (doctorError) {
-                  console.warn(
-                    "Could not create doctor profile immediately:",
-                    doctorError
-                  );
-                }
-              } else if (userType === "establishment") {
-                const { error: establishmentError } = await supabase
-                  .from("establishment_profiles")
-                  .insert([
-                    {
-                      id: data.user.id,
-                      name: profileData.establishmentName,
-                      establishment_type: profileData.establishmentType,
-                    },
-                  ]);
-
-                if (establishmentError) {
-                  console.warn(
-                    "Could not create establishment profile immediately:",
-                    establishmentError
-                  );
-                }
-              }
-            } catch (profileError) {
-              console.warn(
-                "Profile creation error (non-blocking):",
-                profileError
-              );
-            }
-          }
 
           toast({
             title: "Inscription réussie",
@@ -519,7 +469,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return { data, error: null };
       } catch (error: any) {
-        console.error("Error signing up:", error);
+        console.error("❌ Error signing up:", error);
 
         let errorMessage = "Une erreur est survenue lors de l'inscription";
 
@@ -544,6 +494,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     try {
+      console.log("🚪 Signing out user");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -556,7 +507,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         variant: "default",
       });
     } catch (error: any) {
-      console.error("Error signing out:", error);
+      console.error("❌ Error signing out:", error);
       toast({
         title: "Erreur de déconnexion",
         description:
@@ -593,7 +544,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return { data: null, error: null };
       } catch (error: any) {
-        console.error("Error updating profile:", error);
+        console.error("❌ Error updating profile:", error);
         toast({
           title: "Erreur de mise à jour",
           description:
@@ -653,6 +604,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       getDashboardRoute,
       redirectToDashboard,
     ]
+  );
+
+  console.log(
+    "🎨 AuthProvider rendering, loading:",
+    loading,
+    "user:",
+    user?.email || "none"
   );
 
   return (
