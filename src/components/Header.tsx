@@ -1,27 +1,29 @@
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { LogOut, User, Calendar, Search, BookOpen } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import NotificationDropdown from './NotificationDropdown';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { LogOut, User, Calendar, Search, BookOpen } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import NotificationDropdown from "./NotificationDropdown";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [establishmentName, setEstablishmentName] = useState<string | null>(null);
+  const [establishmentName, setEstablishmentName] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchEstablishmentName = async () => {
-      if (user && profile?.user_type === 'establishment') {
+      if (user && profile?.user_type === "establishment") {
         const { data, error } = await supabase
-          .from('establishment_profiles')
-          .select('name')
-          .eq('id', user.id)
+          .from("establishment_profiles")
+          .select("name")
+          .eq("id", user.id)
           .single();
-        
+
         if (!error && data) {
           setEstablishmentName(data.name);
         }
@@ -34,29 +36,29 @@ const Header = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate("/");
       toast({
         title: "Déconnexion",
         description: "Vous avez été déconnecté avec succès",
       });
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
       toast({
         title: "Erreur",
         description: "Erreur lors de la déconnexion",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   const getDisplayName = () => {
-    if (profile?.user_type === 'establishment' && establishmentName) {
+    if (profile?.user_type === "establishment" && establishmentName) {
       return establishmentName;
     }
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
-    return user?.email || 'Utilisateur';
+    return user?.email || "Utilisateur";
   };
 
   return (
@@ -65,14 +67,19 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center">
             <div className="flex items-center space-x-2">
-              <img src="/logo.png" alt="Cureliah" className="h-10 w-auto" />
+              <img
+                src="/logo.png"
+                alt="Cureliah"
+                style={{ height: "200px" }}
+                className="w-auto object-contain"
+              />
             </div>
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
             {user && profile ? (
               <>
-                {profile.user_type === 'doctor' ? (
+                {profile.user_type === "doctor" ? (
                   <>
                     <Link
                       to="/doctor/dashboard"
@@ -89,7 +96,7 @@ const Header = () => {
                     </Link>
                     <Button
                       variant="outline"
-                      onClick={() => navigate('/doctor/manage-vacations')}
+                      onClick={() => navigate("/doctor/manage-vacations")}
                       className="flex items-center gap-2"
                     >
                       <Calendar className="w-4 h-4" />
@@ -122,13 +129,22 @@ const Header = () => {
               </>
             ) : (
               <>
-                <a href="#fonctionnement" className="text-gray-700 hover:text-medical-blue transition-colors">
+                <a
+                  href="#fonctionnement"
+                  className="text-gray-700 hover:text-medical-blue transition-colors"
+                >
                   Comment ça marche
                 </a>
-                <a href="#avantages" className="text-gray-700 hover:text-medical-blue transition-colors">
+                <a
+                  href="#avantages"
+                  className="text-gray-700 hover:text-medical-blue transition-colors"
+                >
                   Avantages
                 </a>
-                <a href="#temoignages" className="text-gray-700 hover:text-medical-blue transition-colors">
+                <a
+                  href="#temoignages"
+                  className="text-gray-700 hover:text-medical-blue transition-colors"
+                >
                   Témoignages
                 </a>
               </>
@@ -142,7 +158,11 @@ const Header = () => {
                 <span className="text-sm text-gray-700">
                   {getDisplayName()}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => navigate('/profile/complete')}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/profile/complete")}
+                >
                   <User className="w-4 h-4 mr-2" />
                   Profil
                 </Button>
@@ -152,9 +172,7 @@ const Header = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => navigate('/auth')}>
-                Se connecter
-              </Button>
+              <Button onClick={() => navigate("/auth")}>Se connecter</Button>
             )}
           </div>
         </div>
