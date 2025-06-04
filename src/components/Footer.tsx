@@ -154,7 +154,7 @@ const Footer = () => {
               <img
                 src="/logo.png"
                 alt="Cureliah"
-                style={{ height: "200px" }}
+                style={{ height: "70px" }}
                 className="w-auto object-contain"
               />
             </div>

@@ -70,7 +70,7 @@ const Header = () => {
               <img
                 src="/logo.png"
                 alt="Cureliah"
-                style={{ height: "200px" }}
+                style={{ height: "45px" }}
                 className="w-auto object-contain"
               />
             </div>
