@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import logoUrl from "/logo.png";
 import {
   Mail,
   Phone,
@@ -152,8 +153,8 @@ const Footer = () => {
           >
             <div className="flex items-center space-x-2 mb-6">
               <img
-                src="/logo.png"
-                alt="Cureliah"
+                src={logoUrl}
+                alt="Logo"
                 style={{ height: "70px" }}
                 className="w-auto object-contain"
               />

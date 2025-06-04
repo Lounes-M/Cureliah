@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import NotificationDropdown from "./NotificationDropdown";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logoUrl from "/logo.png";
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -68,8 +69,8 @@ const Header = () => {
           <Link to="/" className="flex items-center">
             <div className="flex items-center space-x-2">
               <img
-                src="/logo.png"
-                alt="Cureliah"
+                src={logoUrl}
+                alt="Logo"
                 style={{ height: "45px" }}
                 className="w-auto object-contain"
               />
