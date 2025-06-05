@@ -73,9 +73,18 @@ interface RecentActivity {
   metadata?: any;
 }
 
+interface DoctorProfile {
+  first_name?: string;
+  last_name?: string;
+  specialty?: string;
+  avatar_url?: string;
+  user_type?: "doctor" | "establishment" | "admin";
+}
+
 const DoctorDashboard = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const doctorProfile = profile as DoctorProfile;
   const { vacations, loading: vacationsLoading } = useRecentVacations();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
@@ -300,7 +309,7 @@ const DoctorDashboard = () => {
       .order("created_at", { ascending: false })
       .limit(5);
 
-    recentBookings?.forEach((booking) => {
+    recentBookings?.forEach((booking: any) => {
       activities.push({
         id: `booking_${booking.id}`,
         type: "booking",
@@ -462,19 +471,20 @@ const DoctorDashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center space-x-4 mb-4 lg:mb-0">
               <Avatar className="h-16 w-16 ring-4 ring-white shadow-lg">
-                <AvatarImage src={profile?.avatar_url} />
+                <AvatarImage src={doctorProfile?.avatar_url} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl">
-                  {profile?.first_name?.[0] || "D"}
-                  {profile?.last_name?.[0] || "R"}
+                  {doctorProfile?.first_name?.[0] || "D"}
+                  {doctorProfile?.last_name?.[0] || "R"}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Bonjour, Dr {profile?.last_name || user.email?.split("@")[0]}
+                  Bonjour, Dr{" "}
+                  {doctorProfile?.last_name || user.email?.split("@")[0]}
                 </h1>
                 <p className="text-gray-600 flex items-center mt-1">
                   <Stethoscope className="w-4 h-4 mr-2" />
-                  {profile?.speciality || "Médecin généraliste"}
+                  {doctorProfile?.specialty || "Médecin généraliste"}
                 </p>
                 <p className="text-sm text-gray-500 flex items-center mt-1">
                   <Clock className="w-4 h-4 mr-1" />
