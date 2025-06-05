@@ -12,10 +12,12 @@ import TestimonialSection from "@/components/TestimonialSection";
 import FAQSection from "@/components/FAQSection";
 import FinalCTASection from "@/components/FinalCTASection";
 import Footer from "@/components/Footer";
+import EarlyBirdBanner from "@/components/EarlyBirdBanner";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <EarlyBirdBanner />
       <Header />
       <main>
         {/* 1. Hero - Première impression cruciale */}

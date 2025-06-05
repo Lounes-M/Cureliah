@@ -13,7 +13,6 @@ import {
   Award,
   Target,
   Heart,
-  Lightning,
   Flame,
   ChevronRight,
   User,
