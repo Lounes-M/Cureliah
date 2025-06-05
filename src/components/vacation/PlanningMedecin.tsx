@@ -651,16 +651,6 @@ export const PlanningMedecin = ({
           <h2 className="text-2xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
             Mon Planning
           </h2>
-          <Button
-            onClick={() => {
-              setSelectedDate(null);
-              setShowCreateDialog(true);
-            }}
-            className="flex items-center gap-2 bg-gradient-to-r from-medical-blue to-blue-600 hover:from-blue-600 hover:to-medical-blue text-white transition-all duration-300 shadow-md hover:shadow-lg rounded-xl px-4 py-2"
-          >
-            <Calendar className="w-4 h-4" />
-            Ajouter une vacation
-          </Button>
         </div>
       </div>
 

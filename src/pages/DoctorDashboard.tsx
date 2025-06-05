@@ -500,7 +500,7 @@ const DoctorDashboard = () => {
                 Profil
               </Button>
               <Button
-                onClick={() => navigate("/doctor/create-vacation")}
+                onClick={() => navigate("/doctor/manage-vacations")}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
