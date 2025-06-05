@@ -286,7 +286,7 @@ const HowItWorksSection = () => {
                 100% Sécurisé
               </h3>
               <p className="text-gray-600 text-sm">
-                Données cryptées et conformité RGPD
+                Données chiffrées et conformité RGPD
               </p>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">

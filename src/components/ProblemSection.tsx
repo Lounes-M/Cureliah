@@ -30,7 +30,7 @@ const impactStats = [
     color: "text-red-600",
   },
   {
-    value: "€2.3M",
+    value: "2.3 M€",
     label: "pertes annuelles par établissement",
     color: "text-orange-600",
   },

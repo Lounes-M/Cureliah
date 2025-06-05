@@ -360,7 +360,7 @@ const FinalCTASection = () => {
             {[
               { icon: Users, value: "500+", label: "Professionnels conquis" },
               { icon: Clock, value: "78%", label: "Temps économisé" },
-              { icon: Euro, value: "2.3M€", label: "Économies générées" },
+              { icon: Euro, value: "2.3 M€", label: "Économies générées" },
               { icon: Star, value: "4.9/5", label: "Satisfaction client" },
             ].map((stat, index) => {
               const Icon = stat.icon;
