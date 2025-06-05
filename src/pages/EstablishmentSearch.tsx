@@ -161,7 +161,9 @@ const EstablishmentSearch = () => {
   }, []);
 
   useEffect(() => {
-    filterVacations();
+    if (vacations.length > 0) {
+      filterVacations();
+    }
   }, [vacations, searchTerm, filters]);
 
   const loadVacations = async () => {
@@ -211,65 +213,76 @@ const EstablishmentSearch = () => {
   };
 
   const filterVacations = () => {
-    let filtered = [...vacations];
+    try {
+      let filtered = [...vacations];
 
-    // Recherche textuelle
-    if (searchTerm) {
-      const query = searchTerm.toLowerCase();
-      filtered = filtered.filter(vacation =>
-        vacation.title.toLowerCase().includes(query) ||
-        vacation.description.toLowerCase().includes(query) ||
-        vacation.location.toLowerCase().includes(query) ||
-        vacation.doctor_profiles.first_name.toLowerCase().includes(query) ||
-        vacation.doctor_profiles.last_name.toLowerCase().includes(query) ||
-        vacation.doctor_profiles.speciality.toLowerCase().includes(query)
-      );
+      // Recherche textuelle
+      if (searchTerm) {
+        const query = searchTerm.toLowerCase();
+        filtered = filtered.filter(vacation =>
+          vacation.title?.toLowerCase().includes(query) ||
+          vacation.description?.toLowerCase().includes(query) ||
+          vacation.location?.toLowerCase().includes(query) ||
+          vacation.doctor_profiles?.first_name?.toLowerCase().includes(query) ||
+          vacation.doctor_profiles?.last_name?.toLowerCase().includes(query) ||
+          vacation.doctor_profiles?.speciality?.toLowerCase().includes(query)
+        );
+      }
+
+      // Filtres
+      if (filters.location) {
+        filtered = filtered.filter(vacation =>
+          vacation.location?.toLowerCase().includes(filters.location.toLowerCase())
+        );
+      }
+
+      if (filters.speciality) {
+        filtered = filtered.filter(vacation =>
+          vacation.doctor_profiles?.speciality === filters.speciality
+        );
+      }
+
+      if (filters.act_type) {
+        filtered = filtered.filter(vacation =>
+          vacation.act_type === filters.act_type
+        );
+      }
+
+      if (filters.min_rate) {
+        const minRate = parseFloat(filters.min_rate);
+        if (!isNaN(minRate)) {
+          filtered = filtered.filter(vacation =>
+            vacation.hourly_rate >= minRate
+          );
+        }
+      }
+
+      if (filters.max_rate) {
+        const maxRate = parseFloat(filters.max_rate);
+        if (!isNaN(maxRate)) {
+          filtered = filtered.filter(vacation =>
+            vacation.hourly_rate <= maxRate
+          );
+        }
+      }
+
+      if (filters.start_date) {
+        filtered = filtered.filter(vacation =>
+          vacation.start_date >= filters.start_date
+        );
+      }
+
+      if (filters.end_date) {
+        filtered = filtered.filter(vacation =>
+          vacation.end_date <= filters.end_date
+        );
+      }
+
+      setFilteredVacations(filtered);
+    } catch (error) {
+      console.error('Error filtering vacations:', error);
+      setFilteredVacations(vacations);
     }
-
-    // Filtres
-    if (filters.location) {
-      filtered = filtered.filter(vacation =>
-        vacation.location.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-
-    if (filters.speciality) {
-      filtered = filtered.filter(vacation =>
-        vacation.doctor_profiles.speciality === filters.speciality
-      );
-    }
-
-    if (filters.act_type) {
-      filtered = filtered.filter(vacation =>
-        vacation.act_type === filters.act_type
-      );
-    }
-
-    if (filters.min_rate) {
-      filtered = filtered.filter(vacation =>
-        vacation.hourly_rate >= parseFloat(filters.min_rate)
-      );
-    }
-
-    if (filters.max_rate) {
-      filtered = filtered.filter(vacation =>
-        vacation.hourly_rate <= parseFloat(filters.max_rate)
-      );
-    }
-
-    if (filters.start_date) {
-      filtered = filtered.filter(vacation =>
-        vacation.start_date >= filters.start_date
-      );
-    }
-
-    if (filters.end_date) {
-      filtered = filtered.filter(vacation =>
-        vacation.end_date <= filters.end_date
-      );
-    }
-
-    setFilteredVacations(filtered);
   };
 
   const resetFilters = () => {
@@ -518,51 +531,91 @@ const EstablishmentSearch = () => {
                   <Label htmlFor="location" className="text-sm font-medium text-gray-700">
                     📍 Localisation
                   </Label>
-                  <Input
-                    id="location"
-                    placeholder="Paris, Lyon, Marseille..."
-                    value={filters.location}
-                    onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                    className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="location"
+                      placeholder="Paris, Lyon, Marseille..."
+                      value={filters.location}
+                      onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                      className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500"
+                    />
+                    {filters.location && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFilters(prev => ({ ...prev, location: '' }))}
+                        className="px-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="speciality" className="text-sm font-medium text-gray-700">
                     🩺 Spécialité
                   </Label>
-                  <Select value={filters.speciality} onValueChange={(value) => setFilters(prev => ({ ...prev, speciality: value }))}>
-                    <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
-                      <SelectValue placeholder="Toutes les spécialités" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Toutes les spécialités</SelectItem>
-                      {specialities.map(speciality => (
-                        <SelectItem key={speciality} value={speciality}>
-                          {speciality}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select 
+                      value={filters.speciality || undefined} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, speciality: value || '' }))}
+                    >
+                      <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
+                        <SelectValue placeholder="Toutes les spécialités" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {specialities.map(speciality => (
+                          <SelectItem key={speciality} value={speciality}>
+                            {speciality}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {filters.speciality && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFilters(prev => ({ ...prev, speciality: '' }))}
+                        className="px-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="act_type" className="text-sm font-medium text-gray-700">
                     ⚕️ Type d'acte
                   </Label>
-                  <Select value={filters.act_type} onValueChange={(value) => setFilters(prev => ({ ...prev, act_type: value }))}>
-                    <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
-                      <SelectValue placeholder="Tous les types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Tous les types</SelectItem>
-                      {actTypes.map(type => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select 
+                      value={filters.act_type || undefined} 
+                      onValueChange={(value) => setFilters(prev => ({ ...prev, act_type: value || '' }))}
+                    >
+                      <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
+                        <SelectValue placeholder="Tous les types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {actTypes.map(type => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {filters.act_type && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setFilters(prev => ({ ...prev, act_type: '' }))}
+                        className="px-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -822,23 +875,14 @@ const EstablishmentSearch = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low" className="flex items-center">
-                          <span className="inline-flex items-center gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            Faible priorité
-                          </span>
+                        <SelectItem value="low">
+                          Faible priorité
                         </SelectItem>
                         <SelectItem value="medium">
-                          <span className="inline-flex items-center gap-2">
-                            <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                            Priorité normale
-                          </span>
+                          Priorité normale
                         </SelectItem>
                         <SelectItem value="high">
-                          <span className="inline-flex items-center gap-2">
-                            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                            Priorité élevée
-                          </span>
+                          Priorité élevée
                         </SelectItem>
                       </SelectContent>
                     </Select>
