@@ -220,7 +220,7 @@ const HeroSection = () => {
             {/* Badge de nouveauté */}
             <div className="inline-flex items-center bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-6 shadow-lg">
               <Star className="w-4 h-4 mr-2" />
-              Nouvelle plateforme révolutionnaire
+              Simple, rapide, sécurisé.
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
@@ -236,8 +236,7 @@ const HeroSection = () => {
 
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
               Médecins, publiez vos disponibilités. Établissements, trouvez
-              instantanément le praticien qu'il vous faut. Simple, rapide,
-              sécurisé.
+              instantanément le praticien qu'il vous faut. 
             </p>
 
             {/* Points clés */}
