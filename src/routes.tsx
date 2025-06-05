@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Pages existantes
 import Index from "./pages/Index";
@@ -22,7 +24,100 @@ import EstablishmentCreateProfile from "./pages/establishment/CreateProfile";
 
 // Nouvelles pages
 import VerifyEmail from "./pages/VerifyEmail";
-import AccountActivation from "@/pages/AccountActivation"; // À créer après
+import AccountActivation from "@/pages/AccountActivation";
+
+// Hook personnalisé pour vérifier le profil complet
+const useProfileComplete = (user) => {
+  const [isComplete, setIsComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkProfileComplete = async () => {
+      if (!user) {
+        setIsComplete(false);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        let result;
+
+        // Ajouter un timeout et une gestion d'erreur améliorée
+        const queryPromise =
+          user.user_type === "doctor"
+            ? supabase
+                .from("doctor_profiles")
+                .select("first_name, last_name, speciality")
+                .eq("id", user.id)
+                .single()
+            : supabase
+                .from("establishment_profiles")
+                .select("name")
+                .eq("id", user.id)
+                .single();
+
+        // Timeout de 5 secondes
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 5000)
+        );
+
+        result = await Promise.race([queryPromise, timeoutPromise]);
+
+        if (result?.error) {
+          if (result.error.code === "PGRST116") {
+            // Aucun profil trouvé
+            console.log("🔍 No profile found in database");
+            setIsComplete(false);
+          } else {
+            console.error("🚨 Database error:", result.error);
+            setIsComplete(false);
+          }
+        } else if (result?.data) {
+          // Vérifier selon le type d'utilisateur
+          if (user.user_type === "doctor") {
+            const isProfileComplete = !!(
+              result.data.first_name &&
+              result.data.last_name &&
+              result.data.speciality
+            );
+            console.log("👨‍⚕️ Doctor profile check:", {
+              first_name: !!result.data.first_name,
+              last_name: !!result.data.last_name,
+              speciality: !!result.data.speciality,
+              isComplete: isProfileComplete,
+            });
+            setIsComplete(isProfileComplete);
+          } else if (user.user_type === "establishment") {
+            const isProfileComplete = !!result.data.name;
+            console.log("🏥 Establishment profile check:", {
+              name: !!result.data.name,
+              isComplete: isProfileComplete,
+            });
+            setIsComplete(isProfileComplete);
+          }
+        } else {
+          console.log("❓ No data returned from query");
+          setIsComplete(false);
+        }
+      } catch (error) {
+        if (error.message === "Timeout") {
+          console.log("⏰ Profile check timeout - assuming profile exists");
+          // En cas de timeout, on assume que le profil existe pour éviter les redirections
+          setIsComplete(true);
+        } else {
+          console.error("💥 Error checking profile complete:", error);
+          setIsComplete(false);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkProfileComplete();
+  }, [user]);
+
+  return { isComplete, loading };
+};
 
 // Composant de protection des routes
 const ProtectedRoute = ({
@@ -33,9 +128,11 @@ const ProtectedRoute = ({
   requireComplete = false,
 }) => {
   const { user, loading, getDashboardRoute } = useAuth();
+  const { isComplete: profileComplete, loading: profileLoading } =
+    useProfileComplete(user);
 
   // Affichage du loader pendant le chargement
-  if (loading) {
+  if (loading || (requireComplete && profileLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-emerald-50">
         <div className="text-center">
@@ -65,18 +162,14 @@ const ProtectedRoute = ({
     return <Navigate to={getDashboardRoute()} replace />;
   }
 
-  // MODIFICATION: Utiliser email_confirmed_at au lieu de is_verified
+  // Vérification de l'email confirmé
   if (requireVerified && !user.email_confirmed_at) {
     return <Navigate to="/verify-email" replace />;
   }
 
-  // MODIFICATION: Simplifier la vérification d'activation (optionnel pour l'instant)
-  // if (requireActive && !user.profile?.is_active) {
-  //   return <Navigate to="/account-activation" replace />;
-  // }
-
-  // Vérification du profil complet (pour certaines pages)
-  if (requireComplete && !isProfileComplete(user)) {
+  // Vérification du profil complet
+  if (requireComplete && !profileComplete) {
+    console.log("❌ Profile not complete, redirecting to /profile/complete");
     return <Navigate to="/profile/complete" replace />;
   }
 
@@ -96,32 +189,12 @@ const AuthRoute = ({ children }) => {
     );
   }
 
-  // MODIFICATION: Si connecté et email confirmé, rediriger vers dashboard
+  // Si connecté et email confirmé, rediriger vers dashboard
   if (user && user.email_confirmed_at) {
     return <Navigate to={getDashboardRoute()} replace />;
   }
 
   return children;
-};
-
-// Fonction utilitaire pour vérifier si le profil est complet
-const isProfileComplete = (user) => {
-  if (!user) return false;
-
-  const profile = user.profile;
-  if (!profile) return false;
-
-  // Vérifications communes
-  if (!profile.first_name || !profile.last_name) return false;
-
-  // Vérifications spécifiques selon le type
-  if (user.user_type === "doctor") {
-    return !!profile.specialty;
-  } else if (user.user_type === "establishment") {
-    return !!profile.establishment_name;
-  }
-
-  return true;
 };
 
 export default function AppRoutes() {
