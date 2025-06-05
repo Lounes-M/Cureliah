@@ -581,7 +581,7 @@ const EstablishmentDashboard = () => {
       description: "Trouver des professionnels de santé",
       icon: Search,
       color: "bg-gradient-to-r from-blue-500 to-blue-600",
-      action: () => navigate("/search"),
+      action: () => navigate("/establishment/search"),
     },
     {
       title: "Mes réservations",
@@ -696,7 +696,7 @@ const EstablishmentDashboard = () => {
                 Profil
               </Button>
               <Button
-                onClick={() => navigate("/search")}
+                onClick={() => navigate("/establishment/search")}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Search className="w-4 h-4 mr-2" />
@@ -911,7 +911,7 @@ const EstablishmentDashboard = () => {
                           <Button
                             variant="outline"
                             className="mt-3"
-                            onClick={() => navigate("/search")}
+                            onClick={() => navigate("/establishment/search")}
                           >
                             Rechercher des médecins
                           </Button>
@@ -1042,7 +1042,7 @@ const EstablishmentDashboard = () => {
                         <Button
                           variant="outline"
                           className="mt-3"
-                          onClick={() => navigate("/search")}
+                          onClick={() => navigate("establishment/search")}
                         >
                           Rechercher des médecins
                         </Button>
@@ -1134,7 +1134,7 @@ const EstablishmentDashboard = () => {
                       Commencez par rechercher et réserver des médecins pour
                       créer votre réseau de partenaires.
                     </p>
-                    <Button onClick={() => navigate("/search")}>
+                    <Button onClick={() => navigate("establishment/search")}>
                       <Search className="w-4 h-4 mr-2" />
                       Rechercher des médecins
                     </Button>
