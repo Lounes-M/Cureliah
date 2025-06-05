@@ -1,0 +1,521 @@
+import { useState, useEffect, useRef } from "react";
+import {
+  ArrowRight,
+  Sparkles,
+  Star,
+  CheckCircle,
+  Zap,
+  Clock,
+  TrendingUp,
+  Shield,
+  Users,
+  Calendar,
+  Play,
+  Phone,
+  MessageCircle,
+  Mail,
+  Video,
+  User,
+  Building2,
+  Award,
+  Target,
+  Rocket,
+  Heart,
+  Euro,
+} from "lucide-react";
+
+const CTASection = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [hoveredButton, setHoveredButton] = useState(null);
+  const sectionRef = useRef(null);
+
+  // Animation d'apparition
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Animation des étapes
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const stepTimer = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % 3);
+    }, 2000);
+
+    return () => clearInterval(stepTimer);
+  }, [isVisible]);
+
+  const handleDoctorCTA = () => {
+    console.log("Navigation vers inscription médecin");
+    window.location.href = "/auth?type=doctor&source=cta-section";
+  };
+
+  const handleEstablishmentCTA = () => {
+    console.log("Navigation vers inscription établissement");
+    window.location.href = "/auth?type=establishment&source=cta-section";
+  };
+
+  const handleDemoRequest = () => {
+    console.log("Demande de démo");
+    window.location.href = "/demo-request";
+  };
+
+  const handleContactSales = () => {
+    console.log("Contact équipe commerciale");
+    window.location.href = "/contact-sales";
+  };
+
+  // Données des étapes du processus
+  const processSteps = [
+    {
+      icon: User,
+      title: "Inscription rapide",
+      description: "2 minutes pour créer votre profil",
+      color: "from-blue-500 to-blue-600",
+      highlight: "Gratuit",
+    },
+    {
+      icon: CheckCircle,
+      title: "Validation express",
+      description: "Vérification sous 24h maximum",
+      color: "from-emerald-500 to-emerald-600",
+      highlight: "Rapide",
+    },
+    {
+      icon: Rocket,
+      title: "Démarrage immédiat",
+      description: "Commencez à publier ou réserver",
+      color: "from-purple-500 to-purple-600",
+      highlight: "Simple",
+    },
+  ];
+
+  // Avantages principaux
+  const mainBenefits = [
+    {
+      icon: Clock,
+      text: "Gain de temps immédiat",
+      detail: "78% plus rapide",
+    },
+    {
+      icon: Euro,
+      text: "Économies garanties",
+      detail: "Jusqu'à 30%",
+    },
+    {
+      icon: Shield,
+      text: "100% sécurisé",
+      detail: "Conformité RGPD",
+    },
+    {
+      icon: Award,
+      text: "Support expert",
+      detail: "24h/24, 7j/7",
+    },
+  ];
+
+  const ProcessStep = ({ step, index, isActive }) => {
+    const Icon = step.icon;
+    return (
+      <div
+        className={`
+          relative flex flex-col items-center text-center transition-all duration-500 transform
+          ${isActive ? "scale-110" : "scale-100"}
+          ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
+        `}
+        style={{ animationDelay: `${index * 200}ms` }}
+      >
+        {/* Cercle avec icône */}
+        <div
+          className={`
+            relative w-20 h-20 rounded-full bg-gradient-to-r ${
+              step.color
+            } p-4 shadow-lg mb-4
+            ${isActive ? "ring-4 ring-white ring-opacity-50 shadow-2xl" : ""}
+            transition-all duration-500
+          `}
+        >
+          <Icon className="w-12 h-12 text-white mx-auto" />
+
+          {/* Badge highlight */}
+          <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full px-2 py-1 text-xs font-bold">
+            {step.highlight}
+          </div>
+
+          {/* Effet de pulsation pour l'étape active */}
+          {isActive && (
+            <div
+              className={`absolute inset-0 rounded-full bg-gradient-to-r ${step.color} opacity-30 scale-125 animate-pulse`}
+            ></div>
+          )}
+        </div>
+
+        {/* Contenu */}
+        <h4 className="text-lg font-bold text-white mb-2">{step.title}</h4>
+        <p className="text-blue-100 text-sm max-w-32">{step.description}</p>
+
+        {/* Ligne de connexion */}
+        {index < processSteps.length - 1 && (
+          <div className="hidden md:block absolute top-10 left-full w-16 h-0.5 bg-white/30">
+            <div
+              className={`h-full bg-white transition-all duration-1000 ${
+                activeStep > index ? "w-full" : "w-0"
+              }`}
+            ></div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const BenefitBadge = ({ benefit, index }) => {
+    const Icon = benefit.icon;
+    return (
+      <div
+        className={`
+          flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20
+          hover:bg-white/20 transition-all duration-300 group
+          ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
+        `}
+        style={{ animationDelay: `${600 + index * 100}ms` }}
+      >
+        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <div className="text-white font-semibold text-sm">{benefit.text}</div>
+          <div className="text-blue-200 text-xs">{benefit.detail}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const ActionButton = ({
+    primary = false,
+    icon: Icon,
+    title,
+    subtitle,
+    onClick,
+    className = "",
+    id,
+  }) => (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHoveredButton(id)}
+      onMouseLeave={() => setHoveredButton(null)}
+      className={`
+        group relative overflow-hidden rounded-3xl p-8 text-left transition-all duration-300 transform hover:-translate-y-2
+        ${
+          primary
+            ? "bg-gradient-to-r from-white to-gray-50 text-gray-900 shadow-2xl hover:shadow-3xl"
+            : "bg-white/10 backdrop-blur-sm border border-white/30 text-white hover:bg-white/20"
+        }
+        ${className}
+      `}
+    >
+      {/* Effet de brillance au hover */}
+      <div
+        className={`
+        absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+        transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700
+        ${primary ? "via-blue-500/20" : "via-white/10"}
+      `}
+      ></div>
+
+      <div className="relative z-10 flex items-center gap-4">
+        <div
+          className={`
+          w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
+          ${
+            primary
+              ? "bg-gradient-to-r from-blue-500 to-emerald-500"
+              : "bg-white/20"
+          }
+        `}
+        >
+          <Icon
+            className={`w-7 h-7 ${primary ? "text-white" : "text-white"}`}
+          />
+        </div>
+
+        <div className="flex-1">
+          <h3
+            className={`text-xl font-bold mb-1 ${
+              primary ? "text-gray-900" : "text-white"
+            }`}
+          >
+            {title}
+          </h3>
+          <p
+            className={`text-sm ${primary ? "text-gray-600" : "text-blue-100"}`}
+          >
+            {subtitle}
+          </p>
+        </div>
+
+        <ArrowRight
+          className={`
+          w-6 h-6 transition-all duration-300 group-hover:translate-x-1
+          ${primary ? "text-blue-600" : "text-white"}
+          ${hoveredButton === id ? "scale-125" : "scale-100"}
+        `}
+        />
+      </div>
+
+      {/* Badge pour le bouton primaire */}
+      {primary && (
+        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-full px-3 py-1 text-xs font-bold animate-pulse">
+          Recommandé
+        </div>
+      )}
+    </button>
+  );
+
+  return (
+    <section
+      ref={sectionRef}
+      id="cta-section"
+      className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600 relative overflow-hidden"
+      aria-labelledby="cta-title"
+    >
+      {/* Éléments décoratifs de fond */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/20 rounded-full translate-x-48 -translate-y-48 blur-3xl animate-pulse"></div>
+        <div
+          className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/20 rounded-full -translate-x-48 translate-y-48 blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+        <div
+          className="absolute top-1/2 right-1/4 w-64 h-64 bg-purple-400/20 rounded-full blur-2xl animate-pulse"
+          style={{ animationDelay: "4s" }}
+        ></div>
+      </div>
+
+      {/* Motif en arrière-plan */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      ></div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* En-tête avec badge */}
+        <div className="text-center mb-16">
+          <div
+            className={`
+              inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white 
+              px-6 py-3 rounded-full text-sm font-semibold mb-6 shadow-lg border border-white/30
+              transition-all duration-1000 ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-4 opacity-0"
+              }
+            `}
+          >
+            <Sparkles className="w-4 h-4" />
+            Prêt à transformer votre pratique médicale ?
+            <Star className="w-4 h-4" />
+          </div>
+
+          <h2
+            id="cta-title"
+            className={`
+              text-4xl md:text-5xl font-bold text-white mb-6 leading-tight
+              transition-all duration-1000 delay-200 ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-4 opacity-0"
+              }
+            `}
+          >
+            Rejoignez
+            <span className="text-yellow-300"> 500+ professionnels </span>
+            qui ont fait le choix de l'efficacité
+          </h2>
+
+          <p
+            className={`
+              text-xl text-blue-100 max-w-4xl mx-auto leading-relaxed
+              transition-all duration-1000 delay-300 ${
+                isVisible
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-4 opacity-0"
+              }
+            `}
+          >
+            En 3 étapes simples, accédez à la plateforme qui révolutionne les
+            vacations médicales en France.
+          </p>
+        </div>
+
+        {/* Processus d'inscription animé */}
+        <div
+          className={`
+            flex justify-center items-center gap-8 md:gap-16 mb-16 transition-all duration-1000 delay-500 ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
+            }
+          `}
+        >
+          {processSteps.map((step, index) => (
+            <ProcessStep
+              key={index}
+              step={step}
+              index={index}
+              isActive={activeStep === index}
+            />
+          ))}
+        </div>
+
+        {/* Avantages en badges */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+          {mainBenefits.map((benefit, index) => (
+            <BenefitBadge key={index} benefit={benefit} index={index} />
+          ))}
+        </div>
+
+        {/* Boutons d'action principaux */}
+        <div
+          className={`
+            grid md:grid-cols-2 gap-8 mb-16 transition-all duration-1000 delay-700 ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
+            }
+          `}
+        >
+          <ActionButton
+            primary
+            icon={User}
+            title="Je suis médecin"
+            subtitle="Publiez vos disponibilités et trouvez des missions"
+            onClick={handleDoctorCTA}
+            id="doctor"
+          />
+
+          <ActionButton
+            icon={Building2}
+            title="Je suis un établissement"
+            subtitle="Trouvez rapidement le médecin qu'il vous faut"
+            onClick={handleEstablishmentCTA}
+            id="establishment"
+          />
+        </div>
+
+        {/* Actions secondaires */}
+        <div
+          className={`
+            grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16 transition-all duration-1000 delay-900 ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
+            }
+          `}
+        >
+          <ActionButton
+            icon={Play}
+            title="Voir une démo"
+            subtitle="Découvrez la plateforme en 5 minutes"
+            onClick={handleDemoRequest}
+            id="demo"
+            className="md:col-span-1"
+          />
+
+          <ActionButton
+            icon={MessageCircle}
+            title="Parler à un expert"
+            subtitle="Échangez avec notre équipe commerciale"
+            onClick={handleContactSales}
+            id="contact"
+            className="md:col-span-1"
+          />
+        </div>
+
+        {/* Témoignage et statistiques */}
+        <div
+          className={`
+            bg-white/10 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/30 text-center
+            transition-all duration-1000 delay-1000 ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
+            }
+          `}
+        >
+          {/* Étoiles */}
+          <div className="flex justify-center mb-6">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+            ))}
+          </div>
+
+          <blockquote className="text-xl md:text-2xl text-white font-medium mb-6 italic leading-relaxed">
+            "En 2 semaines, j'ai déjà économisé 15h de démarches administratives
+            et trouvé 3 nouvelles missions parfaitement adaptées à mon
+            planning."
+          </blockquote>
+
+          <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">
+              Dr
+            </div>
+            <div className="text-left">
+              <div className="text-white font-semibold">Dr. Claire Dubois</div>
+              <div className="text-blue-200 text-sm">Cardiologue, Lyon</div>
+            </div>
+          </div>
+
+          {/* Statistiques finales */}
+          <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/20">
+            <div>
+              <div className="text-3xl font-bold text-yellow-300 mb-2">
+                2 min
+              </div>
+              <div className="text-blue-200 text-sm">Temps d'inscription</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-yellow-300 mb-2">24h</div>
+              <div className="text-blue-200 text-sm">Validation express</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-yellow-300 mb-2">0€</div>
+              <div className="text-blue-200 text-sm">Frais d'inscription</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Urgence douce */}
+        <div
+          className={`
+            text-center mt-12 transition-all duration-1000 delay-1200 ${
+              isVisible
+                ? "translate-y-0 opacity-100"
+                : "translate-y-4 opacity-0"
+            }
+          `}
+        >
+          <div className="inline-flex items-center gap-2 text-blue-200 text-sm">
+            <TrendingUp className="w-4 h-4" />
+            <span>+47 nouveaux membres cette semaine</span>
+            <Heart className="w-4 h-4 text-red-400 animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default CTASection;
