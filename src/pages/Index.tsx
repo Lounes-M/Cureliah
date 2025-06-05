@@ -17,7 +17,6 @@ import EarlyBirdBanner from "@/components/EarlyBirdBanner";
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <EarlyBirdBanner />
       <Header />
       <main>
         {/* 1. Hero - Première impression cruciale */}
@@ -44,17 +43,11 @@ const Index = () => {
         {/* 9. Pricing - Offres et tarifs */}
         <PricingSection />
 
-        {/* 10. Urgence - Offre limitée */}
-        <UrgencySection />
-
         {/* 11. Témoignages - Preuve sociale */}
         <TestimonialSection />
 
         {/* 12. FAQ - Lever les objections */}
         <FAQSection />
-
-        {/* 14. CTA final - Dernière chance */}
-        <FinalCTASection />
       </main>
       <Footer />
     </div>
