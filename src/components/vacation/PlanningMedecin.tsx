@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, User, Clock, Repeat, Trash2 } from "lucide-react";
+import { Calendar, User, Clock, Repeat, Trash2, Plus, MapPin, Euro, Stethoscope, Sparkles, Heart, Activity, Zap, X, Check } from "lucide-react";
 import { SPECIALITIES } from "@/utils/specialities";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -91,7 +91,6 @@ interface TimeSlotData {
   vacation_posts: VacationPostData;
 }
 
-// Interface étendue pour le formulaire
 interface VacationFormData {
   title: string;
   description: string;
@@ -132,20 +131,21 @@ export const PlanningMedecin = ({
     end: Date;
   } | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<TimeSlotEvent | null>(
-    null
-  );
+  const [selectedEvent, setSelectedEvent] = useState<TimeSlotEvent | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [animateStats, setAnimateStats] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTimeSlots();
+    setAnimateStats(true);
   }, [doctorId]);
 
   const fetchTimeSlots = async () => {
+    setIsLoading(true);
     try {
       console.log("Fetching time slots for doctor:", doctorId);
 
-      // Examiner la structure de la table vacation_posts
       const { data: vacationStructure, error: structureError } = await supabase
         .from("vacation_posts")
         .select("*")
@@ -157,7 +157,6 @@ export const PlanningMedecin = ({
         console.log("Vacation posts structure:", vacationStructure);
       }
 
-      // D'abord, récupérer les vacations du médecin
       const { data: vacations, error: vacationsError } = await supabase
         .from("vacation_posts")
         .select("id")
@@ -176,7 +175,6 @@ export const PlanningMedecin = ({
         return;
       }
 
-      // Traiter les vacations par lots de 50
       const BATCH_SIZE = 50;
       const allSlots = [];
 
@@ -241,7 +239,6 @@ export const PlanningMedecin = ({
               return null;
             }
 
-            // Déterminer les heures de début et de fin en fonction du type de créneau
             let startTime, endTime;
 
             if (slot.type === "morning") {
@@ -263,7 +260,6 @@ export const PlanningMedecin = ({
             }
 
             try {
-              // Créer la date complète en combinant la date de la vacation avec l'heure du créneau
               const startDate = new Date(vacationPost.start_date);
               const endDate = new Date(vacationPost.end_date);
 
@@ -291,11 +287,10 @@ export const PlanningMedecin = ({
                   vacationId: vacationPost.id,
                 },
                 backgroundColor:
-                  vacationPost.status === "booked" ? "#22c55e" : "#e2e8f0",
+                  vacationPost.status === "booked" ? "#10b981" : "#8b5cf6",
                 borderColor:
-                  vacationPost.status === "booked" ? "#16a34a" : "#cbd5e1",
-                textColor:
-                  vacationPost.status === "booked" ? "#ffffff" : "#1e293b",
+                  vacationPost.status === "booked" ? "#059669" : "#7c3aed",
+                textColor: "#ffffff",
               };
             } catch (error) {
               console.error("Error processing slot:", error, slot);
@@ -309,10 +304,12 @@ export const PlanningMedecin = ({
     } catch (error) {
       console.error("Error fetching time slots:", error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Impossible de charger les créneaux",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -353,12 +350,11 @@ export const PlanningMedecin = ({
     try {
       if (!selectedDate) return;
 
-      // Fermer le modal avant de commencer la création
+      setIsLoading(true);
       setShowCreateDialog(false);
 
       const dates: { start: Date; end: Date }[] = [];
 
-      // Générer les dates en fonction des paramètres de récurrence
       if (recurrenceSettings.type === "none") {
         dates.push(selectedDate);
       } else {
@@ -376,7 +372,7 @@ export const PlanningMedecin = ({
                     ? 7
                     : 30)
               )
-            : addMonths(currentDate, 12); // Par défaut, 1 an de récurrence
+            : addMonths(currentDate, 12);
 
         while (currentDate <= endDate) {
           dates.push({
@@ -401,12 +397,10 @@ export const PlanningMedecin = ({
         }
       }
 
-      // Créer les vacations pour chaque date
       let createdCount = 0;
       const createdVacations = [];
 
       for (const date of dates) {
-        // Créer la vacation
         const { data: vacation, error: vacationError } = await supabase
           .from("vacation_posts")
           .insert([
@@ -431,7 +425,6 @@ export const PlanningMedecin = ({
         if (vacationError) throw vacationError;
         if (vacation) createdVacations.push(vacation);
 
-        // Déterminer le type de créneau
         const startTime = date.start;
         const endTime = date.end;
         let slotType: "morning" | "afternoon" | "custom" = "custom";
@@ -442,7 +435,6 @@ export const PlanningMedecin = ({
           slotType = "afternoon";
         }
 
-        // Extraire uniquement l'heure pour les créneaux custom
         let startTimeStr = null;
         let endTimeStr = null;
 
@@ -451,7 +443,6 @@ export const PlanningMedecin = ({
           endTimeStr = endTime.toTimeString().slice(0, 8);
         }
 
-        // Créer le time slot
         const { error: slotError } = await supabase.from("time_slots").insert([
           {
             vacation_id: vacation.id,
@@ -465,7 +456,6 @@ export const PlanningMedecin = ({
         createdCount++;
       }
 
-      // Réinitialiser le formulaire
       setSelectedSlot({
         title: "",
         description: "",
@@ -483,21 +473,17 @@ export const PlanningMedecin = ({
       });
       setSelectedDate(null);
 
-      // Rafraîchir les données
       if (onSlotCreated) {
         onSlotCreated();
       }
 
-      // Rafraîchir le planning immédiatement
       await fetchTimeSlots();
 
-      // Afficher le message de succès
       toast({
-        title: "Succès",
-        description: `Les disponibilités ont été créées (${createdCount} créneaux)`,
+        title: "✨ Succès !",
+        description: `${createdCount} créneau${createdCount > 1 ? 'x' : ''} créé${createdCount > 1 ? 's' : ''} avec succès`,
       });
 
-      // Faire défiler vers le planning
       const planningElement = document.querySelector(".fc-view-harness");
       if (planningElement) {
         planningElement.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -505,10 +491,12 @@ export const PlanningMedecin = ({
     } catch (error) {
       console.error("Error creating time slots:", error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Impossible de créer les disponibilités",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -516,8 +504,9 @@ export const PlanningMedecin = ({
     try {
       if (!selectedEvent) return;
 
+      setIsLoading(true);
+
       if (deleteAll) {
-        // Récupérer d'abord la vacation actuelle pour avoir ses détails
         const { data: currentVacation, error: vacationError } = await supabase
           .from("vacation_posts")
           .select("*")
@@ -527,7 +516,6 @@ export const PlanningMedecin = ({
         if (vacationError) throw vacationError;
 
         if (currentVacation) {
-          // Récupérer tous les time slots similaires
           const { data: similarSlots, error: slotsError } = await supabase
             .from("time_slots")
             .select(
@@ -561,7 +549,6 @@ export const PlanningMedecin = ({
           if (slotsError) throw slotsError;
 
           if (similarSlots) {
-            // Filtrer les vacations qui correspondent exactement
             const vacationIds = similarSlots
               .filter((slot) => {
                 const vacation = Array.isArray(slot.vacation_posts)
@@ -582,7 +569,6 @@ export const PlanningMedecin = ({
               });
 
             if (vacationIds.length > 0) {
-              // Supprimer les vacations correspondantes
               const { error: deleteError } = await supabase
                 .from("vacation_posts")
                 .delete()
@@ -593,7 +579,6 @@ export const PlanningMedecin = ({
           }
         }
       } else {
-        // Supprimer uniquement ce créneau
         const { error: slotError } = await supabase
           .from("time_slots")
           .delete()
@@ -601,7 +586,6 @@ export const PlanningMedecin = ({
 
         if (slotError) throw slotError;
 
-        // Supprimer la vacation associée si c'est le dernier créneau
         const { data: remainingSlots, error: countError } = await supabase
           .from("time_slots")
           .select("id")
@@ -620,7 +604,7 @@ export const PlanningMedecin = ({
       }
 
       toast({
-        title: "Succès",
+        title: "✅ Supprimé !",
         description: deleteAll
           ? "Toutes les occurrences similaires ont été supprimées"
           : "Le créneau a été supprimé",
@@ -637,25 +621,296 @@ export const PlanningMedecin = ({
     } catch (error) {
       console.error("Error deleting time slot:", error);
       toast({
-        title: "Erreur",
+        title: "❌ Erreur",
         description: "Impossible de supprimer le créneau",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const statsData = {
+    available: events.filter(e => e.extendedProps.status === "available").length,
+    booked: events.filter(e => e.extendedProps.status === "booked").length,
+    total: events.length
+  };
+
   return (
-    <div className="h-[800px] bg-white rounded-2xl shadow-xl flex flex-col">
-      <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-white via-gray-50 to-white">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            Mon Planning
-          </h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6">
+      {/* Header avec statistiques animées */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <Stethoscope className="w-8 h-8 text-white" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Mon Planning
+              </h1>
+              <p className="text-gray-600 mt-1">Gérez vos créneaux de consultation</p>
+            </div>
+          </div>
+          
+          {/* Statistiques animées */}
+          <div className="flex gap-4">
+            <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 transition-all duration-700 ${animateStats ? 'transform translate-y-0 opacity-100' : 'transform translate-y-4 opacity-0'}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Disponibles</p>
+                  <p className="text-2xl font-bold text-emerald-600">{statsData.available}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 transition-all duration-700 delay-100 ${animateStats ? 'transform translate-y-0 opacity-100' : 'transform translate-y-4 opacity-0'}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                  <Heart className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Réservés</p>
+                  <p className="text-2xl font-bold text-blue-600">{statsData.booked}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 transition-all duration-700 delay-200 ${animateStats ? 'transform translate-y-0 opacity-100' : 'transform translate-y-4 opacity-0'}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <Zap className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Total</p>
+                  <p className="text-2xl font-bold text-purple-600">{statsData.total}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 p-6 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
-        <div className="h-full rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-lg">
+      {/* Calendrier principal avec styles personnalisés */}
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+        <style jsx>{`
+          .fc {
+            background: transparent;
+          }
+          
+          .fc-header-toolbar {
+            padding: 1.5rem 2rem 1rem 2rem !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-radius: 1.5rem 1.5rem 0 0 !important;
+            margin-bottom: 0 !important;
+          }
+          
+          .fc-toolbar-chunk {
+            display: flex;
+            align-items: center;
+          }
+          
+          .fc-button {
+            background: rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: white !important;
+            border-radius: 12px !important;
+            padding: 8px 16px !important;
+            font-weight: 600 !important;
+            transition: all 0.3s ease !important;
+            backdrop-filter: blur(10px) !important;
+          }
+          
+          .fc-button:hover {
+            background: rgba(255, 255, 255, 0.3) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+          }
+          
+          .fc-button:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+          }
+          
+          .fc-button-active {
+            background: rgba(255, 255, 255, 0.4) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+          }
+          
+          .fc-toolbar-title {
+            color: white !important;
+            font-size: 1.75rem !important;
+            font-weight: 700 !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+          }
+          
+          .fc-view-harness {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+            border-radius: 0 0 1.5rem 1.5rem !important;
+          }
+          
+          .fc-timegrid-slot {
+            background: transparent !important;
+            border-color: rgba(148, 163, 184, 0.2) !important;
+          }
+          
+          .fc-timegrid-slot:hover {
+            background: rgba(139, 92, 246, 0.05) !important;
+          }
+          
+          .fc-timegrid-axis {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border-color: rgba(148, 163, 184, 0.2) !important;
+          }
+          
+          .fc-timegrid-slot-label {
+            color: #64748b !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+          }
+          
+          .fc-col-header {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px) !important;
+            border-color: rgba(148, 163, 184, 0.2) !important;
+          }
+          
+          .fc-col-header-cell {
+            padding: 1rem 0.5rem !important;
+          }
+          
+          .fc-col-header-cell-cushion {
+            color: #475569 !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            text-transform: capitalize !important;
+          }
+          
+          .fc-daygrid-day-top {
+            color: #64748b !important;
+            font-weight: 600 !important;
+          }
+          
+          .fc-timegrid-col {
+            border-color: rgba(148, 163, 184, 0.2) !important;
+          }
+          
+          .fc-timegrid-now-indicator-line {
+            border-color: #ef4444 !important;
+            border-width: 2px !important;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.3) !important;
+          }
+          
+          .fc-timegrid-now-indicator-arrow {
+            border-top-color: #ef4444 !important;
+            border-bottom-color: #ef4444 !important;
+          }
+          
+          .fc-scrollgrid {
+            border-color: rgba(148, 163, 184, 0.2) !important;
+            border-radius: 0 0 1.5rem 1.5rem !important;
+            overflow: hidden !important;
+          }
+          
+          .fc-scrollgrid-section-header {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+          }
+          
+          .fc-v-event {
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease !important;
+          }
+          
+          .fc-v-event:hover {
+            transform: scale(1.02) !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+          }
+          
+          .fc-highlight {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+            border-radius: 8px !important;
+            border: 2px dashed rgba(139, 92, 246, 0.3) !important;
+          }
+          
+          .fc-select-mirror {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
+            border-radius: 12px !important;
+            border: 2px solid rgba(139, 92, 246, 0.5) !important;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
+          }
+          
+          .fc-today {
+            background: rgba(255, 248, 113, 0.1) !important;
+          }
+          
+          .fc-day-past {
+            background: rgba(148, 163, 184, 0.05) !important;
+          }
+          
+          .fc-day-future {
+            background: rgba(59, 130, 246, 0.02) !important;
+          }
+          
+          .fc-more-link {
+            background: rgba(139, 92, 246, 0.1) !important;
+            color: #7c3aed !important;
+            border-radius: 8px !important;
+            padding: 2px 8px !important;
+            font-weight: 600 !important;
+          }
+          
+          .fc-popover {
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(10px) !important;
+            border: 1px solid rgba(148, 163, 184, 0.2) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+          
+          .fc-scroller {
+            overflow-x: hidden !important;
+          }
+          
+          .fc-timegrid-divider {
+            background: rgba(148, 163, 184, 0.1) !important;
+          }
+          
+          /* Animation pour le chargement */
+          .fc-view-harness.loading {
+            position: relative;
+          }
+          
+          .fc-view-harness.loading::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 1000;
+            border-radius: 0 0 1.5rem 1.5rem;
+          }
+        `}</style>
+        
+        <div className="h-[800px] p-0">
+          {isLoading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-3xl flex items-center justify-center z-50">
+              <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20">
+                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-gray-700 font-semibold text-lg">Chargement du planning...</span>
+              </div>
+            </div>
+          )}
+          
           <FullCalendar
             plugins={[timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
@@ -673,7 +928,7 @@ export const PlanningMedecin = ({
             select={handleDateSelect}
             eventClick={handleEventClick}
             height="100%"
-            slotMinTime="08:00:00"
+            slotMinTime="00:00:00"
             slotMaxTime="24:00:00"
             allDaySlot={false}
             slotDuration="00:30:00"
@@ -682,25 +937,41 @@ export const PlanningMedecin = ({
             stickyFooterScrollbar={true}
             eventContent={(eventInfo) => (
               <div
-                className={`flex items-center gap-2 p-2 rounded-xl ${
+                className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer ${
                   eventInfo.event.extendedProps.status === "booked"
-                    ? "bg-gradient-to-r from-green-50 via-green-100 to-green-50 text-green-800 border border-green-200 shadow-sm hover:shadow-md"
-                    : "bg-gradient-to-r from-blue-50 via-blue-100 to-blue-50 text-blue-800 border border-blue-200 shadow-sm hover:shadow-md"
-                } transition-all duration-300 backdrop-blur-sm`}
+                    ? "bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 text-white shadow-emerald-200"
+                    : "bg-gradient-to-br from-violet-400 via-purple-500 to-indigo-500 text-white shadow-purple-200"
+                } shadow-lg border border-white/20`}
               >
-                {eventInfo.event.extendedProps.status === "booked" ? (
-                  <User className="w-4 h-4" />
-                ) : (
-                  <Calendar className="w-4 h-4" />
-                )}
-                <div className="flex flex-col">
-                  <span className="font-medium text-sm">
-                    {eventInfo.event.title}
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    {format(eventInfo.event.start, "HH:mm")} -{" "}
-                    {format(eventInfo.event.end, "HH:mm")}
-                  </span>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative z-10 flex items-center gap-2">
+                  {eventInfo.event.extendedProps.status === "booked" ? (
+                    <User className="w-4 h-4 animate-pulse" />
+                  ) : (
+                    <Calendar className="w-4 h-4" />
+                  )}
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="font-semibold text-sm truncate">
+                      {eventInfo.event.title}
+                    </span>
+                    <span className="text-xs opacity-90 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {format(eventInfo.event.start, "HH:mm")} - {format(eventInfo.event.end, "HH:mm")}
+                    </span>
+                    <span className="text-xs opacity-75 flex items-center gap-1 mt-1">
+                      <MapPin className="w-3 h-3" />
+                      {eventInfo.event.extendedProps.location}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="absolute top-1 right-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    eventInfo.event.extendedProps.status === "booked" 
+                      ? "bg-emerald-300" 
+                      : "bg-purple-300"
+                  } animate-pulse`}></div>
                 </div>
               </div>
             )}
@@ -716,18 +987,13 @@ export const PlanningMedecin = ({
               month: "long",
             }}
             nowIndicator={true}
-            eventClassNames={(eventInfo) =>
-              eventInfo.event.extendedProps.status === "booked"
-                ? "fc-event-booked"
-                : ""
-            }
             selectConstraint="businessHours"
             selectOverlap={false}
             eventOverlap={false}
             eventConstraint="businessHours"
             businessHours={{
-              daysOfWeek: [1, 2, 3, 4, 5, 6],
-              startTime: "08:00",
+              daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+              startTime: "00:00",
               endTime: "24:00",
             }}
             scrollTime="08:00:00"
@@ -745,79 +1011,102 @@ export const PlanningMedecin = ({
         </div>
       </div>
 
+      {/* Modal de détails avec animations */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Détails de la vacation</DialogTitle>
-            <DialogDescription>
-              Informations détaillées sur cette vacation
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-blue-600 bg-clip-text text-transparent">
+              Détails de la vacation
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Informations complètes sur cette vacation
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 max-h-[60vh] overflow-y-auto">
-            <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-              <div className="border-b border-gray-200 pb-3">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {selectedEvent?.title}
-                </h3>
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-600">
-                    {selectedEvent &&
-                      format(selectedEvent.start, "EEEE d MMMM yyyy", {
-                        locale: fr,
-                      })}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {selectedEvent &&
-                      `${format(selectedEvent.start, "HH:mm")} - ${format(
-                        selectedEvent.end,
-                        "HH:mm"
-                      )}`}
-                  </p>
+          <div className="py-6 max-h-[60vh] overflow-y-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 space-y-6 border border-blue-100">
+              <div className="border-b border-blue-200 pb-4">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl ${
+                    selectedEvent?.extendedProps.status === "booked" 
+                      ? "bg-gradient-to-br from-emerald-500 to-teal-500" 
+                      : "bg-gradient-to-br from-violet-500 to-purple-500"
+                  } text-white shadow-lg`}>
+                    {selectedEvent?.extendedProps.status === "booked" ? "✅" : "📅"}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {selectedEvent?.title}
+                    </h3>
+                    <div className="flex items-center gap-4 mt-2">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span className="font-medium">
+                          {selectedEvent &&
+                            format(selectedEvent.start, "EEEE d MMMM yyyy", {
+                              locale: fr,
+                            })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        <span className="font-medium">
+                          {selectedEvent &&
+                            `${format(selectedEvent.start, "HH:mm")} - ${format(
+                              selectedEvent.end,
+                              "HH:mm"
+                            )}`}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">
-                      Spécialité
-                    </span>
-                    <p className="text-sm text-gray-600">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Stethoscope className="w-5 h-5 text-blue-500" />
+                      <span className="font-semibold text-gray-700">Spécialité</span>
+                    </div>
+                    <p className="text-gray-800 font-medium">
                       {SPECIALITIES[selectedEvent?.extendedProps.speciality]
                         ?.label || selectedEvent?.extendedProps.speciality}
                     </p>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">
-                      Type d'acte
-                    </span>
-                    <p className="text-sm text-gray-600">
-                      {selectedEvent?.extendedProps.actType ===
-                        "consultation" && "Consultation"}
-                      {selectedEvent?.extendedProps.actType === "urgence" &&
-                        "Urgence"}
-                      {selectedEvent?.extendedProps.actType === "visite" &&
-                        "Visite à domicile"}
-                      {selectedEvent?.extendedProps.actType ===
-                        "teleconsultation" && "Téléconsultation"}
+                  
+                  <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Activity className="w-5 h-5 text-purple-500" />
+                      <span className="font-semibold text-gray-700">Type d'acte</span>
+                    </div>
+                    <p className="text-gray-800 font-medium">
+                      {selectedEvent?.extendedProps.actType === "consultation" && "🩺 Consultation"}
+                      {selectedEvent?.extendedProps.actType === "urgence" && "🚨 Urgence"}
+                      {selectedEvent?.extendedProps.actType === "visite" && "🏠 Visite à domicile"}
+                      {selectedEvent?.extendedProps.actType === "teleconsultation" && "💻 Téléconsultation"}
                     </p>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">
-                      Localisation
-                    </span>
-                    <p className="text-sm text-gray-600">
-                      {selectedEvent?.extendedProps.location || "Non spécifiée"}
+                
+                <div className="space-y-4">
+                  <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-2">
+                      <MapPin className="w-5 h-5 text-emerald-500" />
+                      <span className="font-semibold text-gray-700">Localisation</span>
+                    </div>
+                    <p className="text-gray-800 font-medium">
+                      📍 {selectedEvent?.extendedProps.location || "Non spécifiée"}
                     </p>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">
-                      Tarif horaire
-                    </span>
-                    <p className="text-sm text-gray-600">
+                  
+                  <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Euro className="w-5 h-5 text-amber-500" />
+                      <span className="font-semibold text-gray-700">Tarif horaire</span>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-600">
                       {selectedEvent?.extendedProps.rate || 0}€
                     </p>
                   </div>
@@ -825,257 +1114,290 @@ export const PlanningMedecin = ({
               </div>
 
               {selectedEvent?.extendedProps.description && (
-                <div className="space-y-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    Description
-                  </span>
-                  <p className="text-sm text-gray-600">
+                <div className="bg-white/80 rounded-xl p-4 border border-white/50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Sparkles className="w-5 h-5 text-indigo-500" />
+                    <span className="font-semibold text-gray-700">Description</span>
+                  </div>
+                  <p className="text-gray-800 leading-relaxed">
                     {selectedEvent.extendedProps.description}
                   </p>
                 </div>
               )}
 
               {selectedEvent?.extendedProps.requirements && (
-                <div className="space-y-1">
-                  <span className="text-sm font-medium text-gray-700">
-                    Exigences
-                  </span>
-                  <p className="text-sm text-gray-600">
+                <div className="bg-white/80 rounded-xl p-4 border border-white/50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <User className="w-5 h-5 text-rose-500" />
+                    <span className="font-semibold text-gray-700">Exigences</span>
+                  </div>
+                  <p className="text-gray-800 leading-relaxed">
                     {selectedEvent.extendedProps.requirements}
                   </p>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 pt-2">
-                <span className="text-sm font-medium text-gray-700">
-                  Statut
-                </span>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    selectedEvent?.extendedProps.status === "booked"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-blue-100 text-blue-800"
-                  }`}
-                >
+              <div className="flex items-center justify-center pt-4">
+                <div className={`px-6 py-3 rounded-2xl font-semibold text-lg ${
+                  selectedEvent?.extendedProps.status === "booked"
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-emerald-200"
+                    : "bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-purple-200"
+                } shadow-lg`}>
                   {selectedEvent?.extendedProps.status === "booked"
-                    ? "Réservé"
-                    : "Disponible"}
-                </span>
+                    ? "✅ Créneau Réservé"
+                    : "📅 Créneau Disponible"}
+                </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-4">
+          <DialogFooter className="flex flex-col sm:flex-row gap-3 mt-6">
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto border-gray-200 hover:bg-gray-50 transition-all duration-300"
             >
+              <X className="w-4 h-4 mr-2" />
               Fermer
             </Button>
             <Button
               variant="destructive"
               onClick={() => handleDeleteSlot(false)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 transition-all duration-300 shadow-lg hover:shadow-red-200"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Supprimer ce créneau
             </Button>
             <Button
               variant="destructive"
               onClick={() => handleDeleteSlot(true)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2"
+              className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-orange-200"
             >
-              <Trash2 className="w-4 h-4" />
+              <Repeat className="w-4 h-4 mr-2" />
               Supprimer toutes les occurrences
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Modal de création avec design moderne */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>Créer une vacation</DialogTitle>
-            <DialogDescription>
-              Configurez les détails de votre vacation
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-purple-600 bg-clip-text text-transparent">
+              ✨ Créer une nouvelle vacation
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Configurez tous les détails de votre vacation médicale
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4 max-h-[60vh] overflow-y-auto">
+          <div className="py-6 max-h-[70vh] overflow-y-auto">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleCreateSlot();
               }}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-sm font-medium">
-                    Titre <span className="text-red-500">*</span>
+              {/* Informations principales */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Stethoscope className="w-5 h-5 text-blue-500" />
+                  Informations principales
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-sm font-semibold text-gray-700">
+                      Titre de la vacation <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="title"
+                      value={selectedSlot.title}
+                      onChange={(e) =>
+                        setSelectedSlot({
+                          ...selectedSlot,
+                          title: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Consultation générale"
+                      required
+                      className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="speciality" className="text-sm font-semibold text-gray-700">
+                      Spécialité médicale <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={selectedSlot.speciality}
+                      onValueChange={(value) =>
+                        setSelectedSlot({
+                          ...selectedSlot,
+                          speciality: value as Speciality,
+                        })
+                      }
+                      required
+                    >
+                      <SelectTrigger className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300">
+                        <SelectValue placeholder="Sélectionnez une spécialité" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general_medicine">🩺 Médecine générale</SelectItem>
+                        <SelectItem value="pediatrics">👶 Pédiatrie</SelectItem>
+                        <SelectItem value="dermatology">🧴 Dermatologie</SelectItem>
+                        <SelectItem value="ophthalmology">👁️ Ophtalmologie</SelectItem>
+                        <SelectItem value="gynecology">🌸 Gynécologie</SelectItem>
+                        <SelectItem value="cardiology">❤️ Cardiologie</SelectItem>
+                        <SelectItem value="neurology">🧠 Neurologie</SelectItem>
+                        <SelectItem value="psychiatry">🧘 Psychiatrie</SelectItem>
+                        <SelectItem value="orthopedics">🦴 Orthopédie</SelectItem>
+                        <SelectItem value="dentistry">🦷 Dentisterie</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-sm font-semibold text-gray-700">
+                      Zone géographique <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="location"
+                      value={selectedSlot.location}
+                      onChange={(e) =>
+                        setSelectedSlot({
+                          ...selectedSlot,
+                          location: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Paris 11ème"
+                      required
+                      className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="rate" className="text-sm font-semibold text-gray-700">
+                      Tarif horaire (€) <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="rate"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={selectedSlot.rate}
+                        onChange={(e) =>
+                          setSelectedSlot({
+                            ...selectedSlot,
+                            rate: parseFloat(e.target.value),
+                          })
+                        }
+                        placeholder="50"
+                        required
+                        className="pl-10 bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="act_type" className="text-sm font-semibold text-gray-700">
+                      Type d'acte médical
+                    </Label>
+                    <Select
+                      value={selectedSlot.act_type}
+                      onValueChange={(value) =>
+                        setSelectedSlot({
+                          ...selectedSlot,
+                          act_type: value as
+                            | "consultation"
+                            | "urgence"
+                            | "visite"
+                            | "teleconsultation",
+                        })
+                      }
+                    >
+                      <SelectTrigger className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300">
+                        <SelectValue placeholder="Sélectionnez un type d'acte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">🩺 Consultation</SelectItem>
+                        <SelectItem value="urgence">🚨 Urgence</SelectItem>
+                        <SelectItem value="visite">🏠 Visite à domicile</SelectItem>
+                        <SelectItem value="teleconsultation">💻 Téléconsultation</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="requirements" className="text-sm font-semibold text-gray-700">
+                      Prérequis et exigences
+                    </Label>
+                    <Input
+                      id="requirements"
+                      value={selectedSlot.requirements}
+                      onChange={(e) =>
+                        setSelectedSlot({
+                          ...selectedSlot,
+                          requirements: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Carte vitale, ordonnance"
+                      className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-2">
+                  <Label htmlFor="description" className="text-sm font-semibold text-gray-700">
+                    Description détaillée
                   </Label>
-                  <Input
-                    id="title"
-                    value={selectedSlot.title}
+                  <Textarea
+                    id="description"
+                    value={selectedSlot.description}
                     onChange={(e) =>
                       setSelectedSlot({
                         ...selectedSlot,
-                        title: e.target.value,
+                        description: e.target.value,
                       })
                     }
-                    placeholder="Ex: Consultation générale"
-                    required
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="speciality" className="text-sm font-medium">
-                    Spécialité <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={selectedSlot.speciality}
-                    onValueChange={(value) =>
-                      setSelectedSlot({
-                        ...selectedSlot,
-                        speciality: value as Speciality,
-                      })
-                    }
-                    required
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionnez une spécialité" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general_medicine">
-                        Médecine générale
-                      </SelectItem>
-                      <SelectItem value="pediatrics">Pédiatrie</SelectItem>
-                      <SelectItem value="dermatology">Dermatologie</SelectItem>
-                      <SelectItem value="ophthalmology">
-                        Ophtalmologie
-                      </SelectItem>
-                      <SelectItem value="gynecology">Gynécologie</SelectItem>
-                      <SelectItem value="cardiology">Cardiologie</SelectItem>
-                      <SelectItem value="neurology">Neurologie</SelectItem>
-                      <SelectItem value="psychiatry">Psychiatrie</SelectItem>
-                      <SelectItem value="orthopedics">Orthopédie</SelectItem>
-                      <SelectItem value="dentistry">Dentisterie</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="text-sm font-medium">
-                    Zone géographique <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="location"
-                    value={selectedSlot.location}
-                    onChange={(e) =>
-                      setSelectedSlot({
-                        ...selectedSlot,
-                        location: e.target.value,
-                      })
-                    }
-                    placeholder="Ex: Paris 11ème"
-                    required
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="rate" className="text-sm font-medium">
-                    Tarif horaire (€) <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="rate"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={selectedSlot.rate}
-                    onChange={(e) =>
-                      setSelectedSlot({
-                        ...selectedSlot,
-                        rate: parseFloat(e.target.value),
-                      })
-                    }
-                    placeholder="Ex: 50"
-                    required
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="act_type" className="text-sm font-medium">
-                    Type d'acte
-                  </Label>
-                  <Select
-                    value={selectedSlot.act_type}
-                    onValueChange={(value) =>
-                      setSelectedSlot({
-                        ...selectedSlot,
-                        act_type: value as
-                          | "consultation"
-                          | "urgence"
-                          | "visite"
-                          | "teleconsultation",
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionnez un type d'acte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                      <SelectItem value="urgence">Urgence</SelectItem>
-                      <SelectItem value="visite">Visite</SelectItem>
-                      <SelectItem value="teleconsultation">
-                        Téléconsultation
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="requirements" className="text-sm font-medium">
-                    Prérequis
-                  </Label>
-                  <Input
-                    id="requirements"
-                    value={selectedSlot.requirements}
-                    onChange={(e) =>
-                      setSelectedSlot({
-                        ...selectedSlot,
-                        requirements: e.target.value,
-                      })
-                    }
-                    placeholder="Ex: Carte vitale, ordonnance"
-                    className="w-full"
+                    placeholder="Décrivez votre vacation en détail..."
+                    rows={3}
+                    className="bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Récurrence</Label>
-                  <Switch
-                    checked={recurrenceSettings.type !== "none"}
-                    onCheckedChange={(checked) => {
-                      setRecurrenceSettings({
-                        type: checked ? "daily" : "none",
-                        endType: "never",
-                      });
-                    }}
-                  />
+              {/* Paramètres de récurrence */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Repeat className="w-5 h-5 text-purple-500" />
+                    <h3 className="text-lg font-semibold text-gray-800">Récurrence</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600">Activer la récurrence</span>
+                    <Switch
+                      checked={recurrenceSettings.type !== "none"}
+                      onCheckedChange={(checked) => {
+                        setRecurrenceSettings({
+                          type: checked ? "weekly" : "none",
+                          endType: "never",
+                        });
+                      }}
+                      className="data-[state=checked]:bg-purple-500"
+                    />
+                  </div>
                 </div>
 
                 {recurrenceSettings.type !== "none" && (
-                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-6 animate-in slide-in-from-top duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">Fréquence</Label>
+                        <Label className="text-sm font-semibold text-gray-700">Fréquence de répétition</Label>
                         <Select
                           value={recurrenceSettings.type}
                           onValueChange={(value) =>
@@ -1085,21 +1407,19 @@ export const PlanningMedecin = ({
                             })
                           }
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-white/80 border-white/50 focus:border-purple-400 transition-all duration-300">
                             <SelectValue placeholder="Sélectionnez une fréquence" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="daily">Quotidien</SelectItem>
-                            <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                            <SelectItem value="monthly">Mensuel</SelectItem>
+                            <SelectItem value="daily">📅 Quotidien</SelectItem>
+                            <SelectItem value="weekly">📆 Hebdomadaire</SelectItem>
+                            <SelectItem value="monthly">🗓️ Mensuel</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Fin de récurrence
-                        </Label>
+                        <Label className="text-sm font-semibold text-gray-700">Fin de la récurrence</Label>
                         <Select
                           value={recurrenceSettings.endType}
                           onValueChange={(value) =>
@@ -1109,57 +1429,51 @@ export const PlanningMedecin = ({
                             })
                           }
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionnez une fin" />
+                          <SelectTrigger className="bg-white/80 border-white/50 focus:border-purple-400 transition-all duration-300">
+                            <SelectValue placeholder="Quand arrêter ?" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="never">Jamais</SelectItem>
-                            <SelectItem value="count">
-                              Après X occurrences
-                            </SelectItem>
-                            <SelectItem value="date">
-                              À une date spécifique
-                            </SelectItem>
+                            <SelectItem value="never">♾️ Jamais</SelectItem>
+                            <SelectItem value="count">🔢 Après X occurrences</SelectItem>
+                            <SelectItem value="date">📅 À une date spécifique</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
                     {recurrenceSettings.endType === "count" && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Nombre d'occurrences
-                        </Label>
+                      <div className="space-y-2 animate-in slide-in-from-left duration-300">
+                        <Label className="text-sm font-semibold text-gray-700">Nombre d'occurrences</Label>
                         <Input
                           type="number"
                           min="1"
-                          value={recurrenceSettings.count}
+                          max="100"
+                          value={recurrenceSettings.count || ''}
                           onChange={(e) =>
                             setRecurrenceSettings({
                               ...recurrenceSettings,
-                              count: parseInt(e.target.value),
+                              count: parseInt(e.target.value) || 1,
                             })
                           }
-                          className="w-full"
+                          placeholder="Ex: 10"
+                          className="bg-white/80 border-white/50 focus:border-purple-400 transition-all duration-300"
                         />
                       </div>
                     )}
 
                     {recurrenceSettings.endType === "date" && (
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          Date de fin
-                        </Label>
+                      <div className="space-y-2 animate-in slide-in-from-right duration-300">
+                        <Label className="text-sm font-semibold text-gray-700">Date de fin</Label>
                         <Input
                           type="date"
-                          value={recurrenceSettings.endDate}
+                          value={recurrenceSettings.endDate || ''}
                           onChange={(e) =>
                             setRecurrenceSettings({
                               ...recurrenceSettings,
                               endDate: e.target.value,
                             })
                           }
-                          className="w-full"
+                          className="bg-white/80 border-white/50 focus:border-purple-400 transition-all duration-300"
                         />
                       </div>
                     )}
@@ -1167,19 +1481,33 @@ export const PlanningMedecin = ({
                 )}
               </div>
 
-              <div className="flex justify-end gap-4 pt-4 border-t">
+              {/* Boutons d'action */}
+              <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowCreateDialog(false)}
+                  className="px-6 py-3 border-gray-200 hover:bg-gray-50 transition-all duration-300"
                 >
+                  <X className="w-4 h-4 mr-2" />
                   Annuler
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-medical-blue to-blue-600 hover:from-blue-600 hover:to-medical-blue text-white"
+                  disabled={isLoading}
+                  className="px-8 py-3 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 hover:from-blue-600 hover:via-purple-600 hover:to-indigo-600 text-white font-semibold shadow-lg hover:shadow-purple-200 transition-all duration-300 transform hover:scale-105"
                 >
-                  Créer la vacation
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Création...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Créer la vacation
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
