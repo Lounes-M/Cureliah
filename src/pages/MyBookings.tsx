@@ -58,35 +58,17 @@ const MyBookings = () => {
 
       let query;
       if (profile?.user_type === "doctor") {
-        // Pour les médecins : récupérer les bookings via vacation_posts.doctor_id
+        // Pour les médecins : récupérer les bookings directement
         query = supabase
-          .from("vacation_bookings")
-          .select(
-            `
-            status,
-            total_amount,
-            created_at,
-            vacation_posts!vacation_bookings_vacation_post_id_fkey(
-              doctor_id
-            )
-          `
-          )
-          .eq("vacation_posts.doctor_id", user.id);
+          .from("bookings")
+          .select("status, total_amount, created_at")
+          .eq("doctor_id", user.id);
       } else {
-        // Pour les établissements : récupérer les bookings via vacation_posts.establishment_id
+        // Pour les établissements : récupérer les bookings directement
         query = supabase
-          .from("vacation_bookings")
-          .select(
-            `
-            status,
-            total_amount,
-            created_at,
-            vacation_posts!vacation_bookings_vacation_post_id_fkey(
-              establishment_id
-            )
-          `
-          )
-          .eq("vacation_posts.establishment_id", user.id);
+          .from("bookings")
+          .select("status, total_amount, created_at")
+          .eq("establishment_id", user.id);
       }
 
       const { data: bookings, error } = await query;
@@ -104,14 +86,14 @@ const MyBookings = () => {
 
       const active =
         bookings?.filter(
-          (b) => b.status === "confirmed" || b.status === "booked"
+          (b) => b.status === "confirmed"
         ).length || 0;
       const pending =
         bookings?.filter((b) => b.status === "pending").length || 0;
       const completed =
         bookings?.filter((b) => b.status === "completed").length || 0;
       const cancelled =
-        bookings?.filter((b) => b.status === "cancelled").length || 0;
+        bookings?.filter((b) => b.status === "cancelled" || b.status === "rejected").length || 0;
 
       const totalRevenue =
         bookings
@@ -438,9 +420,9 @@ const MyBookings = () => {
               <div className="mt-6">
                 <TabsContent value="active" className="mt-0">
                   {profile.user_type === "doctor" ? (
-                    <BookingManagement status="booked" />
+                    <BookingManagement status="confirmed" />
                   ) : (
-                    <EstablishmentBookingManagement status="booked" />
+                    <EstablishmentBookingManagement status="confirmed" />
                   )}
                 </TabsContent>
 
@@ -462,9 +444,9 @@ const MyBookings = () => {
 
                 <TabsContent value="cancelled" className="mt-0">
                   {profile.user_type === "doctor" ? (
-                    <BookingManagement status="cancelled" />
+                    <BookingManagement status="cancelled,rejected" />
                   ) : (
-                    <EstablishmentBookingManagement status="cancelled" />
+                    <EstablishmentBookingManagement status="cancelled,rejected" />
                   )}
                 </TabsContent>
               </div>

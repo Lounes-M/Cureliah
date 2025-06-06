@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter, Clock, Phone, Mail, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
@@ -12,8 +11,25 @@ import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+
+// Fonction de formatage des dates
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+const formatDateTime = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('fr-FR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
 interface EstablishmentInfo {
   id: string;
@@ -24,7 +40,29 @@ interface EstablishmentInfo {
   last_name: string;
 }
 
-interface BookingWithDetails extends VacationBooking {
+interface VacationPost {
+  id: string;
+  title: string;
+  location: string;
+  start_date: string;
+  end_date: string;
+  hourly_rate: number;
+  act_type: string;
+}
+
+interface BookingWithDetails {
+  id: string;
+  status: 'pending' | 'confirmed' | 'rejected' | 'completed' | 'cancelled';
+  booking_date: string;
+  start_date: string;
+  end_date: string;
+  total_amount: number;
+  message: string;
+  urgency: 'low' | 'medium' | 'high';
+  contact_phone: string;
+  duration_hours: number;
+  created_at: string;
+  establishment_id: string;
   vacation_post: VacationPost;
   establishment_info: EstablishmentInfo | null;
 }
@@ -52,69 +90,112 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
     try {
       setLoading(true);
-      console.log('Fetching bookings for doctor:', user.id);
+      console.log('🔍 Fetching bookings for doctor:', user.id);
       
       let query = supabase
-        .from('vacation_bookings')
+        .from('bookings')
         .select(`
           *,
-          vacation_posts (*)
+          vacation_posts (
+            id,
+            title,
+            location,
+            start_date,
+            end_date,
+            hourly_rate,
+            act_type
+          )
         `)
         .eq('doctor_id', user.id)
         .order('created_at', { ascending: false });
 
       // Apply status filter
       if (filters.status !== 'all') {
-        query = query.eq('status', filters.status);
+        const statusList = filters.status.split(',');
+        if (statusList.length > 1) {
+          query = query.in('status', statusList);
+        } else {
+          query = query.eq('status', filters.status);
+        }
+      }
+
+      if (status && status !== 'all') {
+        const statusList = status.split(',');
+        if (statusList.length > 1) {
+          query = query.in('status', statusList);
+        } else {
+          query = query.eq('status', status);
+        }
       }
 
       const { data: bookingsData, error: bookingsError } = await query;
 
       if (bookingsError) {
-        console.error('Error fetching bookings:', bookingsError);
+        console.error('❌ Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
 
+      console.log('📦 Raw bookings data:', bookingsData);
+
       if (!bookingsData || bookingsData.length === 0) {
+        console.log('📭 No bookings found');
         setBookings([]);
         return;
       }
 
+      console.log(`✅ Found ${bookingsData.length} bookings`);
+
       // Get establishment IDs
-      const establishmentIds = bookingsData.map(booking => booking.establishment_id);
+      const establishmentIds = [...new Set(bookingsData.map(booking => booking.establishment_id))];
+      console.log('🏥 Establishment IDs to fetch:', establishmentIds);
       
-      // Get establishment profiles
+      // Récupérer les profils d'établissements directement
       const { data: establishments, error: establishmentError } = await supabase
         .from('establishment_profiles')
-        .select('id, name, establishment_type, city')
+        .select('id, name, establishment_type, city, address, phone, email')
         .in('id', establishmentIds);
 
       if (establishmentError) {
-        console.warn('Error fetching establishment profiles:', establishmentError);
+        console.error('❌ Error fetching establishment profiles:', establishmentError);
+        // En cas d'erreur, continuer avec des données vides plutôt que de planter
       }
 
-      // Get user profiles
-      const { data: users, error: userError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .in('id', establishmentIds);
-
-      if (userError) {
-        console.warn('Error fetching user profiles:', userError);
-      }
+      console.log('🏥 Establishment profiles found:', establishments);
 
       // Combine the data
       const combinedBookings = bookingsData.map(booking => {
         const establishment = establishments?.find(e => e.id === booking.establishment_id);
-        const user = users?.find(u => u.id === booking.establishment_id);
+        
+        let establishmentInfo = null;
+        
+        if (establishment) {
+          // Cas normal : profil d'établissement trouvé
+          establishmentInfo = {
+            id: establishment.id,
+            name: establishment.name,
+            establishment_type: establishment.establishment_type,
+            city: establishment.city,
+            first_name: '',
+            last_name: ''
+          };
+          console.log('✅ Found establishment:', establishment.name);
+        } else {
+          // Fallback : établissement non trouvé
+          establishmentInfo = {
+            id: booking.establishment_id,
+            name: 'Établissement inconnu',
+            establishment_type: 'Non spécifié',
+            city: 'Non spécifié',
+            first_name: '',
+            last_name: ''
+          };
+          console.log('⚠️ Establishment not found for ID:', booking.establishment_id);
+        }
         
         return {
           ...booking,
-          establishment_info: establishment && user ? {
-            ...establishment,
-            first_name: user.first_name,
-            last_name: user.last_name
-          } : null
+          vacation_post: booking.vacation_posts,
+          establishment_info: establishmentInfo
         };
       });
 
@@ -170,7 +251,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
   const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
     try {
       const { error } = await supabase
-        .from('vacation_bookings')
+        .from('bookings')
         .update({ status: newStatus })
         .eq('id', bookingId);
 
@@ -193,21 +274,48 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: 'En attente', variant: 'warning' },
-      confirmed: { label: 'Confirmée', variant: 'success' },
-      completed: { label: 'Terminée', variant: 'default' },
-      cancelled: { label: 'Annulée', variant: 'destructive' }
+      pending: { label: 'En attente', className: 'bg-yellow-100 text-yellow-800' },
+      confirmed: { label: 'Confirmée', className: 'bg-green-100 text-green-800' },
+      completed: { label: 'Terminée', className: 'bg-blue-100 text-blue-800' },
+      cancelled: { label: 'Annulée', className: 'bg-red-100 text-red-800' },
+      rejected: { label: 'Rejetée', className: 'bg-red-100 text-red-800' }
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'default' };
-    return <Badge variant={config.variant as any}>{config.label}</Badge>;
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, className: 'bg-gray-100 text-gray-800' };
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
+
+  const getUrgencyBadge = (urgency: string) => {
+    const urgencyConfig = {
+      low: { label: 'Faible', className: 'bg-green-100 text-green-700' },
+      medium: { label: 'Normal', className: 'bg-orange-100 text-orange-700' },
+      high: { label: 'Urgent', className: 'bg-red-100 text-red-700' }
+    };
+
+    const config = urgencyConfig[urgency as keyof typeof urgencyConfig] || { label: urgency, className: 'bg-gray-100 text-gray-700' };
+    return <Badge className={config.className}>{config.label}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Chargement des réservations...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      {/* Filtres */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtres</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filtres
+          </CardTitle>
           <CardDescription>Filtrer vos réservations</CardDescription>
         </CardHeader>
         <CardContent>
@@ -239,6 +347,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                 <SelectItem value="hospital">Hôpital</SelectItem>
                 <SelectItem value="clinic">Clinique</SelectItem>
                 <SelectItem value="private_practice">Cabinet privé</SelectItem>
+                <SelectItem value="medical_center">Centre médical</SelectItem>
               </SelectContent>
             </Select>
 
@@ -261,93 +370,148 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                 <SelectItem value="confirmed">Confirmée</SelectItem>
                 <SelectItem value="completed">Terminée</SelectItem>
                 <SelectItem value="cancelled">Annulée</SelectItem>
+                <SelectItem value="rejected">Rejetée</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      <div className="space-y-4">
-        {bookings.map((booking) => (
-          <Card key={booking.id} className="overflow-hidden">
-            <CardHeader className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <Building2 className="w-8 h-8 text-primary" />
-                  <div>
-                    <CardTitle className="text-lg">
-                      {booking.establishment_info?.name || 'Établissement inconnu'}
-                    </CardTitle>
-                    <CardDescription>
-                      {booking.establishment_info?.establishment_type} - {booking.establishment_info?.city}
-                    </CardDescription>
+      {/* Liste des réservations */}
+      {bookings.length === 0 ? (
+        <Card>
+          <CardContent className="text-center py-8">
+            <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune réservation trouvée</h3>
+            <p className="text-gray-600">
+              {filters.status !== 'all' || filters.dateRange !== 'all' || filters.city || filters.establishmentType !== 'all'
+                ? 'Aucune réservation ne correspond à vos critères de recherche.'
+                : 'Vous n\'avez pas encore de réservations.'
+              }
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {bookings.map((booking) => (
+            <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <CardHeader className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">
+                        {booking.establishment_info?.name || 'Établissement inconnu'}
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-4">
+                        <span>{booking.establishment_info?.establishment_type} - {booking.establishment_info?.city}</span>
+                        {booking.urgency && getUrgencyBadge(booking.urgency)}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    {getStatusBadge(booking.status)}
+                    <p className="text-sm text-gray-500 mt-1">
+                      Créée le {formatDate(booking.created_at)}
+                    </p>
                   </div>
                 </div>
-                {getStatusBadge(booking.status)}
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    <span>
-                      Du {format(new Date(booking.vacation_post.start_date), 'PP', { locale: fr })} au{' '}
-                      {format(new Date(booking.vacation_post.end_date), 'PP', { locale: fr })}
-                    </span>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Informations de la vacation */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900 mb-3">Détails de la vacation</h4>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                      <span>
+                        Du {formatDateTime(booking.start_date)} 
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Clock className="w-4 h-4 mr-2 text-green-500" />
+                      <span>Durée: {booking.duration_hours}h</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                      <span>{booking.vacation_post?.location}</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Euro className="w-4 h-4 mr-2 text-yellow-500" />
+                      <span className="font-medium">{booking.total_amount}€ (estimation)</span>
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    <span>{booking.vacation_post.location}</span>
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Euro className="w-4 h-4 mr-2" />
-                    <span>{booking.vacation_post.hourly_rate}€/heure</span>
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-2">
-                  <BookingTimeline status={booking.status} />
-                  <div className="flex space-x-2">
-                    {booking.status === 'pending' && (
-                      <>
-                        <Button
-                          variant="outline"
-                          onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                        >
-                          Annuler
-                        </Button>
-                        <Button
-                          onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                        >
-                          Confirmer
-                        </Button>
-                      </>
-                    )}
-                    {booking.status === 'confirmed' && (
-                      <Button
-                        onClick={() => handleStatusUpdate(booking.id, 'completed')}
-                      >
-                        Marquer comme terminé
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedBooking(booking);
-                        setShowMessaging(true);
-                      }}
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Message
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
+                  {/* Contact et actions */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-900 mb-3">Contact & Actions</h4>
+                    {booking.contact_phone && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Phone className="w-4 h-4 mr-2 text-purple-500" />
+                        <span>{booking.contact_phone}</span>
+                      </div>
+                    )}
+                    {booking.message && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">
+                          <strong>Message:</strong> {booking.message}
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Actions selon le statut */}
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {booking.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Accepter
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleStatusUpdate(booking.id, 'rejected')}
+                            className="border-red-200 text-red-600 hover:bg-red-50"
+                          >
+                            Rejeter
+                          </Button>
+                        </>
+                      )}
+                      {booking.status === 'confirmed' && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleStatusUpdate(booking.id, 'completed')}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          Marquer comme terminé
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedBooking(booking);
+                          setShowMessaging(true);
+                        }}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Modal de messagerie */}
       {selectedBooking && (
         <MessagingModal
           isOpen={showMessaging}

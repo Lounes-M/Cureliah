@@ -362,6 +362,26 @@ export default function AppRoutes() {
         }
       />
 
+      {/* NOUVELLES ROUTES AJOUTÉES - Détails de vacation accessibles à tous */}
+      <Route
+        path="/vacation/:id"
+        element={
+          <ProtectedRoute>
+            <VacationDetails />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Route alternative pour établissements */}
+      <Route
+        path="/establishment/vacation/:id"
+        element={
+          <ProtectedRoute requiredUserType="establishment">
+            <VacationDetails />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Pages de paiement */}
       <Route
         path="/payment-success"
