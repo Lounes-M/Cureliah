@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Document, uploadDocument, getDocuments, deleteDocument } from '@/services/documents';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { File, Trash2, Download, Upload, Loader2, Folder, Search, Filter } from 'lucide-react';
-import { format } from 'date-fns';
+import { File, Trash2, Download, Upload, Loader2, Search, X, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+
+interface Document {
+  id: string;
+  user_id: string;
+  name: string;
+  type: string;
+  size: number;
+  file_path: string; // Changez selon le nom réel de votre colonne
+  category: string;
+  created_at: string;
+}
 
 interface DocumentCategory {
   id: string;
@@ -20,21 +31,29 @@ interface DocumentCategory {
 
 const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   { id: 'all', name: 'Tous les documents', icon: <File className="w-4 h-4" /> },
-  { id: 'diplomas', name: 'Diplômes', icon: <File className="w-4 h-4" /> },
-  { id: 'certifications', name: 'Certifications', icon: <File className="w-4 h-4" /> },
-  { id: 'contracts', name: 'Contrats', icon: <File className="w-4 h-4" /> },
+  { id: 'diplomas', name: 'Diplômes', icon: <FileText className="w-4 h-4" /> },
+  { id: 'certifications', name: 'Certifications', icon: <FileText className="w-4 h-4" /> },
+  { id: 'contracts', name: 'Contrats', icon: <FileText className="w-4 h-4" /> },
   { id: 'other', name: 'Autres', icon: <File className="w-4 h-4" /> }
 ];
 
-export default function DocumentManager() {
+const UPLOAD_CATEGORIES = DOCUMENT_CATEGORIES.filter(cat => cat.id !== 'all');
+
+const DocumentManager: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('date');
+  
+  // États pour le modal d'upload
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState('other');
+  const [dragActive, setDragActive] = useState(false);
 
   const fetchDocuments = async () => {
     if (!user) return;
@@ -67,40 +86,53 @@ export default function DocumentManager() {
     }
   }, [user]);
 
-  const handleUpload = async (file: File) => {
-    if (!user) return;
-
+  const validateFile = (file: File): string | null => {
     // Vérification de la taille du fichier (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: "Erreur",
-        description: "Le fichier ne doit pas dépasser 10MB",
-        variant: "destructive"
-      });
-      return;
+      return "Le fichier ne doit pas dépasser 10MB";
     }
 
     // Vérification du type de fichier
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
+      return "Type de fichier non supporté. Formats acceptés : PDF, JPEG, PNG, DOC, DOCX";
+    }
+
+    return null;
+  };
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    const error = validateFile(file);
+    
+    if (error) {
       toast({
         title: "Erreur",
-        description: "Type de fichier non supporté. Formats acceptés : PDF, JPEG, PNG, DOC, DOCX",
+        description: error,
         variant: "destructive"
       });
       return;
     }
+    
+    setSelectedFile(file);
+    setUploadModalOpen(true);
+  };
+
+  const handleUpload = async () => {
+    if (!user || !selectedFile) return;
 
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
+      const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // Upload du fichier
       const { error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file);
+        .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
@@ -110,11 +142,12 @@ export default function DocumentManager() {
         .insert([
           {
             user_id: user.id,
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: filePath,
-            category: selectedCategory === 'all' ? 'other' : selectedCategory
+            name: selectedFile.name,
+            file_type: selectedFile.type,  // Utiliser file_type au lieu de type
+            file_size: selectedFile.size,  // Utiliser file_size au lieu de size
+            file_path: filePath,           // Utiliser file_path pour le storage
+            url: filePath,                 // Et aussi url pour compatibilité
+            category: uploadCategory
           }
         ]);
 
@@ -122,15 +155,18 @@ export default function DocumentManager() {
 
       toast({
         title: "Succès",
-        description: "Document téléchargé avec succès"
+        description: "Document téléversé avec succès"
       });
 
       fetchDocuments();
+      setUploadModalOpen(false);
+      setSelectedFile(null);
+      setUploadCategory('other');
     } catch (error: any) {
       console.error('Error uploading document:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Erreur lors du téléchargement du document",
+        description: error.message || "Erreur lors du téléversement du document",
         variant: "destructive"
       });
     } finally {
@@ -205,6 +241,45 @@ export default function DocumentManager() {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileSelect(e.dataTransfer.files);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const filteredDocuments = documents
     .filter(doc => selectedCategory === 'all' || doc.category === selectedCategory)
     .filter(doc => doc.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -238,40 +313,129 @@ export default function DocumentManager() {
               <SelectItem value="name">Nom</SelectItem>
             </SelectContent>
           </Select>
-          <div className="relative">
-            <Input
-              type="file"
-              onChange={(e) => {
-                if (e.target.files) {
-                  const file = e.target.files[0];
-                  handleUpload(file);
-                }
-              }}
-              className="hidden"
-              id="file-upload"
-              disabled={uploading}
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            />
-            <label htmlFor="file-upload">
-              <Button
+          
+          <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
+            <DialogTrigger asChild>
+              <Button 
                 variant="outline"
-                className="cursor-pointer"
                 disabled={uploading}
+                onClick={() => setUploadModalOpen(true)}
               >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Téléchargement...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Télécharger un document
-                  </>
-                )}
+                <Upload className="w-4 h-4 mr-2" />
+                Téléverser un document
               </Button>
-            </label>
-          </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Téléverser un document</DialogTitle>
+                <DialogDescription>
+                  Sélectionnez un fichier et choisissez sa catégorie
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                {/* Zone de drag & drop */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  {selectedFile ? (
+                    <div className="space-y-2">
+                      <File className="w-8 h-8 mx-auto text-primary" />
+                      <p className="font-medium">{selectedFile.name}</p>
+                      <p className="text-sm text-gray-500">{formatFileSize(selectedFile.size)}</p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Supprimer
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="w-8 h-8 mx-auto text-gray-400" />
+                      <div>
+                        <p className="font-medium">Glissez-déposez un fichier ici</p>
+                        <p className="text-sm text-gray-500">ou cliquez pour sélectionner</p>
+                      </div>
+                      <Input
+                        type="file"
+                        onChange={(e) => handleFileSelect(e.target.files)}
+                        className="hidden"
+                        id="file-input"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      />
+                      <label htmlFor="file-input">
+                        <Button variant="outline" className="cursor-pointer" asChild>
+                          <span>Sélectionner un fichier</span>
+                        </Button>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sélection de catégorie */}
+                <div className="space-y-2">
+                  <Label htmlFor="category">Catégorie du document</Label>
+                  <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UPLOAD_CATEGORIES.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          <div className="flex items-center">
+                            {category.icon}
+                            <span className="ml-2">{category.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="text-xs text-gray-500">
+                  Formats acceptés : PDF, JPEG, PNG, DOC, DOCX (max 10MB)
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setUploadModalOpen(false);
+                    setSelectedFile(null);
+                    setUploadCategory('other');
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Téléversement...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Téléverser
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -306,12 +470,12 @@ export default function DocumentManager() {
                   <File className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Aucun document trouvé</p>
                   <p className="text-sm mt-1">
-                    {searchQuery ? 'Essayez une autre recherche' : 'Téléchargez vos documents pour les partager'}
+                    {searchQuery ? 'Essayez une autre recherche' : 'Téléversez vos documents pour les organiser'}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {filteredDocuments.map((document) => (
+                  {filteredDocuments.map((document: DocumentFile) => (
                     <div
                       key={document.id}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -321,8 +485,10 @@ export default function DocumentManager() {
                         <div>
                           <p className="font-medium">{document.name}</p>
                           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <span>{format(new Date(document.created_at), 'PPp')}</span>
-                            <Badge variant="outline">{document.category}</Badge>
+                            <span>{formatDate(document.created_at)}</span>
+                            <Badge variant="outline">{DOCUMENT_CATEGORIES.find(cat => cat.id === document.category)?.name || document.category}</Badge>
+                            <span>•</span>
+                            <span>{formatFileSize(document.file_size)}</span>
                           </div>
                         </div>
                       </div>
@@ -330,7 +496,7 @@ export default function DocumentManager() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDownload(document.url, document.name)}
+                          onClick={() => handleDownload(document.url || document.file_path, document.name)}
                           title="Télécharger"
                         >
                           <Download className="w-4 h-4" />
@@ -338,7 +504,7 @@ export default function DocumentManager() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(document.id, document.url)}
+                          onClick={() => handleDelete(document.id, document.url || document.file_path)}
                           title="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -354,4 +520,6 @@ export default function DocumentManager() {
       </Tabs>
     </div>
   );
-}
+};
+
+export default DocumentManager;
