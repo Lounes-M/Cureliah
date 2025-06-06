@@ -86,6 +86,33 @@ interface BookingRequest {
   duration_hours: number;
 }
 
+// Mapping des spécialités anglais -> français
+const specialityMapping: Record<string, string> = {
+  'orthopedics': 'Orthopédie',
+  'cardiology': 'Cardiologie',
+  'dermatology': 'Dermatologie',
+  'pediatrics': 'Pédiatrie',
+  'psychiatry': 'Psychiatrie',
+  'radiology': 'Radiologie',
+  'anesthesiology': 'Anesthésie-Réanimation',
+  'general_surgery': 'Chirurgie générale',
+  'gynecology': 'Gynécologie-Obstétrique',
+  'ophthalmology': 'Ophtalmologie',
+  'otolaryngology': 'ORL',
+  'neurology': 'Neurologie',
+  'pulmonology': 'Pneumologie',
+  'gastroenterology': 'Gastro-entérologie',
+  'endocrinology': 'Endocrinologie',
+  'rheumatology': 'Rhumatologie',
+  'urology': 'Urologie',
+  'general_medicine': 'Médecine générale'
+};
+
+// Fonction pour traduire les spécialités
+const translateSpeciality = (speciality: string): string => {
+  return specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+};
+
 const EstablishmentSearch = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -122,16 +149,16 @@ const EstablishmentSearch = () => {
   });
 
   const actTypes = [
-    'Consultation',
-    'Urgences',
-    'Garde',
-    'Chirurgie',
-    'Radiologie',
-    'Anesthésie',
-    'Cardiologie',
-    'Pédiatrie',
-    'Obstétrique',
-    'Autre'
+    'consultation',
+    'urgences',
+    'garde',
+    'chirurgie',
+    'radiologie',
+    'anesthésie',
+    'cardiologie',
+    'pédiatrie',
+    'obstétrique',
+    'autre'
   ];
 
   const specialities = [
@@ -190,14 +217,40 @@ const EstablishmentSearch = () => {
 
       if (error) throw error;
 
-      // Simuler les notes (en attendant la vraie table reviews)
-      const vacationsWithRatings = data?.map(vacation => ({
-        ...vacation,
-        reviews_aggregate: {
-          avg_rating: Math.random() * 2 + 3,
-          count: Math.floor(Math.random() * 50) + 1
-        }
-      })) || [];
+      // Charger les reviews pour chaque médecin
+      const vacationsWithRatings = await Promise.all(
+        (data || []).map(async (vacation) => {
+          const { data: reviewsData, error: reviewsError } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('doctor_id', vacation.doctor_id)
+            .eq('status', 'approved');
+
+          let reviews_aggregate = {
+            avg_rating: 0,
+            count: 0
+          };
+
+          if (!reviewsError && reviewsData && reviewsData.length > 0) {
+            const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+            reviews_aggregate = {
+              avg_rating: totalRating / reviewsData.length,
+              count: reviewsData.length
+            };
+          } else {
+            // Pas de reviews encore
+            reviews_aggregate = {
+              avg_rating: 0,
+              count: 0
+            };
+          }
+
+          return {
+            ...vacation,
+            reviews_aggregate
+          };
+        })
+      );
 
       setVacations(vacationsWithRatings);
     } catch (error) {
@@ -225,7 +278,7 @@ const EstablishmentSearch = () => {
           vacation.location?.toLowerCase().includes(query) ||
           vacation.doctor_profiles?.first_name?.toLowerCase().includes(query) ||
           vacation.doctor_profiles?.last_name?.toLowerCase().includes(query) ||
-          vacation.doctor_profiles?.speciality?.toLowerCase().includes(query)
+          translateSpeciality(vacation.doctor_profiles?.speciality || '').toLowerCase().includes(query)
         );
       }
 
@@ -237,9 +290,10 @@ const EstablishmentSearch = () => {
       }
 
       if (filters.speciality) {
-        filtered = filtered.filter(vacation =>
-          vacation.doctor_profiles?.speciality === filters.speciality
-        );
+        filtered = filtered.filter(vacation => {
+          const doctorSpeciality = translateSpeciality(vacation.doctor_profiles?.speciality || '');
+          return doctorSpeciality === filters.speciality;
+        });
       }
 
       if (filters.act_type) {
@@ -338,7 +392,7 @@ const EstablishmentSearch = () => {
 
       // Vérifier si une demande existe déjà
       const { data: existingBooking } = await supabase
-        .from('bookings')
+        .from('vacation_bookings')
         .select('id')
         .eq('vacation_post_id', selectedVacation.id)
         .eq('establishment_id', user.id)
@@ -358,21 +412,15 @@ const EstablishmentSearch = () => {
 
       // Créer la demande de réservation
       const { error } = await supabase
-        .from('bookings')
+        .from('vacation_bookings')
         .insert([
           {
             vacation_post_id: selectedVacation.id,
             establishment_id: user.id,
             doctor_id: selectedVacation.doctor_id,
             status: 'pending',
-            booking_date: new Date().toISOString(),
-            start_date: bookingRequest.preferred_start_time,
-            end_date: new Date(new Date(bookingRequest.preferred_start_time).getTime() + bookingRequest.duration_hours * 60 * 60 * 1000).toISOString(),
-            total_amount: estimatedAmount,
             message: bookingRequest.message,
-            urgency: bookingRequest.urgency,
-            contact_phone: bookingRequest.contact_phone,
-            duration_hours: bookingRequest.duration_hours
+            total_amount: estimatedAmount
           }
         ]);
 
@@ -600,7 +648,7 @@ const EstablishmentSearch = () => {
                       <SelectContent>
                         {actTypes.map(type => (
                           <SelectItem key={type} value={type}>
-                            {type}
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -733,7 +781,7 @@ const EstablishmentSearch = () => {
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        {vacation.hourly_rate}€
+                        {parseFloat(vacation.hourly_rate.toString()).toFixed(0)}€
                       </div>
                       <div className="text-sm text-gray-500 font-medium">/heure</div>
                     </div>
@@ -757,7 +805,7 @@ const EstablishmentSearch = () => {
                         Dr {vacation.doctor_profiles.first_name} {vacation.doctor_profiles.last_name}
                       </div>
                       <div className="text-blue-700 font-medium">
-                        {vacation.doctor_profiles.speciality}
+                        {translateSpeciality(vacation.doctor_profiles.speciality)}
                       </div>
                       <div className="flex items-center gap-4 mt-1">
                         {vacation.doctor_profiles.experience_years && (
@@ -773,24 +821,33 @@ const EstablishmentSearch = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 bg-white rounded-lg px-3 py-2 shadow-sm">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-semibold text-gray-900">
-                        {vacation.reviews_aggregate?.avg_rating.toFixed(1)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ({vacation.reviews_aggregate?.count})
-                      </span>
-                    </div>
+                    {vacation.reviews_aggregate?.count > 0 ? (
+                      <div className="flex items-center gap-1 bg-white rounded-lg px-3 py-2 shadow-sm">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-semibold text-gray-900">
+                          {vacation.reviews_aggregate.avg_rating.toFixed(1)}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({vacation.reviews_aggregate.count} avis)
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-100 rounded-lg px-3 py-2 shadow-sm">
+                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                          <Star className="h-3 w-3 text-gray-400" />
+                          Nouveau médecin
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Badges avec couleurs */}
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1">
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 capitalize">
                       {vacation.act_type}
                     </Badge>
                     <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50 px-3 py-1">
-                      {vacation.doctor_profiles.speciality}
+                      {translateSpeciality(vacation.doctor_profiles.speciality)}
                     </Badge>
                   </div>
 
@@ -846,6 +903,9 @@ const EstablishmentSearch = () => {
                       <p className="text-blue-700 font-medium">
                         Dr {selectedVacation.doctor_profiles.first_name} {selectedVacation.doctor_profiles.last_name}
                       </p>
+                      <p className="text-sm text-gray-600">
+                        {translateSpeciality(selectedVacation.doctor_profiles.speciality)}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -854,7 +914,7 @@ const EstablishmentSearch = () => {
                       {selectedVacation.location}
                     </span>
                     <span className="font-bold text-green-600 text-lg">
-                      {selectedVacation.hourly_rate}€/h
+                      {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h
                     </span>
                   </div>
                 </div>
@@ -957,10 +1017,10 @@ const EstablishmentSearch = () => {
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-green-700">
-                          {(selectedVacation.hourly_rate * bookingRequest.duration_hours).toFixed(2)}€
+                          {(parseFloat(selectedVacation.hourly_rate.toString()) * bookingRequest.duration_hours).toFixed(2)}€
                         </div>
                         <div className="text-xs text-green-600">
-                          {selectedVacation.hourly_rate}€/h × {bookingRequest.duration_hours}h
+                          {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h × {bookingRequest.duration_hours}h
                         </div>
                       </div>
                     </div>
