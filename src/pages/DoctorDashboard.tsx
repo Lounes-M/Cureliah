@@ -414,7 +414,7 @@ const DoctorDashboard = () => {
       description: "Ajouter une nouvelle disponibilité",
       icon: Plus,
       color: "bg-gradient-to-r from-blue-500 to-blue-600",
-      action: () => navigate("/doctor/create-vacation"),
+      action: () => navigate("/doctor/manage-vacations"),
     },
     {
       title: "Gérer mon planning",
