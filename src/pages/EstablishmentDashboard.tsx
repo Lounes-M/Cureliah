@@ -224,6 +224,13 @@ const EstablishmentDashboard = () => {
   const [vacation, setVacation] = useState<VacationDetails | null>(null);
   const [loadingVacation, setLoadingVacation] = useState(false);
 
+  // États pour la messagerie - NOUVELLE FONCTIONNALITÉ
+  const [contactDoctorInfo, setContactDoctorInfo] = useState<{
+    doctorId: string;
+    doctorName: string;
+    bookingId?: string;
+  } | null>(null);
+
   // Fonctions utilitaires pour le modal
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -349,6 +356,37 @@ const EstablishmentDashboard = () => {
     setShowVacationModal(false);
     setSelectedBookingId(null);
     setVacation(null);
+  };
+
+  // NOUVELLE FONCTIONNALITÉ - Gestionnaire pour contacter un médecin
+  const handleContactDoctor = (doctorId: string, doctorName: string, bookingId?: string) => {
+    // Stocker les informations du médecin à contacter
+    setContactDoctorInfo({
+      doctorId,
+      doctorName,
+      bookingId
+    });
+    
+    // Fermer le modal si ouvert
+    if (showVacationModal) {
+      handleCloseModal();
+    }
+    
+    // Aller à l'onglet messages
+    setActiveTab("messages");
+    
+    toast({
+      title: "Messagerie ouverte",
+      description: `Conversation avec Dr ${doctorName}`,
+    });
+  };
+
+  // NOUVELLE FONCTIONNALITÉ - Nettoyer les infos de contact quand on change d'onglet
+  const handleTabChange = (newTab: string) => {
+    if (newTab !== "messages") {
+      setContactDoctorInfo(null);
+    }
+    setActiveTab(newTab);
   };
 
   // Mise à jour de l'heure en temps réel
@@ -795,14 +833,14 @@ const EstablishmentDashboard = () => {
       description: "Voir mes médecins favoris",
       icon: UserCheck,
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
-      action: () => setActiveTab("doctors"),
+      action: () => handleTabChange("doctors"),
     },
     {
       title: "Messages",
       description: "Communiquer avec les médecins",
       icon: MessageSquare,
       color: "bg-gradient-to-r from-orange-500 to-orange-600",
-      action: () => setActiveTab("messages"),
+      action: () => handleTabChange("messages"),
     },
   ];
 
@@ -908,7 +946,7 @@ const EstablishmentDashboard = () => {
 
         <Tabs
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={handleTabChange}
           className="space-y-6"
         >
           <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm border shadow-sm">
@@ -1228,7 +1266,7 @@ const EstablishmentDashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setActiveTab("doctors")}
+                      onClick={() => handleTabChange("doctors")}
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Voir tout
@@ -1425,7 +1463,7 @@ const EstablishmentDashboard = () => {
                                 variant="outline"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  // Navigate to messaging or contact
+                                  handleContactDoctor(doctor.id, `${doctor.first_name} ${doctor.last_name}`);
                                 }}
                               >
                                 <MessageSquare className="w-4 h-4" />
@@ -1441,7 +1479,11 @@ const EstablishmentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="messages">
-            <MessagingCenter />
+            <MessagingCenter 
+              autoOpenDoctorId={contactDoctorInfo?.doctorId}
+              autoOpenDoctorName={contactDoctorInfo?.doctorName}
+              autoOpenBookingId={contactDoctorInfo?.bookingId}
+            />
           </TabsContent>
 
           <TabsContent value="documents">
@@ -1594,7 +1636,19 @@ const EstablishmentDashboard = () => {
                       )}
                       
                       <div className="flex gap-3 mt-4">
-                        <Button size="sm" variant="outline" className="border-purple-200 hover:bg-purple-50">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="border-purple-200 hover:bg-purple-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleContactDoctor(
+                              vacation.vacation_posts.doctor_profiles.id,
+                              `${vacation.vacation_posts.doctor_profiles.first_name} ${vacation.vacation_posts.doctor_profiles.last_name}`,
+                              vacation.id
+                            );
+                          }}
+                        >
                           <MessageSquare className="w-4 h-4 mr-2" />
                           Contacter
                         </Button>
@@ -1717,7 +1771,16 @@ const EstablishmentDashboard = () => {
                   </Button>
                   
                   {vacation.status === "confirmed" && (
-                    <Button className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300">
+                    <Button 
+                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300"
+                      onClick={() => {
+                        handleContactDoctor(
+                          vacation.vacation_posts.doctor_profiles.id,
+                          `${vacation.vacation_posts.doctor_profiles.first_name} ${vacation.vacation_posts.doctor_profiles.last_name}`,
+                          vacation.id
+                        );
+                      }}
+                    >
                       <MessageSquare className="w-4 h-4 mr-2" />
                       Contacter le médecin
                     </Button>
