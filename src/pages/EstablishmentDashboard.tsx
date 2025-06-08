@@ -5,11 +5,50 @@ interface ExtendedProfile {
   type?: string;
   user_type?: "doctor" | "establishment" | "admin";
 }
+
+// Ajoutez cette interface pour les détails de vacation
+interface VacationDetails {
+  id: string;
+  status: string;
+  total_amount: number;
+  start_date: string;
+  end_date: string;
+  vacation_posts: {
+    id: string;
+    title: string;
+    description: string;
+    speciality: string;
+    location: string;
+    requirements: string;
+    act_type: string;
+    hourly_rate: number;
+    doctor_profiles: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      speciality: string;
+      avatar_url: string;
+      bio: string;
+      experience_years: number;
+      license_number: string;
+      education: string[];
+      languages: string[];
+    };
+  };
+}
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Plus,
   Calendar,
@@ -38,6 +77,11 @@ import {
   Phone,
   Mail,
   Filter,
+  Euro,
+  Stethoscope,
+  Sparkles,
+  X,
+  User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -77,6 +121,32 @@ const specialityMapping: Record<string, string> = {
 // Fonction pour traduire les spécialités
 const translateSpeciality = (speciality: string): string => {
   return specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+};
+
+// Fonctions utilitaires pour formater les dates
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+  return date.toLocaleDateString('fr-FR', options);
+};
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const calculateDuration = (startDate: string, endDate: string) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const durationMs = end.getTime() - start.getTime();
+  const hours = Math.floor(durationMs / (1000 * 60 * 60));
+  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
 };
 
 interface EstablishmentStats {
@@ -147,6 +217,139 @@ const EstablishmentDashboard = () => {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // États pour le modal de vacation
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [showVacationModal, setShowVacationModal] = useState(false);
+  const [vacation, setVacation] = useState<VacationDetails | null>(null);
+  const [loadingVacation, setLoadingVacation] = useState(false);
+
+  // Fonctions utilitaires pour le modal
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "confirmed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "En attente";
+      case "confirmed":
+        return "Confirmée";
+      case "completed":
+        return "Terminée";
+      case "cancelled":
+        return "Annulée";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <AlertCircle className="w-4 h-4" />;
+      case "confirmed":
+        return <CheckCircle2 className="w-4 h-4" />;
+      case "completed":
+        return <CheckCircle2 className="w-4 h-4" />;
+      case "cancelled":
+        return <X className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
+    }
+  };
+
+  const getActTypeDisplay = (actType: string) => {
+    switch (actType) {
+      case "consultation":
+        return { icon: "🩺", label: "Consultation" };
+      case "urgence":
+        return { icon: "🚨", label: "Urgence" };
+      case "visite":
+        return { icon: "🏠", label: "Visite à domicile" };
+      case "teleconsultation":
+        return { icon: "💻", label: "Téléconsultation" };
+      default:
+        return { icon: "🩺", label: "Consultation" };
+    }
+  };
+
+  // Fonction pour charger les détails de la vacation
+  const fetchVacationDetails = async (bookingId: string) => {
+    setLoadingVacation(true);
+    try {
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          total_amount,
+          start_date,
+          end_date,
+          vacation_posts!inner (
+            id,
+            title,
+            description,
+            speciality,
+            location,
+            requirements,
+            act_type,
+            hourly_rate,
+            doctor_profiles!inner (
+              id,
+              first_name,
+              last_name,
+              speciality,
+              avatar_url,
+              bio,
+              experience_years,
+              license_number,
+              education,
+              languages
+            )
+          )
+        `)
+        .eq("id", bookingId)
+        .single();
+
+      if (error) throw error;
+      setVacation(data);
+    } catch (error) {
+      console.error("Error fetching vacation details:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les détails de la vacation",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingVacation(false);
+    }
+  };
+
+  // Gestionnaire pour ouvrir le modal
+  const handleBookingClick = (bookingId: string) => {
+    setSelectedBookingId(bookingId);
+    setShowVacationModal(true);
+    fetchVacationDetails(bookingId);
+  };
+
+  // Gestionnaire pour fermer le modal
+  const handleCloseModal = () => {
+    setShowVacationModal(false);
+    setSelectedBookingId(null);
+    setVacation(null);
+  };
 
   // Mise à jour de l'heure en temps réel
   useEffect(() => {
@@ -353,7 +556,7 @@ const EstablishmentDashboard = () => {
       data?.map((booking: any) => ({
         id: booking.id,
         doctor_name: `${booking.vacation_posts.doctor_profiles.first_name} ${booking.vacation_posts.doctor_profiles.last_name}`,
-        doctor_speciality: translateSpeciality(booking.vacation_posts.doctor_profiles.speciality), // ✅ TRADUCTION AJOUTÉE
+        doctor_speciality: translateSpeciality(booking.vacation_posts.doctor_profiles.speciality),
         doctor_avatar: booking.vacation_posts.doctor_profiles.avatar_url,
         vacation_title: booking.vacation_posts.title,
         start_date: booking.start_date,
@@ -400,7 +603,7 @@ const EstablishmentDashboard = () => {
           id: doctorId,
           first_name: doctor.first_name,
           last_name: doctor.last_name,
-          speciality: translateSpeciality(doctor.speciality), // ✅ TRADUCTION AJOUTÉE
+          speciality: translateSpeciality(doctor.speciality),
           avatar_url: doctor.avatar_url,
           hourly_rate: doctor.hourly_rate,
           total_bookings: 0,
@@ -570,36 +773,6 @@ const EstablishmentDashboard = () => {
     if (diffInMinutes < 1440)
       return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
     return `Il y a ${Math.floor(diffInMinutes / 1440)} jour(s)`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "confirmed":
-        return "bg-green-100 text-green-800";
-      case "completed":
-        return "bg-blue-100 text-blue-800";
-      case "cancelled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "En attente";
-      case "confirmed":
-        return "Confirmée";
-      case "completed":
-        return "Terminée";
-      case "cancelled":
-        return "Annulée";
-      default:
-        return status;
-    }
   };
 
   const quickActions = [
@@ -949,7 +1122,7 @@ const EstablishmentDashboard = () => {
                             <div
                               key={booking.id}
                               className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                              onClick={() => navigate(`/booking/${booking.id}`)}
+                              onClick={() => handleBookingClick(booking.id)}
                             >
                               <div className="flex items-center space-x-4">
                                 <Avatar className="h-12 w-12">
@@ -1283,6 +1456,282 @@ const EstablishmentDashboard = () => {
             <NotificationCenter />
           </TabsContent>
         </Tabs>
+
+        {/* Modal de détails de vacation */}
+        <Dialog open={showVacationModal} onOpenChange={handleCloseModal}>
+          <DialogContent className="max-w-4xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-blue-600 bg-clip-text text-transparent">
+                Détails de la vacation
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                Informations complètes sur cette vacation médicale
+              </DialogDescription>
+            </DialogHeader>
+
+            {loadingVacation ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-700 font-semibold text-lg">Chargement...</span>
+                </div>
+              </div>
+            ) : vacation ? (
+              <div className="py-6 space-y-8">
+                {/* En-tête avec statut */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-2xl ${
+                        vacation.status === "completed" 
+                          ? "bg-gradient-to-br from-emerald-500 to-teal-500" 
+                          : vacation.status === "confirmed"
+                          ? "bg-gradient-to-br from-green-500 to-emerald-500"
+                          : vacation.status === "pending"
+                          ? "bg-gradient-to-br from-yellow-500 to-orange-500"
+                          : "bg-gradient-to-br from-red-500 to-rose-500"
+                      } text-white shadow-lg`}>
+                        {vacation.status === "completed" ? "✅" : 
+                         vacation.status === "confirmed" ? "🟢" :
+                         vacation.status === "pending" ? "🟡" : "❌"}
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                          {vacation.vacation_posts.title}
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <Badge className={`${getStatusColor(vacation.status)} border`}>
+                            {getStatusIcon(vacation.status)}
+                            <span className="ml-2">{getStatusLabel(vacation.status)}</span>
+                          </Badge>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span className="font-medium">
+                              {formatDate(vacation.start_date)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            <span className="font-medium">
+                              {formatTime(vacation.start_date)} - {formatTime(vacation.end_date)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-emerald-600 mb-1">
+                        {vacation.total_amount}€
+                      </div>
+                      <div className="text-sm text-gray-600">Montant total</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informations du médecin */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5 text-purple-500" />
+                    Médecin en charge
+                  </h4>
+                  
+                  <div className="flex items-start gap-6">
+                    <Avatar className="h-20 w-20 ring-4 ring-white shadow-lg">
+                      <AvatarImage src={vacation.vacation_posts.doctor_profiles.avatar_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-xl">
+                        {vacation.vacation_posts.doctor_profiles.first_name[0]}
+                        {vacation.vacation_posts.doctor_profiles.last_name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-3">
+                        <h5 className="text-xl font-bold text-gray-900">
+                          Dr {vacation.vacation_posts.doctor_profiles.first_name} {vacation.vacation_posts.doctor_profiles.last_name}
+                        </h5>
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                          {translateSpeciality(vacation.vacation_posts.doctor_profiles.speciality)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {vacation.vacation_posts.doctor_profiles.experience_years && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span>{vacation.vacation_posts.doctor_profiles.experience_years} ans d'expérience</span>
+                          </div>
+                        )}
+                        
+                        {vacation.vacation_posts.doctor_profiles.license_number && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FileText className="w-4 h-4 text-blue-500" />
+                            <span>N° licence: {vacation.vacation_posts.doctor_profiles.license_number}</span>
+                          </div>
+                        )}
+                        
+                        {vacation.vacation_posts.doctor_profiles.languages && vacation.vacation_posts.doctor_profiles.languages.length > 0 && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <MessageSquare className="w-4 h-4 text-green-500" />
+                            <span>Langues: {vacation.vacation_posts.doctor_profiles.languages.join(', ')}</span>
+                          </div>
+                        )}
+                        
+                        {vacation.vacation_posts.doctor_profiles.education && vacation.vacation_posts.doctor_profiles.education.length > 0 && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Star className="w-4 h-4 text-purple-500" />
+                            <span>Formation: {vacation.vacation_posts.doctor_profiles.education[0]}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {vacation.vacation_posts.doctor_profiles.bio && (
+                        <div className="bg-white/80 rounded-xl p-4 border border-white/50">
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {vacation.vacation_posts.doctor_profiles.bio}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-3 mt-4">
+                        <Button size="sm" variant="outline" className="border-purple-200 hover:bg-purple-50">
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Contacter
+                        </Button>
+                        <Button size="sm" variant="outline" className="border-purple-200 hover:bg-purple-50">
+                          <User className="w-4 h-4 mr-2" />
+                          Voir profil
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Détails de la vacation */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Informations médicales */}
+                  <div className="space-y-4">
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Stethoscope className="w-5 h-5 text-blue-500" />
+                        <span className="font-semibold text-gray-700">Spécialité</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {translateSpeciality(vacation.vacation_posts.speciality)}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Activity className="w-5 h-5 text-purple-500" />
+                        <span className="font-semibold text-gray-700">Type d'acte</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {getActTypeDisplay(vacation.vacation_posts.act_type).icon} {getActTypeDisplay(vacation.vacation_posts.act_type).label}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <MapPin className="w-5 h-5 text-emerald-500" />
+                        <span className="font-semibold text-gray-700">Localisation</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        📍 {vacation.vacation_posts.location}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Informations financières et pratiques */}
+                  <div className="space-y-4">
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Euro className="w-5 h-5 text-amber-500" />
+                        <span className="font-semibold text-gray-700">Tarif horaire</span>
+                      </div>
+                      <p className="text-2xl font-bold text-amber-600">
+                        {vacation.vacation_posts.hourly_rate}€/h
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Clock className="w-5 h-5 text-blue-500" />
+                        <span className="font-semibold text-gray-700">Durée</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {calculateDuration(vacation.start_date, vacation.end_date)}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Building2 className="w-5 h-5 text-indigo-500" />
+                        <span className="font-semibold text-gray-700">Référence</span>
+                      </div>
+                      <p className="text-gray-800 font-medium font-mono">
+                        #{vacation.id.slice(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description et exigences */}
+                {(vacation.vacation_posts.description || vacation.vacation_posts.requirements) && (
+                  <div className="space-y-4">
+                    {vacation.vacation_posts.description && (
+                      <div className="bg-white/80 rounded-xl p-6 border border-white/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Sparkles className="w-5 h-5 text-indigo-500" />
+                          <span className="font-semibold text-gray-700 text-lg">Description</span>
+                        </div>
+                        <p className="text-gray-800 leading-relaxed">
+                          {vacation.vacation_posts.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {vacation.vacation_posts.requirements && (
+                      <div className="bg-white/80 rounded-xl p-6 border border-white/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <FileText className="w-5 h-5 text-rose-500" />
+                          <span className="font-semibold text-gray-700 text-lg">Exigences et prérequis</span>
+                        </div>
+                        <p className="text-gray-800 leading-relaxed">
+                          {vacation.vacation_posts.requirements}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseModal}
+                    className="px-6 py-3 border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Fermer
+                  </Button>
+                  
+                  {vacation.status === "confirmed" && (
+                    <Button className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300">
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Contacter le médecin
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Vacation non trouvée</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
