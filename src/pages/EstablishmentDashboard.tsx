@@ -52,6 +52,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 
+// Mapping des spécialités anglais -> français
+const specialityMapping: Record<string, string> = {
+  'orthopedics': 'Orthopédie',
+  'cardiology': 'Cardiologie',
+  'dermatology': 'Dermatologie',
+  'pediatrics': 'Pédiatrie',
+  'psychiatry': 'Psychiatrie',
+  'radiology': 'Radiologie',
+  'anesthesiology': 'Anesthésie-Réanimation',
+  'general_surgery': 'Chirurgie générale',
+  'gynecology': 'Gynécologie-Obstétrique',
+  'ophthalmology': 'Ophtalmologie',
+  'otolaryngology': 'ORL',
+  'neurology': 'Neurologie',
+  'pulmonology': 'Pneumologie',
+  'gastroenterology': 'Gastro-entérologie',
+  'endocrinology': 'Endocrinologie',
+  'rheumatology': 'Rhumatologie',
+  'urology': 'Urologie',
+  'general_medicine': 'Médecine générale'
+};
+
+// Fonction pour traduire les spécialités
+const translateSpeciality = (speciality: string): string => {
+  return specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+};
+
 interface EstablishmentStats {
   totalBookings: number;
   activeBookings: number;
@@ -326,7 +353,7 @@ const EstablishmentDashboard = () => {
       data?.map((booking: any) => ({
         id: booking.id,
         doctor_name: `${booking.vacation_posts.doctor_profiles.first_name} ${booking.vacation_posts.doctor_profiles.last_name}`,
-        doctor_speciality: booking.vacation_posts.doctor_profiles.speciality,
+        doctor_speciality: translateSpeciality(booking.vacation_posts.doctor_profiles.speciality), // ✅ TRADUCTION AJOUTÉE
         doctor_avatar: booking.vacation_posts.doctor_profiles.avatar_url,
         vacation_title: booking.vacation_posts.title,
         start_date: booking.start_date,
@@ -373,7 +400,7 @@ const EstablishmentDashboard = () => {
           id: doctorId,
           first_name: doctor.first_name,
           last_name: doctor.last_name,
-          speciality: doctor.speciality,
+          speciality: translateSpeciality(doctor.speciality), // ✅ TRADUCTION AJOUTÉE
           avatar_url: doctor.avatar_url,
           hourly_rate: doctor.hourly_rate,
           total_bookings: 0,
@@ -1042,7 +1069,7 @@ const EstablishmentDashboard = () => {
                         <Button
                           variant="outline"
                           className="mt-3"
-                          onClick={() => navigate("establishment/search")}
+                          onClick={() => navigate("/establishment/search")}
                         >
                           Rechercher des médecins
                         </Button>
@@ -1134,7 +1161,7 @@ const EstablishmentDashboard = () => {
                       Commencez par rechercher et réserver des médecins pour
                       créer votre réseau de partenaires.
                     </p>
-                    <Button onClick={() => navigate("establishment/search")}>
+                    <Button onClick={() => navigate("/establishment/search")}>
                       <Search className="w-4 h-4 mr-2" />
                       Rechercher des médecins
                     </Button>
