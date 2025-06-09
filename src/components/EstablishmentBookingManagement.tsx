@@ -4,12 +4,38 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, Euro, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { VacationBooking, VacationPost } from '@/types/database';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
 import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
+
+// Mapping des spécialités anglais -> français
+const specialityMapping: Record<string, string> = {
+  'orthopedics': 'Orthopédie',
+  'cardiology': 'Cardiologie',
+  'dermatology': 'Dermatologie',
+  'pediatrics': 'Pédiatrie',
+  'psychiatry': 'Psychiatrie',
+  'radiology': 'Radiologie',
+  'anesthesiology': 'Anesthésie-Réanimation',
+  'general_surgery': 'Chirurgie générale',
+  'gynecology': 'Gynécologie-Obstétrique',
+  'ophthalmology': 'Ophtalmologie',
+  'otolaryngology': 'ORL',
+  'neurology': 'Neurologie',
+  'pulmonology': 'Pneumologie',
+  'gastroenterology': 'Gastro-entérologie',
+  'endocrinology': 'Endocrinologie',
+  'rheumatology': 'Rhumatologie',
+  'urology': 'Urologie',
+  'general_medicine': 'Médecine générale'
+};
+
+// Fonction pour traduire les spécialités
+const translateSpeciality = (speciality: string): string => {
+  return specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+};
 
 interface DoctorInfo {
   id: string;
@@ -17,11 +43,32 @@ interface DoctorInfo {
   last_name: string;
   bio?: string;
   experience_years?: number;
+  speciality?: string;
+  avatar_url?: string;
 }
 
-interface BookingWithDetails extends VacationBooking {
-  vacation_post: VacationPost;
-  doctor_info: DoctorInfo | null;
+interface VacationPostInfo {
+  id: string;
+  title: string;
+  location?: string;
+  hourly_rate: number;
+  start_date: string;
+  end_date: string;
+  description?: string;
+  speciality?: string;
+}
+
+interface BookingWithDetails {
+  id: string;
+  status: string;
+  total_amount?: number;
+  created_at: string;
+  updated_at: string;
+  start_date: string;
+  end_date: string;
+  payment_status?: string;
+  vacation_posts: VacationPostInfo;
+  doctor_profiles: DoctorInfo;
 }
 
 interface EstablishmentBookingManagementProps {
@@ -49,6 +96,10 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   });
 
   useEffect(() => {
+    console.log("=== DEBUG EstablishmentBookingManagement ===");
+    console.log("User ID:", user?.id);
+    console.log("Status filter:", status);
+    
     if (user) {
       fetchBookings();
     }
@@ -57,63 +108,135 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   const fetchBookings = async () => {
     if (!user) return;
 
+    console.log("🔍 Fetching bookings for establishment:", user.id);
+
     try {
+      setLoading(true);
+
+      // D'abord, testons une requête simple pour voir la structure
+      console.log("🔍 Testing simple query first...");
+      const { data: simpleTest, error: simpleError } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('establishment_id', user.id)
+        .limit(1);
+      
+      console.log("📊 Simple test result:", simpleTest);
+      console.log("❌ Simple test error:", simpleError);
+
+      // Query corrigée pour utiliser la table "bookings" comme dans MyBookings
       let query = supabase
-        .from('vacation_bookings')
+        .from('bookings')
         .select(`
-          *,
-          vacation_post:vacation_posts(*)
+          id,
+          status,
+          total_amount,
+          created_at,
+          updated_at,
+          start_date,
+          end_date,
+          payment_status,
+          vacation_posts!inner (
+            id,
+            title,
+            location,
+            hourly_rate,
+            start_date,
+            end_date,
+            description,
+            speciality,
+            doctor_profiles!inner (
+              id,
+              first_name,
+              last_name,
+              bio,
+              experience_years,
+              speciality,
+              avatar_url
+            )
+          )
         `)
         .eq('establishment_id', user.id)
         .order('created_at', { ascending: false });
 
+      // Filtrer par statut si spécifié
       if (status) {
-        query = query.eq('status', status);
+        const statusArray = status.split(',').map(s => s.trim());
+        console.log("🔍 Filtering by status:", statusArray);
+        query = query.in('status', statusArray);
       }
 
       const { data: bookingsData, error: bookingsError } = await query;
 
-      if (bookingsError) throw bookingsError;
+      console.log("📊 Raw bookings data:", bookingsData);
+      console.log("❌ Bookings error:", bookingsError);
 
-      // Then, get doctor information separately
-      const doctorIds = bookingsData?.map(booking => booking.doctor_id) || [];
-      
-      let doctorData: any[] = [];
-      if (doctorIds.length > 0) {
-        // Get basic profile info
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, first_name, last_name')
-          .in('id', doctorIds);
-
-        if (profilesError) {
-          console.warn('Error fetching doctor profiles:', profilesError);
-        }
-
-        // Get doctor-specific info
-        const { data: doctorProfiles, error: doctorProfilesError } = await supabase
-          .from('doctor_profiles')
-          .select('id, bio, experience_years')
-          .in('id', doctorIds);
-
-        if (doctorProfilesError) {
-          console.warn('Error fetching doctor detailed profiles:', doctorProfilesError);
-        }
-
-        // Combine profile data
-        doctorData = (profiles || []).map(profile => ({
-          ...profile,
-          ...(doctorProfiles || []).find(dp => dp.id === profile.id)
-        }));
+      if (bookingsError) {
+        console.error("Supabase query error:", bookingsError);
+        throw bookingsError;
       }
 
-      // Combine the data
-      const combinedBookings = bookingsData?.map(booking => ({
-        ...booking,
-        doctor_info: doctorData.find(doc => doc.id === booking.doctor_id) || null
-      })) || [];
+      // Transform data to match our interface
+      const transformedBookings = bookingsData?.map((booking, index) => {
+        console.log(`🔍 Processing booking ${index}:`, booking);
+        
+        // Vérifier si vacation_posts existe
+        if (!booking.vacation_posts) {
+          console.warn(`⚠️ No vacation_posts data for booking ${booking.id}:`, booking);
+          return null;
+        }
+        
+        // Dans tes données, vacation_posts est un objet, pas un tableau !
+        const vacationPost = booking.vacation_posts as any; // Type assertion temporaire
+        console.log(`🔍 Vacation post for booking ${index}:`, vacationPost);
+        
+        // Vérifier si doctor_profiles existe dans vacation_posts
+        if (!vacationPost.doctor_profiles) {
+          console.warn(`⚠️ No doctor_profiles data for vacation post ${vacationPost.id}:`, vacationPost);
+          return null;
+        }
+        
+        // doctor_profiles pourrait être un objet ou un tableau, on gère les deux cas
+        const doctorProfile = Array.isArray(vacationPost.doctor_profiles) 
+          ? vacationPost.doctor_profiles[0] 
+          : vacationPost.doctor_profiles as any; // Type assertion temporaire
+        console.log(`🔍 Doctor profile for booking ${index}:`, doctorProfile);
+        
+        return {
+          id: booking.id,
+          status: booking.status,
+          total_amount: booking.total_amount,
+          created_at: booking.created_at,
+          updated_at: booking.updated_at,
+          start_date: booking.start_date,
+          end_date: booking.end_date,
+          payment_status: booking.payment_status,
+          vacation_posts: {
+            id: vacationPost.id,
+            title: vacationPost.title,
+            location: vacationPost.location,
+            hourly_rate: vacationPost.hourly_rate,
+            start_date: vacationPost.start_date,
+            end_date: vacationPost.end_date,
+            description: vacationPost.description,
+            speciality: translateSpeciality(vacationPost.speciality || ''),
+          },
+          doctor_profiles: {
+            id: doctorProfile.id,
+            first_name: doctorProfile.first_name,
+            last_name: doctorProfile.last_name,
+            bio: doctorProfile.bio,
+            experience_years: doctorProfile.experience_years,
+            speciality: translateSpeciality(doctorProfile.speciality || ''),
+            avatar_url: doctorProfile.avatar_url,
+          }
+        };
+      }).filter(Boolean) || []; // Filtrer les éléments null
 
-      setBookings(combinedBookings as BookingWithDetails[]);
+      console.log("✅ Transformed bookings:", transformedBookings);
+      console.log("✅ Found", transformedBookings.length, "bookings");
+
+      setBookings(transformedBookings);
     } catch (error: any) {
       console.error('Error fetching bookings:', error);
       toast({
@@ -129,8 +252,10 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed': 
       case 'booked': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'cancelled': 
+      case 'rejected': return 'bg-red-100 text-red-800';
       case 'completed': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -139,37 +264,54 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   const getStatusText = (status: string) => {
     switch (status) {
       case 'pending': return 'En attente';
-      case 'booked': return 'Acceptée';
-      case 'cancelled': return 'Refusée';
+      case 'confirmed':
+      case 'booked': return 'Confirmée';
+      case 'cancelled': return 'Annulée';
+      case 'rejected': return 'Refusée';
       case 'completed': return 'Terminée';
       default: return status;
     }
   };
 
-  const getPaymentStatusColor = (status: string | null) => {
-    switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Si la réservation n'est pas confirmée, pas de badge de paiement
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
+      return '';
+    }
+    
+    switch (paymentStatus) {
+      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
+      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending':
+      default: return 'bg-orange-100 text-orange-800 border-orange-200';
     }
   };
 
-  const getPaymentStatusText = (status: string | null) => {
-    switch (status) {
-      case 'paid': return 'Payé';
-      case 'pending': return 'En attente';
-      case 'failed': return 'Échec';
-      default: return 'Non payé';
+  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Si la réservation n'est pas confirmée, pas de texte de paiement
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
+      return '';
     }
+    
+    switch (paymentStatus) {
+      case 'paid': return '✅ Réglée';
+      case 'failed': return '❌ Échec paiement';
+      case 'pending':
+      default: return '💳 En attente de règlement';
+    }
+  };
+
+  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Afficher le badge seulement pour les réservations confirmées, payées ou terminées
+    return ['confirmed', 'paid', 'completed'].includes(bookingStatus);
   };
 
   const openMessaging = (booking: BookingWithDetails) => {
     setMessagingModal({
       isOpen: true,
       bookingId: booking.id,
-      receiverId: booking.doctor_id,
-      receiverName: `Dr. ${booking.doctor_info?.first_name} ${booking.doctor_info?.last_name}`,
+      receiverId: booking.doctor_profiles.id,
+      receiverName: `Dr. ${booking.doctor_profiles.first_name} ${booking.doctor_profiles.last_name}`,
       receiverType: 'doctor'
     });
   };
@@ -186,33 +328,48 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
     return <div className="text-center py-8">Chargement des réservations...</div>;
   }
 
+  // Grouper les réservations par statut
   const groupedBookings = {
     pending: bookings.filter(b => b.status === 'pending'),
-    active: bookings.filter(b => b.status === 'booked'),
+    active: bookings.filter(b => b.status === 'confirmed' || b.status === 'booked'),
     completed: bookings.filter(b => b.status === 'completed'),
-    cancelled: bookings.filter(b => b.status === 'cancelled')
+    cancelled: bookings.filter(b => b.status === 'cancelled' || b.status === 'rejected')
   };
+
+  const currentBookings = status 
+    ? bookings 
+    : status === 'confirmed' 
+      ? groupedBookings.active 
+      : status === 'pending' 
+        ? groupedBookings.pending 
+        : status === 'completed' 
+          ? groupedBookings.completed 
+          : status === 'cancelled,rejected' 
+            ? groupedBookings.cancelled 
+            : bookings;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Mes Réservations</h2>
-        <div className="flex space-x-2">
-          <Badge variant="outline" className="bg-yellow-50">
-            {groupedBookings.pending.length} en attente
-          </Badge>
-          <Badge variant="outline" className="bg-green-50">
-            {groupedBookings.active.length} actives
-          </Badge>
+      {!status && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Mes Réservations</h2>
+          <div className="flex space-x-2">
+            <Badge variant="outline" className="bg-yellow-50">
+              {groupedBookings.pending.length} en attente
+            </Badge>
+            <Badge variant="outline" className="bg-green-50">
+              {groupedBookings.active.length} actives
+            </Badge>
+          </div>
         </div>
-      </div>
+      )}
 
-      {bookings.length === 0 ? (
+      {currentBookings.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucune réservation
+              Aucune réservation {status ? `avec le statut "${status}"` : ''}
             </h3>
             <p className="text-gray-600">
               Vos réservations apparaîtront ici
@@ -220,85 +377,22 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {/* Pending bookings */}
-          {groupedBookings.pending.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-yellow-700 mb-3 flex items-center">
-                <Badge className="bg-yellow-100 text-yellow-800 mr-2">
-                  {groupedBookings.pending.length}
-                </Badge>
-                En attente de réponse
-              </h3>
-              <div className="grid gap-4">
-                {groupedBookings.pending.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Active bookings */}
-          {groupedBookings.active.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center">
-                <Badge className="bg-green-100 text-green-800 mr-2">
-                  {groupedBookings.active.length}
-                </Badge>
-                Réservations confirmées
-              </h3>
-              <div className="grid gap-4">
-                {groupedBookings.active.map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Completed and cancelled bookings */}
-          {(groupedBookings.completed.length > 0 || groupedBookings.cancelled.length > 0) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-3">Historique</h3>
-              <div className="grid gap-4">
-                {[...groupedBookings.completed, ...groupedBookings.cancelled].map((booking) => (
-                  <BookingCard
-                    key={booking.id}
-                    booking={booking}
-                    isExpanded={expandedBooking === booking.id}
-                    onToggleExpanded={() => toggleExpanded(booking.id)}
-                    onOpenMessaging={() => openMessaging(booking)}
-                    onStatusUpdate={fetchBookings}
-                    getStatusColor={getStatusColor}
-                    getStatusText={getStatusText}
-                    getPaymentStatusColor={getPaymentStatusColor}
-                    getPaymentStatusText={getPaymentStatusText}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="space-y-4">
+          {currentBookings.map((booking) => (
+            <BookingCard
+              key={booking.id}
+              booking={booking}
+              isExpanded={expandedBooking === booking.id}
+              onToggleExpanded={() => toggleExpanded(booking.id)}
+              onOpenMessaging={() => openMessaging(booking)}
+              onStatusUpdate={fetchBookings}
+              getStatusColor={getStatusColor}
+              getStatusText={getStatusText}
+              getPaymentStatusColor={getPaymentStatusColor}
+              getPaymentStatusText={getPaymentStatusText}
+              shouldShowPaymentBadge={shouldShowPaymentBadge}
+            />
+          ))}
         </div>
       )}
 
@@ -322,8 +416,9 @@ interface BookingCardProps {
   onStatusUpdate: () => void;
   getStatusColor: (status: string) => string;
   getStatusText: (status: string) => string;
-  getPaymentStatusColor: (status: string | null) => string;
-  getPaymentStatusText: (status: string | null) => string;
+  getPaymentStatusColor: (paymentStatus: string | undefined, bookingStatus: string) => string;
+  getPaymentStatusText: (paymentStatus: string | undefined, bookingStatus: string) => string;
+  shouldShowPaymentBadge: (paymentStatus: string | undefined, bookingStatus: string) => boolean;
 }
 
 const BookingCard = ({
@@ -335,25 +430,39 @@ const BookingCard = ({
   getStatusColor,
   getStatusText,
   getPaymentStatusColor,
-  getPaymentStatusText
+  getPaymentStatusText,
+  shouldShowPaymentBadge
 }: BookingCardProps) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg">{booking.vacation_post.title}</CardTitle>
+            <CardTitle className="text-lg">{booking.vacation_posts.title}</CardTitle>
             <CardDescription className="mt-1">
-              Dr. {booking.doctor_info?.first_name} {booking.doctor_info?.last_name}
+              Dr. {booking.doctor_profiles.first_name} {booking.doctor_profiles.last_name}
+              {booking.doctor_profiles.speciality && (
+                <span className="text-blue-600 ml-2">• {booking.doctor_profiles.speciality}</span>
+              )}
             </CardDescription>
           </div>
           <div className="flex flex-col space-y-2">
             <Badge className={getStatusColor(booking.status)}>
               {getStatusText(booking.status)}
             </Badge>
-            <Badge className={getPaymentStatusColor(booking.payment_status)}>
-              Paiement: {getPaymentStatusText(booking.payment_status)}
-            </Badge>
+            {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+              <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium`}>
+                {getPaymentStatusText(booking.payment_status, booking.status)}
+              </Badge>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -363,17 +472,16 @@ const BookingCard = ({
             <div className="flex items-center text-sm">
               <Calendar className="w-4 h-4 text-gray-400 mr-2" />
               <span>
-                {new Date(booking.vacation_post.start_date).toLocaleDateString('fr-FR')} - 
-                {new Date(booking.vacation_post.end_date).toLocaleDateString('fr-FR')}
+                {formatDate(booking.start_date)} - {formatDate(booking.end_date)}
               </span>
             </div>
             <div className="flex items-center text-sm">
               <MapPin className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_post.location || 'Non spécifié'}</span>
+              <span>{booking.vacation_posts.location || 'Non spécifié'}</span>
             </div>
             <div className="flex items-center text-sm">
               <Euro className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_post.hourly_rate}€/h</span>
+              <span>{booking.vacation_posts.hourly_rate}€/h</span>
             </div>
           </div>
           
@@ -381,14 +489,14 @@ const BookingCard = ({
             <div className="flex items-center text-sm">
               <User className="w-4 h-4 text-gray-400 mr-2" />
               <span>
-                {booking.doctor_info?.experience_years ? 
-                  `${booking.doctor_info.experience_years} années d'expérience` : 
+                {booking.doctor_profiles.experience_years ? 
+                  `${booking.doctor_profiles.experience_years} années d'expérience` : 
                   'Expérience non spécifiée'
                 }
               </span>
             </div>
             {booking.total_amount && (
-              <div className="flex items-center text-sm font-medium">
+              <div className="flex items-center text-sm font-medium text-green-600">
                 <Euro className="w-4 h-4 text-gray-400 mr-2" />
                 <span>Total: {booking.total_amount}€</span>
               </div>
@@ -396,10 +504,10 @@ const BookingCard = ({
           </div>
         </div>
 
-        {booking.message && (
+        {booking.total_amount && (
           <div className="bg-gray-50 p-3 rounded-lg mb-4">
             <p className="text-sm text-gray-700">
-              <strong>Votre message:</strong> {booking.message}
+              <strong>Montant total:</strong> {booking.total_amount}€
             </p>
           </div>
         )}
@@ -411,11 +519,13 @@ const BookingCard = ({
               Contacter le médecin
             </Button>
             
-            {booking.status === 'booked' && booking.payment_status !== 'paid' && booking.total_amount && (
+            {booking.status === 'confirmed' && 
+             booking.payment_status !== 'paid' && 
+             booking.total_amount && (
               <PaymentButton
                 bookingId={booking.id}
                 amount={booking.total_amount}
-                className="bg-medical-green hover:bg-medical-green-dark"
+                className="bg-green-600 hover:bg-green-700"
                 onSuccess={onStatusUpdate}
               />
             )}
@@ -437,6 +547,20 @@ const BookingCard = ({
 
         {isExpanded && (
           <div className="mt-6 pt-4 border-t border-gray-200">
+            {booking.vacation_posts.description && (
+              <div className="mb-4">
+                <h4 className="font-medium text-gray-900 mb-2">Description de la mission</h4>
+                <p className="text-sm text-gray-700">{booking.vacation_posts.description}</p>
+              </div>
+            )}
+            
+            {booking.doctor_profiles.bio && (
+              <div className="mb-4">
+                <h4 className="font-medium text-gray-900 mb-2">À propos du médecin</h4>
+                <p className="text-sm text-gray-700">{booking.doctor_profiles.bio}</p>
+              </div>
+            )}
+
             <BookingTimeline
               currentStatus={booking.status as any}
               createdAt={booking.created_at}

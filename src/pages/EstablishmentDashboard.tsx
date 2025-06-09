@@ -13,6 +13,7 @@ interface VacationDetails {
   total_amount: number;
   start_date: string;
   end_date: string;
+  payment_status?: string;
   vacation_posts: {
     id: string;
     title: string;
@@ -89,6 +90,7 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DocumentManager from "@/components/documents/DocumentManager";
 import ReviewsRatings from "@/components/ReviewsRatings";
 import MessagingCenter from "@/components/messaging/MessagingCenter";
+import PaymentButton from "@/components/PaymentButton"; // Import du PaymentButton
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
@@ -175,6 +177,7 @@ interface RecentBooking {
   total_amount: number;
   location: string;
   doctor_avatar: string;
+  payment_status?: string;
 }
 
 interface PartnerDoctor {
@@ -292,10 +295,53 @@ const EstablishmentDashboard = () => {
     }
   };
 
+  // Fonctions utilitaires pour les badges de paiement
+  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Si la réservation n'est pas confirmée, pas de badge de paiement
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
+      return '';
+    }
+    
+    switch (paymentStatus) {
+      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
+      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending':
+      default: return 'bg-orange-100 text-orange-800 border-orange-200';
+    }
+  };
+
+  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Si la réservation n'est pas confirmée, pas de texte de paiement
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
+      return '';
+    }
+    
+    switch (paymentStatus) {
+      case 'paid': return '✅ Réglée';
+      case 'failed': return '❌ Échec paiement';
+      case 'pending':
+      default: return '💳 En attente de règlement';
+    }
+  };
+
+  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
+    // Afficher le badge seulement pour les réservations confirmées, payées ou terminées
+    return ['confirmed', 'paid', 'completed'].includes(bookingStatus);
+  };
+
+  // Fonction pour vérifier si le bouton de paiement doit être affiché
+  const shouldShowPaymentButton = (status: string, paymentStatus: string | undefined, totalAmount: number) => {
+    return status === 'confirmed' && 
+           paymentStatus !== 'paid' && 
+           totalAmount > 0;
+  };
+
   // Fonction pour charger les détails de la vacation
   const fetchVacationDetails = async (bookingId: string) => {
     setLoadingVacation(true);
     try {
+      console.log("Fetching vacation details for booking:", bookingId);
+      
       const { data, error } = await supabase
         .from("bookings")
         .select(`
@@ -304,6 +350,7 @@ const EstablishmentDashboard = () => {
           total_amount,
           start_date,
           end_date,
+          payment_status,
           vacation_posts!inner (
             id,
             title,
@@ -330,18 +377,123 @@ const EstablishmentDashboard = () => {
         .eq("id", bookingId)
         .single();
 
-      if (error) throw error;
-      setVacation(data);
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      
+      console.log("Raw data from Supabase:", data);
+      
+      // Vérifications de sécurité pour éviter les erreurs
+      if (!data) {
+        throw new Error("Aucune donnée retournée pour cette réservation");
+      }
+      
+      if (!data.vacation_posts || data.vacation_posts.length === 0) {
+        throw new Error("Aucune vacation associée à cette réservation");
+      }
+      
+      // Supabase retourne des tableaux, nous prenons le premier élément
+      const vacationPost = Array.isArray(data.vacation_posts) 
+        ? data.vacation_posts[0] 
+        : data.vacation_posts;
+      
+      if (!vacationPost) {
+        throw new Error("Données de vacation invalides");
+      }
+      
+      if (!vacationPost.doctor_profiles || vacationPost.doctor_profiles.length === 0) {
+        throw new Error("Aucun profil médecin associé à cette vacation");
+      }
+      
+      const doctorProfile = Array.isArray(vacationPost.doctor_profiles)
+        ? vacationPost.doctor_profiles[0]
+        : vacationPost.doctor_profiles;
+      
+      if (!doctorProfile) {
+        throw new Error("Profil médecin invalide");
+      }
+      
+      console.log("Vacation post:", vacationPost);
+      console.log("Doctor profile:", doctorProfile);
+      
+      // Transformer les données pour correspondre à notre interface
+      const transformedData: VacationDetails = {
+        id: data.id,
+        status: data.status,
+        total_amount: data.total_amount,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        payment_status: data.payment_status,
+        vacation_posts: {
+          id: vacationPost.id,
+          title: vacationPost.title || "Vacation sans titre",
+          description: vacationPost.description || "",
+          speciality: vacationPost.speciality || "general_medicine",
+          location: vacationPost.location || "Non spécifié",
+          requirements: vacationPost.requirements || "",
+          act_type: vacationPost.act_type || "consultation",
+          hourly_rate: vacationPost.hourly_rate || 0,
+          doctor_profiles: {
+            id: doctorProfile.id,
+            first_name: doctorProfile.first_name || "Prénom",
+            last_name: doctorProfile.last_name || "Nom",
+            speciality: doctorProfile.speciality || "general_medicine",
+            avatar_url: doctorProfile.avatar_url || "",
+            bio: doctorProfile.bio || "",
+            experience_years: doctorProfile.experience_years || 0,
+            license_number: doctorProfile.license_number || "",
+            education: Array.isArray(doctorProfile.education) ? doctorProfile.education : [],
+            languages: Array.isArray(doctorProfile.languages) ? doctorProfile.languages : []
+          }
+        }
+      };
+      
+      console.log("Transformed data:", transformedData);
+      setVacation(transformedData);
+      
     } catch (error) {
       console.error("Error fetching vacation details:", error);
+      
+      // Messages d'erreur plus spécifiques
+      let errorMessage = "Impossible de charger les détails de la vacation";
+      
+      if (error instanceof Error) {
+        if (error.message.includes("vacation")) {
+          errorMessage = error.message;
+        } else if (error.message.includes("doctor")) {
+          errorMessage = "Impossible de charger les informations du médecin";
+        } else if (error.message.includes("Row not found")) {
+          errorMessage = "Cette réservation n'existe plus ou a été supprimée";
+        }
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible de charger les détails de la vacation",
+        description: errorMessage,
         variant: "destructive",
       });
+      
+      // Fermer le modal en cas d'erreur critique
+      handleCloseModal();
     } finally {
       setLoadingVacation(false);
     }
+  };
+
+  // Fonction pour recharger les données après un paiement réussi
+  const handlePaymentSuccess = () => {
+    // Recharger les données de la vacation dans le modal
+    if (selectedBookingId) {
+      fetchVacationDetails(selectedBookingId);
+    }
+    // Recharger les données du dashboard
+    loadDashboardData();
+    
+    toast({
+      title: "Paiement réussi",
+      description: "Le paiement a été traité avec succès",
+    });
   };
 
   // Gestionnaire pour ouvrir le modal
@@ -574,6 +726,7 @@ const EstablishmentDashboard = () => {
       total_amount,
       start_date,
       end_date,
+      payment_status,
       vacation_posts!inner(
         title,
         location,
@@ -602,6 +755,7 @@ const EstablishmentDashboard = () => {
         status: booking.status,
         total_amount: booking.total_amount,
         location: booking.vacation_posts.location,
+        payment_status: booking.payment_status,
       })) || []
     );
   };
@@ -1186,11 +1340,18 @@ const EstablishmentDashboard = () => {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <Badge
-                                  className={getStatusColor(booking.status)}
-                                >
-                                  {getStatusLabel(booking.status)}
-                                </Badge>
+                                <div className="flex flex-col items-end space-y-1">
+                                  <Badge
+                                    className={getStatusColor(booking.status)}
+                                  >
+                                    {getStatusLabel(booking.status)}
+                                  </Badge>
+                                  {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+                                    <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
+                                      {getPaymentStatusText(booking.payment_status, booking.status)}
+                                    </Badge>
+                                  )}
+                                </div>
                                 <p className="text-sm font-medium text-gray-900 mt-1">
                                   {booking.total_amount}€
                                 </p>
@@ -1426,9 +1587,6 @@ const EstablishmentDashboard = () => {
 
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">
-                                  Missions réalisées :
-                                </span>
                                 <Badge variant="secondary">
                                   {doctor.total_bookings}
                                 </Badge>
@@ -1541,11 +1699,19 @@ const EstablishmentDashboard = () => {
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
                           {vacation.vacation_posts.title}
                         </h3>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                           <Badge className={`${getStatusColor(vacation.status)} border`}>
                             {getStatusIcon(vacation.status)}
                             <span className="ml-2">{getStatusLabel(vacation.status)}</span>
                           </Badge>
+                          
+                          {/* Badge de statut de paiement */}
+                          {shouldShowPaymentBadge(vacation.payment_status, vacation.status) && (
+                            <Badge className={`${getPaymentStatusColor(vacation.payment_status, vacation.status)} border font-medium`}>
+                              {getPaymentStatusText(vacation.payment_status, vacation.status)}
+                            </Badge>
+                          )}
+                          
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar className="w-4 h-4" />
                             <span className="font-medium">
@@ -1634,29 +1800,6 @@ const EstablishmentDashboard = () => {
                           </p>
                         </div>
                       )}
-                      
-                      <div className="flex gap-3 mt-4">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-purple-200 hover:bg-purple-50"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContactDoctor(
-                              vacation.vacation_posts.doctor_profiles.id,
-                              `${vacation.vacation_posts.doctor_profiles.first_name} ${vacation.vacation_posts.doctor_profiles.last_name}`,
-                              vacation.id
-                            );
-                          }}
-                        >
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Contacter
-                        </Button>
-                        <Button size="sm" variant="outline" className="border-purple-200 hover:bg-purple-50">
-                          <User className="w-4 h-4 mr-2" />
-                          Voir profil
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -1771,19 +1914,36 @@ const EstablishmentDashboard = () => {
                   </Button>
                   
                   {vacation.status === "confirmed" && (
-                    <Button 
-                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300"
-                      onClick={() => {
-                        handleContactDoctor(
-                          vacation.vacation_posts.doctor_profiles.id,
-                          `${vacation.vacation_posts.doctor_profiles.first_name} ${vacation.vacation_posts.doctor_profiles.last_name}`,
-                          vacation.id
-                        );
-                      }}
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Contacter le médecin
-                    </Button>
+                    <div className="flex gap-3">
+                      {/* Bouton Contacter le médecin - STYLE MODIFIÉ POUR ÊTRE BLANC */}
+                      <Button 
+                        variant="outline"
+                        className="px-6 py-3 border-purple-200 hover:bg-purple-50 transition-all duration-300"
+                        onClick={() => {
+                          handleContactDoctor(
+                            vacation.vacation_posts.doctor_profiles.id,
+                            `${vacation.vacation_posts.doctor_profiles.first_name} ${vacation.vacation_posts.doctor_profiles.last_name}`,
+                            vacation.id
+                          );
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Contacter le médecin
+                      </Button>
+                      
+                      {/* Bouton de paiement - NOUVEAU */}
+                      {shouldShowPaymentButton(vacation.status, vacation.payment_status, vacation.total_amount) && (
+                        <PaymentButton
+                          bookingId={vacation.id}
+                          amount={vacation.total_amount}
+                          onSuccess={handlePaymentSuccess}
+                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300"
+                        >
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Payer {vacation.total_amount}€
+                        </PaymentButton>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
