@@ -4,21 +4,15 @@ import {
   Sparkles,
   Star,
   CheckCircle,
-  Zap,
   Clock,
   TrendingUp,
   Shield,
   Users,
-  Calendar,
   Play,
-  Phone,
   MessageCircle,
-  Mail,
-  Video,
   User,
   Building2,
   Award,
-  Target,
   Rocket,
   Heart,
   Euro,
@@ -28,6 +22,7 @@ const CTASection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [hoveredButton, setHoveredButton] = useState(null);
+  const [clickedButton, setClickedButton] = useState(null);
   const sectionRef = useRef(null);
 
   // Animation d'apparition
@@ -56,24 +51,36 @@ const CTASection = () => {
     return () => clearInterval(stepTimer);
   }, [isVisible]);
 
+  const trackEvent = (action, persona, section) => {
+    console.log(`Analytics: ${action} - ${persona} - ${section}`);
+    // window.gtag?.('event', action, { persona, section: 'cta-section', value: section });
+  };
+
+  const handleClick = (onClick, persona, section) => {
+    setClickedButton(section);
+    setTimeout(() => setClickedButton(null), 200);
+    trackEvent('cta_click', persona, section);
+    onClick();
+  };
+
   const handleDoctorCTA = () => {
     console.log("Navigation vers inscription médecin");
-    window.location.href = "/auth?type=doctor&source=cta-section";
+    // window.location.href = "/auth?type=doctor&source=cta-section";
   };
 
   const handleEstablishmentCTA = () => {
     console.log("Navigation vers inscription établissement");
-    window.location.href = "/auth?type=establishment&source=cta-section";
+    // window.location.href = "/auth?type=establishment&source=cta-section";
   };
 
   const handleDemoRequest = () => {
     console.log("Demande de démo");
-    window.location.href = "/demo-request";
+    // window.location.href = "/demo-request";
   };
 
   const handleContactSales = () => {
     console.log("Contact équipe commerciale");
-    window.location.href = "/contact-sales";
+    // window.location.href = "/contact-sales";
   };
 
   // Données des étapes du processus
@@ -139,14 +146,14 @@ const CTASection = () => {
         {/* Cercle avec icône */}
         <div
           className={`
-            relative w-20 h-20 rounded-full bg-gradient-to-r ${
+            relative w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r ${
               step.color
-            } p-4 shadow-lg mb-4
+            } p-3 sm:p-4 shadow-lg mb-4
             ${isActive ? "ring-4 ring-white ring-opacity-50 shadow-2xl" : ""}
             transition-all duration-500
           `}
         >
-          <Icon className="w-12 h-12 text-white mx-auto" />
+          <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-white mx-auto" />
 
           {/* Badge highlight */}
           <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 rounded-full px-2 py-1 text-xs font-bold">
@@ -162,12 +169,12 @@ const CTASection = () => {
         </div>
 
         {/* Contenu */}
-        <h4 className="text-lg font-bold text-white mb-2">{step.title}</h4>
-        <p className="text-blue-100 text-sm max-w-32">{step.description}</p>
+        <h4 className="text-base sm:text-lg font-bold text-white mb-2">{step.title}</h4>
+        <p className="text-blue-100 text-xs sm:text-sm max-w-28 sm:max-w-32">{step.description}</p>
 
-        {/* Ligne de connexion */}
+        {/* Ligne de connexion - seulement sur desktop */}
         {index < processSteps.length - 1 && (
-          <div className="hidden md:block absolute top-10 left-full w-16 h-0.5 bg-white/30">
+          <div className="hidden lg:block absolute top-8 sm:top-10 left-full w-12 sm:w-16 h-0.5 bg-white/30">
             <div
               className={`h-full bg-white transition-all duration-1000 ${
                 activeStep > index ? "w-full" : "w-0"
@@ -184,17 +191,17 @@ const CTASection = () => {
     return (
       <div
         className={`
-          flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20
+          flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-white/20
           hover:bg-white/20 transition-all duration-300 group
           ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
         `}
         style={{ animationDelay: `${600 + index * 100}ms` }}
       >
-        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-          <Icon className="w-5 h-5 text-white" />
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
         </div>
         <div>
-          <div className="text-white font-semibold text-sm">{benefit.text}</div>
+          <div className="text-white font-semibold text-xs sm:text-sm">{benefit.text}</div>
           <div className="text-blue-200 text-xs">{benefit.detail}</div>
         </div>
       </div>
@@ -209,18 +216,21 @@ const CTASection = () => {
     onClick,
     className = "",
     id,
+    stats = "",
   }) => (
     <button
-      onClick={onClick}
+      onClick={() => handleClick(onClick, id, 'main_cta')}
       onMouseEnter={() => setHoveredButton(id)}
       onMouseLeave={() => setHoveredButton(null)}
+      aria-describedby={`${id}-description`}
       className={`
-        group relative overflow-hidden rounded-3xl p-8 text-left transition-all duration-300 transform hover:-translate-y-2
+        group relative overflow-hidden rounded-3xl p-6 sm:p-8 text-left transition-all duration-300 transform hover:-translate-y-2
         ${
           primary
             ? "bg-gradient-to-r from-white to-gray-50 text-gray-900 shadow-2xl hover:shadow-3xl"
-            : "bg-white/10 backdrop-blur-sm border border-white/30 text-white hover:bg-white/20"
+            : "bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/30 text-white hover:bg-white/20"
         }
+        ${clickedButton === id ? "scale-95" : "scale-100"}
         ${className}
       `}
     >
@@ -236,49 +246,48 @@ const CTASection = () => {
       <div className="relative z-10 flex items-center gap-4">
         <div
           className={`
-          w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
+          w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110
           ${
             primary
               ? "bg-gradient-to-r from-blue-500 to-emerald-500"
-              : "bg-white/20"
+              : "bg-gradient-to-r from-emerald-500 to-blue-500"
           }
         `}
         >
           <Icon
-            className={`w-7 h-7 ${primary ? "text-white" : "text-white"}`}
+            className={`w-6 h-6 sm:w-7 sm:h-7 text-white`}
           />
         </div>
 
         <div className="flex-1">
           <h3
-            className={`text-xl font-bold mb-1 ${
+            className={`text-lg sm:text-xl font-bold mb-1 ${
               primary ? "text-gray-900" : "text-white"
             }`}
           >
             {title}
           </h3>
           <p
-            className={`text-sm ${primary ? "text-gray-600" : "text-blue-100"}`}
+            id={`${id}-description`}
+            className={`text-xs sm:text-sm ${primary ? "text-gray-600" : "text-blue-100"}`}
           >
             {subtitle}
           </p>
+          {stats && (
+            <div className={`text-xs mt-1 font-medium ${primary ? "text-blue-600" : "text-yellow-300"}`}>
+              {stats}
+            </div>
+          )}
         </div>
 
         <ArrowRight
           className={`
-          w-6 h-6 transition-all duration-300 group-hover:translate-x-1
+          w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 group-hover:translate-x-1
           ${primary ? "text-blue-600" : "text-white"}
           ${hoveredButton === id ? "scale-125" : "scale-100"}
         `}
         />
       </div>
-
-      {/* Badge pour le bouton primaire */}
-      {primary && (
-        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-full px-3 py-1 text-xs font-bold animate-pulse">
-          Recommandé
-        </div>
-      )}
     </button>
   );
 
@@ -286,18 +295,20 @@ const CTASection = () => {
     <section
       ref={sectionRef}
       id="cta-section"
-      className="py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600 relative overflow-hidden"
+      className="py-16 sm:py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600 relative overflow-hidden"
       aria-labelledby="cta-title"
+      role="region"
+      aria-label="Inscription à la plateforme"
     >
       {/* Éléments décoratifs de fond */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/20 rounded-full translate-x-48 -translate-y-48 blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-emerald-400/20 rounded-full translate-x-32 sm:translate-x-48 -translate-y-32 sm:-translate-y-48 blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/20 rounded-full -translate-x-48 translate-y-48 blur-3xl animate-pulse"
+          className="absolute bottom-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-blue-400/20 rounded-full -translate-x-32 sm:-translate-x-48 translate-y-32 sm:translate-y-48 blur-3xl animate-pulse"
           style={{ animationDelay: "2s" }}
         ></div>
         <div
-          className="absolute top-1/2 right-1/4 w-64 h-64 bg-purple-400/20 rounded-full blur-2xl animate-pulse"
+          className="absolute top-1/2 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-400/20 rounded-full blur-2xl animate-pulse"
           style={{ animationDelay: "4s" }}
         ></div>
       </div>
@@ -312,11 +323,11 @@ const CTASection = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* En-tête avec badge */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16">
           <div
             className={`
               inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white 
-              px-6 py-3 rounded-full text-sm font-semibold mb-6 shadow-lg border border-white/30
+              px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-lg border border-white/30
               transition-all duration-1000 ${
                 isVisible
                   ? "translate-y-0 opacity-100"
@@ -332,7 +343,7 @@ const CTASection = () => {
           <h2
             id="cta-title"
             className={`
-              text-4xl md:text-5xl font-bold text-white mb-6 leading-tight
+              text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight
               transition-all duration-1000 delay-200 ${
                 isVisible
                   ? "translate-y-0 opacity-100"
@@ -347,7 +358,7 @@ const CTASection = () => {
 
           <p
             className={`
-              text-xl text-blue-100 max-w-4xl mx-auto leading-relaxed
+              text-lg sm:text-xl text-blue-100 max-w-4xl mx-auto leading-relaxed
               transition-all duration-1000 delay-300 ${
                 isVisible
                   ? "translate-y-0 opacity-100"
@@ -363,7 +374,8 @@ const CTASection = () => {
         {/* Processus d'inscription animé */}
         <div
           className={`
-            flex justify-center items-center gap-8 md:gap-16 mb-16 transition-all duration-1000 delay-500 ${
+            flex justify-center items-center gap-6 sm:gap-8 md:gap-16 mb-12 sm:mb-16 transition-all duration-1000 delay-500
+            flex-col sm:flex-row ${
               isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
@@ -381,7 +393,7 @@ const CTASection = () => {
         </div>
 
         {/* Avantages en badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-12 sm:mb-16">
           {mainBenefits.map((benefit, index) => (
             <BenefitBadge key={index} benefit={benefit} index={index} />
           ))}
@@ -390,7 +402,7 @@ const CTASection = () => {
         {/* Boutons d'action principaux */}
         <div
           className={`
-            grid md:grid-cols-2 gap-8 mb-16 transition-all duration-1000 delay-700 ${
+            grid md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16 transition-all duration-1000 delay-700 ${
               isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
@@ -404,6 +416,7 @@ const CTASection = () => {
             subtitle="Publiez vos disponibilités et trouvez des missions"
             onClick={handleDoctorCTA}
             id="doctor"
+            stats="350+ médecins actifs"
           />
 
           <ActionButton
@@ -412,13 +425,14 @@ const CTASection = () => {
             subtitle="Trouvez rapidement le médecin qu'il vous faut"
             onClick={handleEstablishmentCTA}
             id="establishment"
+            stats="150+ établissements partenaires"
           />
         </div>
 
         {/* Actions secondaires */}
         <div
           className={`
-            grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16 transition-all duration-1000 delay-900 ${
+            grid md:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto mb-12 sm:mb-16 transition-all duration-1000 delay-900 ${
               isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
@@ -447,7 +461,7 @@ const CTASection = () => {
         {/* Témoignage et statistiques */}
         <div
           className={`
-            bg-white/10 backdrop-blur-sm rounded-3xl p-8 md:p-12 border border-white/30 text-center
+            bg-white/10 backdrop-blur-sm rounded-3xl p-6 sm:p-8 md:p-12 border border-white/30 text-center
             transition-all duration-1000 delay-1000 ${
               isVisible
                 ? "translate-y-0 opacity-100"
@@ -456,43 +470,43 @@ const CTASection = () => {
           `}
         >
           {/* Étoiles */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+              <Star key={i} className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 fill-current" />
             ))}
           </div>
 
-          <blockquote className="text-xl md:text-2xl text-white font-medium mb-6 italic leading-relaxed">
+          <blockquote className="text-lg sm:text-xl md:text-2xl text-white font-medium mb-4 sm:mb-6 italic leading-relaxed">
             "En 2 semaines, j'ai déjà économisé 15h de démarches administratives
             et trouvé 3 nouvelles missions parfaitement adaptées à mon
             planning."
           </blockquote>
 
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">
+          <div className="flex items-center justify-center gap-4 mb-6 sm:mb-8">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full flex items-center justify-center text-white font-bold">
               Dr
             </div>
             <div className="text-left">
-              <div className="text-white font-semibold">Dr. Claire Dubois</div>
-              <div className="text-blue-200 text-sm">Cardiologue, Lyon</div>
+              <div className="text-white font-semibold text-sm sm:text-base">Dr. Claire Dubois</div>
+              <div className="text-blue-200 text-xs sm:text-sm">Cardiologue, Lyon</div>
             </div>
           </div>
 
           {/* Statistiques finales */}
-          <div className="grid grid-cols-3 gap-8 pt-8 border-t border-white/20">
+          <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-6 sm:pt-8 border-t border-white/20">
             <div>
-              <div className="text-3xl font-bold text-yellow-300 mb-2">
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-300 mb-1 sm:mb-2">
                 2 min
               </div>
-              <div className="text-blue-200 text-sm">Temps d'inscription</div>
+              <div className="text-blue-200 text-xs sm:text-sm">Temps d'inscription</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-yellow-300 mb-2">24h</div>
-              <div className="text-blue-200 text-sm">Validation express</div>
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-300 mb-1 sm:mb-2">24h</div>
+              <div className="text-blue-200 text-xs sm:text-sm">Validation express</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-yellow-300 mb-2">0€</div>
-              <div className="text-blue-200 text-sm">Frais d'inscription</div>
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-300 mb-1 sm:mb-2">0€</div>
+              <div className="text-blue-200 text-xs sm:text-sm">Frais d'inscription</div>
             </div>
           </div>
         </div>
@@ -500,14 +514,14 @@ const CTASection = () => {
         {/* Urgence douce */}
         <div
           className={`
-            text-center mt-12 transition-all duration-1000 delay-1200 ${
+            text-center mt-8 sm:mt-12 transition-all duration-1000 delay-1200 ${
               isVisible
                 ? "translate-y-0 opacity-100"
                 : "translate-y-4 opacity-0"
             }
           `}
         >
-          <div className="inline-flex items-center gap-2 text-blue-200 text-sm">
+          <div className="inline-flex items-center gap-2 text-blue-200 text-xs sm:text-sm">
             <TrendingUp className="w-4 h-4" />
             <span>+47 nouveaux membres cette semaine</span>
             <Heart className="w-4 h-4 text-red-400 animate-pulse" />

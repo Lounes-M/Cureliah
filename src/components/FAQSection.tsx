@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Minus,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 
 const FAQSection = () => {
+  const navigate = useNavigate();
   const [openFAQ, setOpenFAQ] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -195,6 +197,20 @@ const FAQSection = () => {
 
   const getCategoryInfo = (categoryId) => {
     return categories.find((cat) => cat.id === categoryId);
+  };
+
+  // Fonctions de navigation vers la page de contact
+  const handleContactEmail = () => {
+    navigate("/contact");
+  };
+
+  const handleContactPhone = () => {
+    navigate("/contact");
+  };
+
+  const handleContactChat = () => {
+    // Pour le chat, vous pouvez soit rediriger vers contact, soit ouvrir un widget de chat
+    navigate("/contact");
   };
 
   return (
@@ -532,7 +548,10 @@ const FAQSection = () => {
                   <p className="text-blue-100 text-sm mb-4">
                     Réponse immédiate 9h-18h
                   </p>
-                  <button className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                  <button 
+                    onClick={handleContactChat}
+                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  >
                     Démarrer
                   </button>
                 </div>
@@ -543,7 +562,10 @@ const FAQSection = () => {
                   <p className="text-blue-100 text-sm mb-4">
                     Réponse sous 2h ouvrées
                   </p>
-                  <button className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                  <button 
+                    onClick={handleContactEmail}
+                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  >
                     Écrire
                   </button>
                 </div>
@@ -554,7 +576,10 @@ const FAQSection = () => {
                   <p className="text-blue-100 text-sm mb-4">
                     Support prioritaire
                   </p>
-                  <button className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                  <button 
+                    onClick={handleContactPhone}
+                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                  >
                     Appeler
                   </button>
                 </div>

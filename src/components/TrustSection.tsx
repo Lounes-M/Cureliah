@@ -292,43 +292,6 @@ const TrustSection = () => {
           ))}
         </div>
 
-        {/* Partenaires */}
-        <div
-          className={`
-            text-center mb-16 transition-all duration-1000 delay-500 ${
-              isVisible
-                ? "translate-y-0 opacity-100"
-                : "translate-y-4 opacity-0"
-            }
-          `}
-        >
-          <h3 className="text-xl font-semibold text-gray-900 mb-8">
-            Ils nous font confiance
-          </h3>
-
-          {/* Logos partenaires avec animation */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center justify-items-center">
-            {partners.map((partner, index) => (
-              <div
-                key={index}
-                className={`
-                  group bg-white rounded-xl p-4 shadow-md border border-gray-100 
-                  hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer
-                  min-h-[80px] flex flex-col items-center justify-center
-                `}
-                style={{ animationDelay: `${800 + index * 100}ms` }}
-              >
-                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">
-                  {partner.logo}
-                </div>
-                <div className="text-xs font-medium text-gray-700 text-center">
-                  {partner.name}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Certifications et sécurité */}
         <div
           className={`
