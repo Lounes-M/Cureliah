@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import logoUrl from "/logo.png";
+import { useNavigate } from "react-router-dom";
 import {
   Mail,
   Phone,
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 const Footer = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -72,6 +73,22 @@ const Footer = () => {
     }
   };
 
+  // Fonction pour naviguer vers la page légale avec React Router
+  const navigateToLegal = (section) => {
+    const url = section ? `/legal#${section}` : '/legal';
+    navigate(url);
+    
+    // Si vous voulez scroller vers la section après navigation
+    if (section) {
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   const socialLinks = [
     {
       icon: Twitter,
@@ -108,13 +125,38 @@ const Footer = () => {
     { name: "Espace Établissement", href: "/etablissement" },
   ];
 
+  // Liens légaux mis à jour avec navigation vers la page légale
   const legalLinks = [
-    { name: "Mentions légales", href: "/mentions-legales" },
-    { name: "CGV", href: "/cgv" },
-    { name: "CGU", href: "/cgu" },
-    { name: "Confidentialité", href: "/confidentialite" },
-    { name: "RGPD", href: "/rgpd" },
-    { name: "Cookies", href: "/cookies" },
+    { 
+      name: "Mentions légales", 
+      section: "mentions",
+      description: "Informations légales et éditoriales"
+    },
+    { 
+      name: "CGV", 
+      section: "cgv",
+      description: "Conditions commerciales"
+    },
+    { 
+      name: "CGU", 
+      section: "cgu",
+      description: "Conditions d'utilisation"
+    },
+    { 
+      name: "Confidentialité", 
+      section: "confidentialite",
+      description: "Protection des données"
+    },
+    { 
+      name: "RGPD", 
+      section: "rgpd",
+      description: "Vos droits sur vos données"
+    },
+    { 
+      name: "Cookies", 
+      section: "cookies",
+      description: "Gestion des cookies"
+    },
   ];
 
   const stats = [
@@ -152,12 +194,9 @@ const Footer = () => {
             }`}
           >
             <div className="flex items-center space-x-2 mb-6">
-              <img
-                src={logoUrl}
-                alt="Logo"
-                style={{ height: "70px" }}
-                className="w-auto object-contain"
-              />
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                C
+              </div>
             </div>
 
             <p className="text-gray-300 mb-6 leading-relaxed text-lg">
@@ -318,7 +357,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Section légal */}
+        {/* Section légal mise à jour */}
         <div
           className={`mb-12 transition-all duration-1000 delay-400 ${
             visibleSections.has("legal")
@@ -330,16 +369,36 @@ const Footer = () => {
             <Shield className="w-5 h-5 mr-2 text-purple-400" />
             Informations légales
           </h3>
-          <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {legalLinks.map((link, index) => (
-              <a
+              <button
                 key={index}
-                href={link.href}
-                className="text-gray-400 hover:text-white transition-colors duration-200 text-sm hover:underline"
+                onClick={() => navigateToLegal(link.section)}
+                className="group text-left p-4 bg-gray-800/30 rounded-xl border border-gray-700 hover:border-purple-500 hover:bg-gray-800/50 transition-all duration-300"
               >
-                {link.name}
-              </a>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white font-medium group-hover:text-purple-300 transition-colors">
+                    {link.name}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all duration-200" />
+                </div>
+                <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">
+                  {link.description}
+                </p>
+              </button>
             ))}
+          </div>
+          
+          {/* Lien vers la page complète */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => navigateToLegal('')}
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Voir toutes les informations légales
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </button>
           </div>
         </div>
 

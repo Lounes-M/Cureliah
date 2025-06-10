@@ -25,6 +25,7 @@ import EstablishmentCreateProfile from "./pages/establishment/CreateProfile";
 // Nouvelles pages
 import VerifyEmail from "./pages/VerifyEmail";
 import AccountActivation from "@/pages/AccountActivation";
+import LegalPage from "@/pages/LegalPage"; // 👈 Ajout de la page légale
 
 // Hook personnalisé pour vérifier le profil complet
 const useProfileComplete = (user) => {
@@ -202,6 +203,9 @@ export default function AppRoutes() {
     <Routes>
       {/* Page d'accueil - Publique */}
       <Route path="/" element={<Index />} />
+
+      {/* 👇 NOUVELLE ROUTE - Page légale - Publique (accessible à tous) */}
+      <Route path="/legal" element={<LegalPage />} />
 
       {/* Pages d'authentification */}
       <Route
