@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   Mail,
   Phone,
@@ -346,13 +346,13 @@ const Footer = () => {
               <p className="text-gray-300 text-sm mb-3">
                 Notre équipe est là pour vous accompagner
               </p>
-              <a
-                href="#contact"
+              <Link
+                to="/contact"
                 className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center transition-colors"
               >
                 Nous contacter
                 <ExternalLink className="w-3 h-3 ml-1" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
