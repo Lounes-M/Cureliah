@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Notification } from '@/types/database';
@@ -62,6 +61,36 @@ export function useNotifications() {
           }
         }
       )
+      // 👇 AJOUT DE LA GESTION DES SUPPRESSIONS
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🗑️ DELETE event received:', payload);
+          const deletedNotification = payload.old as Notification;
+          
+          setNotifications(prev => {
+            console.log('Before filter:', prev.length);
+            const filtered = prev.filter(n => n.id !== deletedNotification.id);
+            console.log('After filter:', filtered.length);
+            return filtered;
+          });
+          
+          // Si la notification supprimée n'était pas lue, décrémenter le compteur
+          if (!deletedNotification.read_at) {
+            setUnreadCount(prev => {
+              const newCount = Math.max(0, prev - 1);
+              console.log('Unread count updated:', prev, '->', newCount);
+              return newCount;
+            });
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -108,6 +137,11 @@ export function useNotifications() {
       // Note: Real-time subscription will handle the state update
     } catch (error: any) {
       console.error('Error marking notification as read:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de marquer la notification comme lue",
+        variant: "destructive"
+      });
     }
   };
 
@@ -126,6 +160,61 @@ export function useNotifications() {
       // Note: Real-time subscription will handle the state updates
     } catch (error: any) {
       console.error('Error marking all notifications as read:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de marquer toutes les notifications comme lues",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // 👇 NOUVELLE MÉTHODE POUR SUPPRIMER UNE NOTIFICATION
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      // 1. Mettre à jour l'état local IMMÉDIATEMENT (optimistic update)
+      const notificationToDelete = notifications.find(n => n.id === notificationId);
+      
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      
+      if (notificationToDelete && !notificationToDelete.read_at) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+
+      // 2. Puis faire la suppression en base
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) {
+        // En cas d'erreur, restaurer l'état local
+        setNotifications(prev => {
+          const updated = [...prev];
+          if (notificationToDelete) {
+            updated.unshift(notificationToDelete);
+          }
+          return updated.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        });
+        
+        if (notificationToDelete && !notificationToDelete.read_at) {
+          setUnreadCount(prev => prev + 1);
+        }
+        
+        throw error;
+      }
+
+      toast({
+        title: "Notification supprimée",
+        description: "La notification a été supprimée avec succès"
+      });
+    } catch (error: any) {
+      console.error('Error deleting notification:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la notification",
+        variant: "destructive"
+      });
+      throw error;
     }
   };
 
@@ -135,6 +224,7 @@ export function useNotifications() {
     loading,
     markAsRead,
     markAllAsRead,
+    deleteNotification, // 👈 AJOUT DE LA NOUVELLE MÉTHODE
     refetch: fetchNotifications
   };
 }
