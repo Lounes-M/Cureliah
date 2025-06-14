@@ -40,6 +40,37 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Mapping des spécialités anglais -> français
+const specialityMapping: Record<string, string> = {
+  'orthopedics': 'Orthopédie',
+  'cardiology': 'Cardiologie',
+  'dermatology': 'Dermatologie',
+  'pediatrics': 'Pédiatrie',
+  'psychiatry': 'Psychiatrie',
+  'radiology': 'Radiologie',
+  'anesthesiology': 'Anesthésie-Réanimation',
+  'general_surgery': 'Chirurgie générale',
+  'surgery': 'Chirurgie', // Ajout pour "surgery"
+  'gynecology': 'Gynécologie-Obstétrique',
+  'ophthalmology': 'Ophtalmologie',
+  'otolaryngology': 'ORL',
+  'neurology': 'Neurologie',
+  'pulmonology': 'Pneumologie',
+  'gastroenterology': 'Gastro-entérologie',
+  'endocrinology': 'Endocrinologie',
+  'rheumatology': 'Rhumatologie',
+  'urology': 'Urologie',
+  'general_medicine': 'Médecine générale'
+};
+
+// Fonction pour traduire les spécialités
+const translateSpeciality = (speciality: string): string => {
+  console.log("🔄 translateSpeciality appelée avec:", speciality);
+  const result = specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+  console.log("🔄 translateSpeciality retourne:", result);
+  return result;
+};
+
 interface DashboardStats {
   totalVacations: number;
   activeVacations: number;
@@ -77,8 +108,16 @@ interface DoctorProfile {
   first_name?: string;
   last_name?: string;
   specialty?: string;
+  speciality?: string; // Ajout pour compatibilité
   avatar_url?: string;
   user_type?: "doctor" | "establishment" | "admin";
+}
+
+interface DoctorProfileFromDB {
+  first_name?: string;
+  last_name?: string;
+  speciality?: string;
+  avatar_url?: string;
 }
 
 const DoctorDashboard = () => {
@@ -95,6 +134,31 @@ const DoctorDashboard = () => {
   const [todaySchedule, setTodaySchedule] = useState<TodaySchedule[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [doctorProfileFromDB, setDoctorProfileFromDB] = useState<DoctorProfileFromDB | null>(null);
+
+  // Fonction pour obtenir la spécialité traduite
+  const getTranslatedSpecialty = () => {
+    // Priorité : profil de la DB > profil du hook useAuth > défaut
+    const specialty = doctorProfileFromDB?.speciality || doctorProfile?.specialty || doctorProfile?.speciality;
+    
+    // Logs pour debug
+    console.log("🔍 Debug spécialité:");
+    console.log("- doctorProfileFromDB?.speciality:", doctorProfileFromDB?.speciality);
+    console.log("- doctorProfile?.specialty:", doctorProfile?.specialty);
+    console.log("- doctorProfile?.speciality:", doctorProfile?.speciality);
+    console.log("- specialty final:", specialty);
+    
+    if (!specialty) {
+      console.log("- Aucune spécialité trouvée, retour du message par défaut");
+      return "Spécialité pas encore ajoutée";
+    }
+    
+    const translated = translateSpeciality(specialty);
+    console.log("- translated:", translated);
+    console.log("- specialityMapping:", specialityMapping);
+    
+    return translated;
+  };
 
   // Mise à jour de l'heure en temps réel
   useEffect(() => {
@@ -112,6 +176,11 @@ const DoctorDashboard = () => {
     }
   }, [user]);
 
+  // Debug: surveiller les changements du profil
+  useEffect(() => {
+    console.log("🔄 doctorProfileFromDB a changé:", doctorProfileFromDB);
+  }, [doctorProfileFromDB]);
+
   const loadDashboardData = async () => {
     if (!user?.id) return;
 
@@ -119,15 +188,21 @@ const DoctorDashboard = () => {
       setLoading(true);
 
       // Charger les statistiques en parallèle
-      const [statsData, scheduleData, activityData] = await Promise.all([
+      const [statsData, scheduleData, activityData, profileData] = await Promise.all([
         loadStats(),
         loadTodaySchedule(),
         loadRecentActivity(),
+        loadDoctorProfile(),
       ]);
 
       setDashboardStats(statsData);
       setTodaySchedule(scheduleData);
       setRecentActivity(activityData);
+      setDoctorProfileFromDB(profileData);
+      
+      console.log("✅ Toutes les données chargées:");
+      console.log("- statsData:", statsData);
+      console.log("- profileData:", profileData);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
       toast({
@@ -137,6 +212,31 @@ const DoctorDashboard = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDoctorProfile = async (): Promise<DoctorProfileFromDB | null> => {
+    try {
+      console.log("🔍 Chargement du profil médecin pour user.id:", user.id);
+      
+      const { data, error } = await supabase
+        .from("doctor_profiles")
+        .select("first_name, last_name, speciality, avatar_url")
+        .eq("id", user.id)
+        .single();
+
+      console.log("📋 Données profil récupérées:", data);
+      console.log("❌ Erreur profil:", error);
+
+      if (error) {
+        console.error("Error loading doctor profile:", error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error in loadDoctorProfile:", error);
+      return null;
     }
   };
 
@@ -471,20 +571,40 @@ const DoctorDashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center space-x-4 mb-4 lg:mb-0">
               <Avatar className="h-16 w-16 ring-4 ring-white shadow-lg">
-                <AvatarImage src={doctorProfile?.avatar_url} />
+                <AvatarImage src={doctorProfileFromDB?.avatar_url || doctorProfile?.avatar_url} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl">
-                  {doctorProfile?.first_name?.[0] || "D"}
-                  {doctorProfile?.last_name?.[0] || "R"}
+                  {(doctorProfileFromDB?.first_name || doctorProfile?.first_name)?.[0] || "D"}
+                  {(doctorProfileFromDB?.last_name || doctorProfile?.last_name)?.[0] || "R"}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   Bonjour, Dr{" "}
-                  {doctorProfile?.last_name || user.email?.split("@")[0]}
+                  {doctorProfileFromDB?.last_name || doctorProfile?.last_name || user.email?.split("@")[0]}
                 </h1>
                 <p className="text-gray-600 flex items-center mt-1">
                   <Stethoscope className="w-4 h-4 mr-2" />
-                  {doctorProfile?.specialty || "Médecin généraliste"}
+                  {(() => {
+                    const specialty = getTranslatedSpecialty();
+                    const isNotSet = specialty === "Spécialité pas encore ajoutée";
+                    console.log("🎯 Spécialité affichée dans le rendu:", specialty);
+                    
+                    return isNotSet ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate("/profile/complete")}
+                        className="h-auto p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-normal text-sm"
+                      >
+                        <span className="flex items-center gap-1">
+                          Spécialité pas encore ajoutée
+                          <span className="text-xs opacity-75">• Cliquer pour ajouter</span>
+                        </span>
+                      </Button>
+                    ) : (
+                      specialty
+                    );
+                  })()}
                 </p>
                 <p className="text-sm text-gray-500 flex items-center mt-1">
                   <Clock className="w-4 h-4 mr-1" />
