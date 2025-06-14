@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter, Clock, Phone, Mail, User } from 'lucide-react';
+import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter, Clock, Phone, Mail, User, Globe, MapIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
-import PaymentButton from './PaymentButton';
-import BookingTimeline from './BookingTimeline';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 
@@ -36,6 +34,10 @@ interface EstablishmentInfo {
   name: string;
   establishment_type: string;
   city: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
   first_name: string;
   last_name: string;
 }
@@ -63,6 +65,7 @@ interface BookingWithDetails {
   duration_hours: number;
   created_at: string;
   establishment_id: string;
+  payment_status?: string;
   vacation_post: VacationPost;
   establishment_info: EstablishmentInfo | null;
 }
@@ -78,12 +81,79 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
   const [loading, setLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<BookingWithDetails | null>(null);
   const [showMessaging, setShowMessaging] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
     dateRange: 'all',
     establishmentType: 'all',
     city: '',
     status: status || 'all'
   });
+
+  // Fonctions utilitaires pour les badges de paiement
+  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'completed') {
+      return '';
+    }
+    
+    switch (paymentStatus) {
+      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
+      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
+      case 'pending':
+      default: return 'bg-orange-100 text-orange-800 border-orange-200';
+    }
+  };
+
+  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
+    if (bookingStatus !== 'confirmed' && bookingStatus !== 'completed') {
+      return '';
+    }
+    
+    switch (paymentStatus) {
+      case 'paid': return '✅ Payé';
+      case 'failed': return '❌ Échec paiement';
+      case 'pending':
+      default: return '⏳ En attente';
+    }
+  };
+
+  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
+    return ['confirmed', 'completed'].includes(bookingStatus);
+  };
+
+  // Fonction pour basculer l'état étendu d'une carte
+  const toggleCardExpansion = (bookingId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(bookingId)) {
+        newSet.delete(bookingId);
+      } else {
+        newSet.add(bookingId);
+      }
+      return newSet;
+    });
+  };
+
+  // Fonction pour obtenir l'icône du type d'établissement
+  const getEstablishmentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'hospital': return '🏥';
+      case 'clinic': return '🏥';
+      case 'private_practice': return '👨‍⚕️';
+      case 'medical_center': return '🏥';
+      default: return '🏢';
+    }
+  };
+
+  // Fonction pour obtenir le label du type d'établissement
+  const getEstablishmentTypeLabel = (type: string) => {
+    switch (type) {
+      case 'hospital': return 'Hôpital';
+      case 'clinic': return 'Clinique';
+      case 'private_practice': return 'Cabinet privé';
+      case 'medical_center': return 'Centre médical';
+      default: return 'Établissement';
+    }
+  };
 
   const fetchBookings = async () => {
     if (!user) return;
@@ -149,15 +219,14 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
       const establishmentIds = [...new Set(bookingsData.map(booking => booking.establishment_id))];
       console.log('🏥 Establishment IDs to fetch:', establishmentIds);
       
-      // Récupérer les profils d'établissements directement
+      // Récupérer plus d'informations sur les établissements
       const { data: establishments, error: establishmentError } = await supabase
         .from('establishment_profiles')
-        .select('id, name, establishment_type, city, address, phone, email')
+        .select('id, name, establishment_type, city, address, phone, email, website, description')
         .in('id', establishmentIds);
 
       if (establishmentError) {
         console.error('❌ Error fetching establishment profiles:', establishmentError);
-        // En cas d'erreur, continuer avec des données vides plutôt que de planter
       }
 
       console.log('🏥 Establishment profiles found:', establishments);
@@ -169,18 +238,20 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
         let establishmentInfo = null;
         
         if (establishment) {
-          // Cas normal : profil d'établissement trouvé
           establishmentInfo = {
             id: establishment.id,
             name: establishment.name,
             establishment_type: establishment.establishment_type,
             city: establishment.city,
+            address: establishment.address,
+            phone: establishment.phone,
+            email: establishment.email,
+            website: establishment.website,
             first_name: '',
             last_name: ''
           };
           console.log('✅ Found establishment:', establishment.name);
         } else {
-          // Fallback : établissement non trouvé
           establishmentInfo = {
             id: booking.establishment_id,
             name: 'Établissement inconnu',
@@ -393,121 +464,286 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {bookings.map((booking) => (
-            <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardHeader className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-white" />
+          {bookings.map((booking) => {
+            const isExpanded = expandedCards.has(booking.id);
+            
+            return (
+              <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <CardHeader className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-lg">
+                        {getEstablishmentTypeIcon(booking.establishment_info?.establishment_type || '')}
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">
+                          {booking.establishment_info?.name || 'Établissement inconnu'}
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-4">
+                          <span>{getEstablishmentTypeLabel(booking.establishment_info?.establishment_type || '')} - {booking.establishment_info?.city}</span>
+                          {booking.urgency && getUrgencyBadge(booking.urgency)}
+                        </CardDescription>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">
-                        {booking.establishment_info?.name || 'Établissement inconnu'}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-4">
-                        <span>{booking.establishment_info?.establishment_type} - {booking.establishment_info?.city}</span>
-                        {booking.urgency && getUrgencyBadge(booking.urgency)}
-                      </CardDescription>
+                    <div className="text-right">
+                      <div className="flex flex-col items-end space-y-2">
+                        {/* Badge de statut de réservation */}
+                        {getStatusBadge(booking.status)}
+                        
+                        {/* Badge de statut de paiement */}
+                        {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+                          <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
+                            {getPaymentStatusText(booking.payment_status, booking.status)}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">
+                        Créée le {formatDate(booking.created_at)}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    {getStatusBadge(booking.status)}
-                    <p className="text-sm text-gray-500 mt-1">
-                      Créée le {formatDate(booking.created_at)}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Informations de la vacation */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 mb-3">Détails de la vacation</h4>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2 text-blue-500" />
-                      <span>
-                        Du {formatDateTime(booking.start_date)} 
-                      </span>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Informations de la vacation */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900 mb-3">Détails de la vacation</h4>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                        <span>
+                          Du {formatDateTime(booking.start_date)} 
+                        </span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Clock className="w-4 h-4 mr-2 text-green-500" />
+                        <span>Durée: {booking.duration_hours}h</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                        <span>{booking.vacation_post?.location}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Euro className="w-4 h-4 mr-2 text-yellow-500" />
+                        <span className="font-medium">{booking.total_amount}€</span>
+                      </div>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Clock className="w-4 h-4 mr-2 text-green-500" />
-                      <span>Durée: {booking.duration_hours}h</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2 text-red-500" />
-                      <span>{booking.vacation_post?.location}</span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Euro className="w-4 h-4 mr-2 text-yellow-500" />
-                      <span className="font-medium">{booking.total_amount}€ (estimation)</span>
+
+                    {/* Contact et actions */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900 mb-3">Contact & Actions</h4>
+                      {booking.contact_phone && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="w-4 h-4 mr-2 text-purple-500" />
+                          <span>{booking.contact_phone}</span>
+                        </div>
+                      )}
+                      {booking.message && (
+                        <div className="p-3 bg-gray-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <strong>Message:</strong> {booking.message}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Actions selon le statut */}
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {booking.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              Accepter
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleStatusUpdate(booking.id, 'rejected')}
+                              className="border-red-200 text-red-600 hover:bg-red-50"
+                            >
+                              Rejeter
+                            </Button>
+                          </>
+                        )}
+                        {booking.status === 'confirmed' && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleStatusUpdate(booking.id, 'completed')}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Marquer comme terminé
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setShowMessaging(true);
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Message
+                        </Button>
+                        
+                        {/* Bouton pour étendre/réduire les détails de l'établissement */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => toggleCardExpansion(booking.id)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          {isExpanded ? (
+                            <>
+                              <ChevronUp className="w-4 h-4 mr-2" />
+                              Moins d'infos
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-4 h-4 mr-2" />
+                              Plus d'infos
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Contact et actions */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900 mb-3">Contact & Actions</h4>
-                    {booking.contact_phone && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Phone className="w-4 h-4 mr-2 text-purple-500" />
-                        <span>{booking.contact_phone}</span>
+                  {/* Section étendues avec plus d'informations sur l'établissement */}
+                  {isExpanded && booking.establishment_info && (
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                      <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                        <Building2 className="w-5 h-5 text-blue-500" />
+                        Informations détaillées sur l'établissement
+                      </h4>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Coordonnées */}
+                        <div className="space-y-3">
+                          <h5 className="font-medium text-gray-800">Coordonnées</h5>
+                          
+                          {booking.establishment_info.address && (
+                            <div className="flex items-start text-sm text-gray-600">
+                              <MapIcon className="w-4 h-4 mr-2 text-gray-400 mt-0.5 flex-shrink-0" />
+                              <span>{booking.establishment_info.address}</span>
+                            </div>
+                          )}
+                          
+                          {booking.establishment_info.phone && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Phone className="w-4 h-4 mr-2 text-green-500" />
+                              <a 
+                                href={`tel:${booking.establishment_info.phone}`}
+                                className="hover:text-blue-600 transition-colors"
+                              >
+                                {booking.establishment_info.phone}
+                              </a>
+                            </div>
+                          )}
+                          
+                          {booking.establishment_info.email && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Mail className="w-4 h-4 mr-2 text-blue-500" />
+                              <a 
+                                href={`mailto:${booking.establishment_info.email}`}
+                                className="hover:text-blue-600 transition-colors"
+                              >
+                                {booking.establishment_info.email}
+                              </a>
+                            </div>
+                          )}
+                          
+                          {booking.establishment_info.website && (
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Globe className="w-4 h-4 mr-2 text-purple-500" />
+                              <a 
+                                href={booking.establishment_info.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-blue-600 transition-colors"
+                              >
+                                Site web
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Informations générales */}
+                        <div className="space-y-3">
+                          <h5 className="font-medium text-gray-800">Détails</h5>
+                          
+                          <div className="p-3 bg-blue-50 rounded-lg">
+                            <div className="flex items-center text-sm font-medium text-blue-900 mb-1">
+                              <Building2 className="w-4 h-4 mr-2" />
+                              Type d'établissement
+                            </div>
+                            <p className="text-sm text-blue-800">
+                              {getEstablishmentTypeIcon(booking.establishment_info.establishment_type)} {' '}
+                              {getEstablishmentTypeLabel(booking.establishment_info.establishment_type)}
+                            </p>
+                          </div>
+                          
+                          <div className="p-3 bg-green-50 rounded-lg">
+                            <div className="flex items-center text-sm font-medium text-green-900 mb-1">
+                              <MapPin className="w-4 h-4 mr-2" />
+                              Localisation
+                            </div>
+                            <p className="text-sm text-green-800">
+                              📍 {booking.establishment_info.city}
+                            </p>
+                          </div>
+                          
+                          <div className="p-3 bg-yellow-50 rounded-lg">
+                            <div className="flex items-center text-sm font-medium text-yellow-900 mb-1">
+                              <Euro className="w-4 h-4 mr-2" />
+                              Rémunération prévue
+                            </div>
+                            <p className="text-sm text-yellow-800 font-semibold">
+                              {booking.total_amount}€ pour {booking.duration_hours}h
+                              <span className="text-xs text-yellow-600 ml-2">
+                                ({(booking.total_amount / booking.duration_hours).toFixed(0)}€/h)
+                              </span>
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    {booking.message && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-700">
-                          <strong>Message:</strong> {booking.message}
-                        </p>
-                      </div>
-                    )}
-                    
-                    {/* Actions selon le statut */}
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {booking.status === 'pending' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            Accepter
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleStatusUpdate(booking.id, 'rejected')}
-                            className="border-red-200 text-red-600 hover:bg-red-50"
-                          >
-                            Rejeter
-                          </Button>
-                        </>
+                      
+                      {/* Informations sur le paiement si applicable */}
+                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                          <h5 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
+                            <Euro className="w-4 h-4 text-green-500" />
+                            Statut du paiement
+                          </h5>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border`}>
+                              {getPaymentStatusText(booking.payment_status, booking.status)}
+                            </Badge>
+                            {booking.payment_status === 'paid' && (
+                              <span className="text-sm text-gray-600">
+                                • Paiement reçu avec succès
+                              </span>
+                            )}
+                            {booking.payment_status === 'pending' && (
+                              <span className="text-sm text-gray-600">
+                                • En attente du paiement par l'établissement
+                              </span>
+                            )}
+                            {booking.payment_status === 'failed' && (
+                              <span className="text-sm text-gray-600">
+                                • Problème de paiement - Contactez l'établissement
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       )}
-                      {booking.status === 'confirmed' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleStatusUpdate(booking.id, 'completed')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Marquer comme terminé
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setShowMessaging(true);
-                        }}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Message
-                      </Button>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 

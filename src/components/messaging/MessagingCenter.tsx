@@ -41,9 +41,7 @@ const MessagingCenter = ({
           id: autoOpenDoctorId,
           name: autoOpenDoctorName
         }],
-        bookingId: autoOpenBookingId || autoOpenDoctorId,
-        bookingStatus: 'confirmed', // Ajouter le statut manquant
-        isActive: true // Ajouter la propriété manquante
+        bookingId: autoOpenBookingId || autoOpenDoctorId
       };
       
       setSelectedConversation(autoConversation);

@@ -61,13 +61,13 @@ const MyBookings = () => {
         // Pour les médecins : récupérer les bookings directement
         query = supabase
           .from("bookings")
-          .select("status, total_amount, created_at")
+          .select("status, total_amount, created_at, payment_status")
           .eq("doctor_id", user.id);
       } else {
         // Pour les établissements : récupérer les bookings directement
         query = supabase
           .from("bookings")
-          .select("status, total_amount, created_at")
+          .select("status, total_amount, created_at, payment_status")
           .eq("establishment_id", user.id);
       }
 
@@ -95,9 +95,13 @@ const MyBookings = () => {
       const cancelled =
         bookings?.filter((b) => b.status === "cancelled" || b.status === "rejected").length || 0;
 
+      // ✅ MODIFICATION : Calcul des revenus seulement pour les vacations PAYÉES
       const totalRevenue =
         bookings
-          ?.filter((b) => b.status === "completed" || b.status === "confirmed")
+          ?.filter((b) => 
+            (b.status === "completed" || b.status === "confirmed") &&
+            b.payment_status === "paid"  // 🎯 Seulement si payé !
+          )
           .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
 
       const monthlyRevenue =
@@ -105,6 +109,7 @@ const MyBookings = () => {
           ?.filter(
             (b) =>
               (b.status === "completed" || b.status === "confirmed") &&
+              b.payment_status === "paid" &&  // 🎯 Seulement si payé !
               new Date(b.created_at) >= startOfMonth
           )
           .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
@@ -319,7 +324,7 @@ const MyBookings = () => {
                     </p>
                     <p className="text-xs text-blue-700 flex items-center">
                       <TrendingUp className="w-3 h-3 mr-1" />
-                      Total: {stats.totalRevenue.toFixed(0)}€
+                      Total payé: {stats.totalRevenue.toFixed(0)}€
                     </p>
                   </div>
                   <div className="bg-blue-600 p-3 rounded-xl">

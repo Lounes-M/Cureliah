@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Search,
@@ -23,15 +23,17 @@ import {
   Phone,
   Mail,
   Eye,
-  BookOpen,
   AlertCircle,
   CheckCircle2,
-  Building,
   Send,
   TrendingUp,
   Award,
-  Target,
-  Zap
+  Zap,
+  Euro,
+  Activity,
+  Sparkles,
+  FileText,
+  Building2
 } from "lucide-react";
 import Header from '@/components/Header';
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +62,8 @@ interface VacationWithDoctor {
     experience_years?: number;
     bio?: string;
     license_number?: string;
+    education?: string[];
+    languages?: string[];
   };
   reviews_aggregate?: {
     avg_rating: number;
@@ -86,7 +90,32 @@ interface BookingRequest {
   duration_hours: number;
 }
 
-// Mapping des spécialités anglais -> français
+interface VacationDetails {
+  id: string;
+  title: string;
+  description: string;
+  speciality: string;
+  location: string;
+  requirements: string;
+  act_type: string;
+  hourly_rate: number;
+  start_date: string;
+  end_date: string;
+  status: string;
+  doctor_profiles: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    speciality: string;
+    avatar_url: string;
+    bio: string;
+    experience_years: number;
+    license_number: string;
+    education: string[];
+    languages: string[];
+  };
+}
+
 const specialityMapping: Record<string, string> = {
   'orthopedics': 'Orthopédie',
   'cardiology': 'Cardiologie',
@@ -108,9 +137,33 @@ const specialityMapping: Record<string, string> = {
   'general_medicine': 'Médecine générale'
 };
 
-// Fonction pour traduire les spécialités
 const translateSpeciality = (speciality: string): string => {
   return specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
+};
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+  return date.toLocaleDateString('fr-FR', options);
+};
+
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+};
+
+const calculateDuration = (startDate: string, endDate: string) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const durationMs = end.getTime() - start.getTime();
+  const hours = Math.floor(durationMs / (1000 * 60 * 60));
+  const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h${minutes > 0 ? ` ${minutes}min` : ''}`;
 };
 
 const EstablishmentSearch = () => {
@@ -121,7 +174,6 @@ const EstablishmentSearch = () => {
   const [vacations, setVacations] = useState<VacationWithDoctor[]>([]);
   const [filteredVacations, setFilteredVacations] = useState<VacationWithDoctor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -137,6 +189,11 @@ const EstablishmentSearch = () => {
     duration_hours: 1
   });
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Modal de détails de vacation
+  const [showVacationModal, setShowVacationModal] = useState(false);
+  const [vacationDetails, setVacationDetails] = useState<VacationDetails | null>(null);
+  const [loadingVacationDetails, setLoadingVacationDetails] = useState(false);
   
   const [filters, setFilters] = useState<SearchFilters>({
     location: '',
@@ -183,6 +240,123 @@ const EstablishmentSearch = () => {
     'Autre'
   ];
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "available":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "confirmed":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "available":
+        return "Disponible";
+      case "pending":
+        return "En attente";
+      case "confirmed":
+        return "Confirmée";
+      case "cancelled":
+        return "Annulée";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "available":
+        return <CheckCircle2 className="w-4 h-4" />;
+      case "pending":
+        return <AlertCircle className="w-4 h-4" />;
+      case "confirmed":
+        return <CheckCircle2 className="w-4 h-4" />;
+      case "cancelled":
+        return <X className="w-4 h-4" />;
+      default:
+        return <AlertCircle className="w-4 h-4" />;
+    }
+  };
+
+  const getActTypeDisplay = (actType: string) => {
+    switch (actType) {
+      case "consultation":
+        return { icon: "🩺", label: "Consultation" };
+      case "urgence":
+        return { icon: "🚨", label: "Urgence" };
+      case "visite":
+        return { icon: "🏠", label: "Visite à domicile" };
+      case "teleconsultation":
+        return { icon: "💻", label: "Téléconsultation" };
+      default:
+        return { icon: "🩺", label: actType.charAt(0).toUpperCase() + actType.slice(1) };
+    }
+  };
+
+  const fetchVacationDetails = async (vacationId: string) => {
+    setLoadingVacationDetails(true);
+    try {
+      const { data, error } = await supabase
+        .from("vacation_posts")
+        .select(`
+          id,
+          title,
+          description,
+          speciality,
+          location,
+          requirements,
+          act_type,
+          hourly_rate,
+          start_date,
+          end_date,
+          status,
+          doctor_profiles!inner (
+            id,
+            first_name,
+            last_name,
+            speciality,
+            avatar_url,
+            bio,
+            experience_years,
+            license_number,
+            education,
+            languages
+          )
+        `)
+        .eq("id", vacationId)
+        .single();
+
+      if (error) throw error;
+      setVacationDetails(data);
+    } catch (error) {
+      console.error("Error fetching vacation details:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les détails de la vacation",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingVacationDetails(false);
+    }
+  };
+
+  const handleVacationDetailsClick = (vacationId: string) => {
+    setShowVacationModal(true);
+    fetchVacationDetails(vacationId);
+  };
+
+  const handleCloseVacationModal = () => {
+    setShowVacationModal(false);
+    setVacationDetails(null);
+  };
+
   useEffect(() => {
     loadVacations();
   }, []);
@@ -217,7 +391,6 @@ const EstablishmentSearch = () => {
 
       if (error) throw error;
 
-      // Charger les reviews pour chaque médecin
       const vacationsWithRatings = await Promise.all(
         (data || []).map(async (vacation) => {
           const { data: reviewsData, error: reviewsError } = await supabase
@@ -236,12 +409,6 @@ const EstablishmentSearch = () => {
             reviews_aggregate = {
               avg_rating: totalRating / reviewsData.length,
               count: reviewsData.length
-            };
-          } else {
-            // Pas de reviews encore
-            reviews_aggregate = {
-              avg_rating: 0,
-              count: 0
             };
           }
 
@@ -269,7 +436,6 @@ const EstablishmentSearch = () => {
     try {
       let filtered = [...vacations];
 
-      // Recherche textuelle
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
         filtered = filtered.filter(vacation =>
@@ -282,7 +448,6 @@ const EstablishmentSearch = () => {
         );
       }
 
-      // Filtres
       if (filters.location) {
         filtered = filtered.filter(vacation =>
           vacation.location?.toLowerCase().includes(filters.location.toLowerCase())
@@ -363,7 +528,6 @@ const EstablishmentSearch = () => {
       return;
     }
 
-    // Vérifier le type d'utilisateur - soit depuis user.user_type soit depuis user.profile.user_type
     const userType = user.user_type || user.profile?.user_type;
     
     if (userType !== 'establishment') {
@@ -390,7 +554,6 @@ const EstablishmentSearch = () => {
     try {
       setSubmittingBooking(true);
 
-      // Vérifier si une demande existe déjà
       const { data: existingBooking } = await supabase
         .from('vacation_bookings')
         .select('id')
@@ -407,10 +570,8 @@ const EstablishmentSearch = () => {
         return;
       }
 
-      // Calculer le montant estimé
       const estimatedAmount = selectedVacation.hourly_rate * bookingRequest.duration_hours;
 
-      // Créer la demande de réservation
       const { error } = await supabase
         .from('vacation_bookings')
         .insert([
@@ -454,7 +615,7 @@ const EstablishmentSearch = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDateShort = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -462,29 +623,11 @@ const EstablishmentSearch = () => {
     });
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTimeShort = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString('fr-FR', {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'high': return 'bg-red-100 text-red-700 border-red-200';
-      case 'medium': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'low': return 'bg-green-100 text-green-700 border-green-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
-
-  const getUrgencyLabel = (urgency: string) => {
-    switch (urgency) {
-      case 'high': return 'Urgent';
-      case 'medium': return 'Normal';
-      case 'low': return 'Faible';
-      default: return 'Normal';
-    }
   };
 
   if (loading) {
@@ -507,7 +650,7 @@ const EstablishmentSearch = () => {
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* En-tête avec gradient */}
+        {/* En-tête */}
         <div className="mb-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
             <Search className="w-8 h-8 text-white" />
@@ -520,7 +663,7 @@ const EstablishmentSearch = () => {
           </p>
         </div>
 
-        {/* Barre de recherche principale avec style moderne */}
+        {/* Barre de recherche */}
         <Card className="mb-8 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardContent className="p-8">
             <div className="flex flex-col lg:flex-row gap-6">
@@ -559,7 +702,7 @@ const EstablishmentSearch = () => {
           </CardContent>
         </Card>
 
-        {/* Filtres avancés avec style amélioré */}
+        {/* Filtres avancés */}
         {showFilters && (
           <Card className="mb-8 shadow-lg border-0 bg-white/90 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
@@ -576,102 +719,64 @@ const EstablishmentSearch = () => {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     📍 Localisation
                   </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="location"
-                      placeholder="Paris, Lyon, Marseille..."
-                      value={filters.location}
-                      onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                      className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500"
-                    />
-                    {filters.location && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFilters(prev => ({ ...prev, location: '' }))}
-                        className="px-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  <Input
+                    placeholder="Paris, Lyon, Marseille..."
+                    value={filters.location}
+                    onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
+                    className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="speciality" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     🩺 Spécialité
                   </Label>
-                  <div className="flex gap-2">
-                    <Select 
-                      value={filters.speciality || undefined} 
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, speciality: value || '' }))}
-                    >
-                      <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
-                        <SelectValue placeholder="Toutes les spécialités" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {specialities.map(speciality => (
-                          <SelectItem key={speciality} value={speciality}>
-                            {speciality}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {filters.speciality && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFilters(prev => ({ ...prev, speciality: '' }))}
-                        className="px-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  <Select 
+                    value={filters.speciality || undefined} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, speciality: value || '' }))}
+                  >
+                    <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
+                      <SelectValue placeholder="Toutes les spécialités" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {specialities.map(speciality => (
+                        <SelectItem key={speciality} value={speciality}>
+                          {speciality}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="act_type" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     ⚕️ Type d'acte
                   </Label>
-                  <div className="flex gap-2">
-                    <Select 
-                      value={filters.act_type || undefined} 
-                      onValueChange={(value) => setFilters(prev => ({ ...prev, act_type: value || '' }))}
-                    >
-                      <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
-                        <SelectValue placeholder="Tous les types" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {actTypes.map(type => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {filters.act_type && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setFilters(prev => ({ ...prev, act_type: '' }))}
-                        className="px-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  <Select 
+                    value={filters.act_type || undefined} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, act_type: value || '' }))}
+                  >
+                    <SelectTrigger className="rounded-lg border-gray-200 focus:ring-2 focus:ring-blue-500">
+                      <SelectValue placeholder="Tous les types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {actTypes.map(type => (
+                        <SelectItem key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="min_rate" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     💰 Tarif minimum (€/h)
                   </Label>
                   <Input
-                    id="min_rate"
                     type="number"
                     placeholder="0"
                     value={filters.min_rate}
@@ -681,11 +786,10 @@ const EstablishmentSearch = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="max_rate" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     💰 Tarif maximum (€/h)
                   </Label>
                   <Input
-                    id="max_rate"
                     type="number"
                     placeholder="1000"
                     value={filters.max_rate}
@@ -695,11 +799,10 @@ const EstablishmentSearch = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="start_date" className="text-sm font-medium text-gray-700">
+                  <Label className="text-sm font-medium text-gray-700">
                     📅 À partir du
                   </Label>
                   <Input
-                    id="start_date"
                     type="date"
                     value={filters.start_date}
                     onChange={(e) => setFilters(prev => ({ ...prev, start_date: e.target.value }))}
@@ -711,7 +814,7 @@ const EstablishmentSearch = () => {
           </Card>
         )}
 
-        {/* Section résultats avec compteur stylé */}
+        {/* Résultats */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h2 className="text-2xl font-bold text-gray-900">
@@ -730,7 +833,7 @@ const EstablishmentSearch = () => {
           )}
         </div>
 
-        {/* Liste des vacations avec design amélioré */}
+        {/* Liste des vacations */}
         {filteredVacations.length === 0 ? (
           <Card className="shadow-lg border-0">
             <CardContent className="text-center py-16">
@@ -743,15 +846,6 @@ const EstablishmentSearch = () => {
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 Essayez de modifier vos critères de recherche ou d'élargir votre zone géographique
               </p>
-              <Button 
-                onClick={resetFilters} 
-                variant="outline"
-                size="lg"
-                className="rounded-lg"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Effacer tous les filtres
-              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -771,11 +865,11 @@ const EstablishmentSearch = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-green-500" />
-                          <span>{formatDate(vacation.start_date)}</span>
+                          <span>{formatDateShort(vacation.start_date)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-orange-500" />
-                          <span>{formatTime(vacation.start_date)}</span>
+                          <span>{formatTimeShort(vacation.start_date)}</span>
                         </div>
                       </div>
                     </div>
@@ -788,10 +882,9 @@ const EstablishmentSearch = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Description */}
                   <p className="text-gray-700 leading-relaxed">{vacation.description}</p>
 
-                  {/* Profil médecin avec avatar */}
+                  {/* Profil médecin */}
                   <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
                     <Avatar className="h-14 w-14 ring-3 ring-white shadow-md">
                       <AvatarImage src={vacation.doctor_profiles.avatar_url} />
@@ -841,7 +934,7 @@ const EstablishmentSearch = () => {
                     )}
                   </div>
 
-                  {/* Badges avec couleurs */}
+                  {/* Badges */}
                   <div className="flex flex-wrap gap-2">
                     <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 capitalize">
                       {vacation.act_type}
@@ -851,7 +944,7 @@ const EstablishmentSearch = () => {
                     </Badge>
                   </div>
 
-                  {/* Actions avec style moderne */}
+                  {/* Actions */}
                   <div className="flex gap-3 pt-2">
                     <Button 
                       onClick={() => handleBookingRequest(vacation)}
@@ -864,7 +957,7 @@ const EstablishmentSearch = () => {
                     <Button 
                       variant="outline"
                       size="lg"
-                      onClick={() => navigate(`/vacation/${vacation.id}`)}
+                      onClick={() => handleVacationDetailsClick(vacation.id)}
                       className="rounded-lg border-gray-200 hover:bg-gray-50 h-12 px-6"
                     >
                       <Eye className="h-4 w-4 mr-2" />
@@ -877,7 +970,7 @@ const EstablishmentSearch = () => {
           </div>
         )}
 
-        {/* Modal de demande avec style amélioré */}
+        {/* Modal de demande de réservation */}
         <Dialog open={bookingModalOpen} onOpenChange={setBookingModalOpen}>
           <DialogContent className="max-w-lg rounded-2xl">
             <DialogHeader className="text-center pb-4">
@@ -888,7 +981,7 @@ const EstablishmentSearch = () => {
             
             {selectedVacation && (
               <div className="space-y-6">
-                {/* Résumé de la vacation avec style */}
+                {/* Résumé de la vacation */}
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
                   <div className="flex items-center gap-3 mb-3">
                     <Avatar className="h-12 w-12 ring-2 ring-white shadow">
@@ -919,10 +1012,10 @@ const EstablishmentSearch = () => {
                   </div>
                 </div>
 
-                {/* Formulaire de demande avec style moderne */}
+                {/* Formulaire */}
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label htmlFor="urgency" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Zap className="w-4 h-4 text-orange-500" />
                       Niveau d'urgence
                     </Label>
@@ -935,26 +1028,19 @@ const EstablishmentSearch = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="low">
-                          Faible priorité
-                        </SelectItem>
-                        <SelectItem value="medium">
-                          Priorité normale
-                        </SelectItem>
-                        <SelectItem value="high">
-                          Priorité élevée
-                        </SelectItem>
+                        <SelectItem value="low">Faible priorité</SelectItem>
+                        <SelectItem value="medium">Priorité normale</SelectItem>
+                        <SelectItem value="high">Priorité élevée</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="preferred_start_time" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-500" />
                       Date et heure souhaitées
                     </Label>
                     <Input
-                      id="preferred_start_time"
                       type="datetime-local"
                       value={bookingRequest.preferred_start_time}
                       onChange={(e) => setBookingRequest(prev => ({ ...prev, preferred_start_time: e.target.value }))}
@@ -963,12 +1049,11 @@ const EstablishmentSearch = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="duration_hours" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Clock className="w-4 h-4 text-green-500" />
                       Durée estimée (heures)
                     </Label>
                     <Input
-                      id="duration_hours"
                       type="number"
                       min="0.5"
                       step="0.5"
@@ -979,12 +1064,11 @@ const EstablishmentSearch = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="contact_phone" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Phone className="w-4 h-4 text-purple-500" />
                       Téléphone de contact
                     </Label>
                     <Input
-                      id="contact_phone"
                       type="tel"
                       placeholder="06 12 34 56 78"
                       value={bookingRequest.contact_phone}
@@ -994,12 +1078,11 @@ const EstablishmentSearch = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="message" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Mail className="w-4 h-4 text-indigo-500" />
                       Message (facultatif)
                     </Label>
                     <Textarea
-                      id="message"
                       placeholder="Décrivez vos besoins spécifiques, le contexte de l'intervention..."
                       rows={3}
                       value={bookingRequest.message}
@@ -1008,7 +1091,7 @@ const EstablishmentSearch = () => {
                     />
                   </div>
 
-                  {/* Estimation du coût avec design amélioré */}
+                  {/* Estimation du coût */}
                   <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1049,12 +1132,274 @@ const EstablishmentSearch = () => {
                   </>
                 ) : (
                   <>
-                    <Send className="h-4 w-4 mr-2" />
+                    <Send className="h-4 h-4 mr-2" />
                     Envoyer la demande
                   </>
                 )}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de détails de vacation */}
+        <Dialog open={showVacationModal} onOpenChange={handleCloseVacationModal}>
+          <DialogContent className="max-w-4xl bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-blue-600 bg-clip-text text-transparent">
+                Détails de la vacation
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                Informations complètes sur cette vacation médicale
+              </DialogDescription>
+            </DialogHeader>
+
+            {loadingVacationDetails ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-xl border border-white/20">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-700 font-semibold text-lg">Chargement...</span>
+                </div>
+              </div>
+            ) : vacationDetails ? (
+              <div className="py-6 space-y-8">
+                {/* En-tête */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg">
+                        ✅
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                          {vacationDetails.title}
+                        </h3>
+                        <div className="flex items-center gap-4">
+                          <Badge className={`${getStatusColor(vacationDetails.status)} border`}>
+                            {getStatusIcon(vacationDetails.status)}
+                            <span className="ml-2">{getStatusLabel(vacationDetails.status)}</span>
+                          </Badge>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Calendar className="w-4 h-4" />
+                            <span className="font-medium">
+                              {formatDate(vacationDetails.start_date)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Clock className="w-4 h-4" />
+                            <span className="font-medium">
+                              {formatTime(vacationDetails.start_date)} - {formatTime(vacationDetails.end_date)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-emerald-600 mb-1">
+                        {vacationDetails.hourly_rate}€
+                      </div>
+                      <div className="text-sm text-gray-600">Par heure</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informations du médecin */}
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5 text-purple-500" />
+                    Médecin en charge
+                  </h4>
+                  
+                  <div className="flex items-start gap-6">
+                    <Avatar className="h-20 w-20 ring-4 ring-white shadow-lg">
+                      <AvatarImage src={vacationDetails.doctor_profiles.avatar_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-xl">
+                        {vacationDetails.doctor_profiles.first_name[0]}
+                        {vacationDetails.doctor_profiles.last_name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-3">
+                        <h5 className="text-xl font-bold text-gray-900">
+                          Dr {vacationDetails.doctor_profiles.first_name} {vacationDetails.doctor_profiles.last_name}
+                        </h5>
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                          {translateSpeciality(vacationDetails.doctor_profiles.speciality)}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        {vacationDetails.doctor_profiles.experience_years && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Star className="w-4 h-4 text-yellow-500" />
+                            <span>{vacationDetails.doctor_profiles.experience_years} ans d'expérience</span>
+                          </div>
+                        )}
+                        
+                        {vacationDetails.doctor_profiles.license_number && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FileText className="w-4 h-4 text-blue-500" />
+                            <span>N° licence: {vacationDetails.doctor_profiles.license_number}</span>
+                          </div>
+                        )}
+                        
+                        {vacationDetails.doctor_profiles.languages && vacationDetails.doctor_profiles.languages.length > 0 && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <User className="w-4 h-4 text-green-500" />
+                            <span>Langues: {vacationDetails.doctor_profiles.languages.join(', ')}</span>
+                          </div>
+                        )}
+                        
+                        {vacationDetails.doctor_profiles.education && vacationDetails.doctor_profiles.education.length > 0 && (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Star className="w-4 h-4 text-purple-500" />
+                            <span>Formation: {vacationDetails.doctor_profiles.education[0]}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {vacationDetails.doctor_profiles.bio && (
+                        <div className="bg-white/80 rounded-xl p-4 border border-white/50">
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {vacationDetails.doctor_profiles.bio}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Détails de la vacation */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Stethoscope className="w-5 h-5 text-blue-500" />
+                        <span className="font-semibold text-gray-700">Spécialité</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {translateSpeciality(vacationDetails.speciality)}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Activity className="w-5 h-5 text-purple-500" />
+                        <span className="font-semibold text-gray-700">Type d'acte</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {getActTypeDisplay(vacationDetails.act_type).icon} {getActTypeDisplay(vacationDetails.act_type).label}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <MapPin className="w-5 h-5 text-emerald-500" />
+                        <span className="font-semibold text-gray-700">Localisation</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        📍 {vacationDetails.location}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Euro className="w-5 h-5 text-amber-500" />
+                        <span className="font-semibold text-gray-700">Tarif horaire</span>
+                      </div>
+                      <p className="text-2xl font-bold text-amber-600">
+                        {vacationDetails.hourly_rate}€/h
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Clock className="w-5 h-5 text-blue-500" />
+                        <span className="font-semibold text-gray-700">Durée</span>
+                      </div>
+                      <p className="text-gray-800 font-medium">
+                        {calculateDuration(vacationDetails.start_date, vacationDetails.end_date)}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Building2 className="w-5 h-5 text-indigo-500" />
+                        <span className="font-semibold text-gray-700">Référence</span>
+                      </div>
+                      <p className="text-gray-800 font-medium font-mono">
+                        #{vacationDetails.id.slice(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description et exigences */}
+                {(vacationDetails.description || vacationDetails.requirements) && (
+                  <div className="space-y-4">
+                    {vacationDetails.description && (
+                      <div className="bg-white/80 rounded-xl p-6 border border-white/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Sparkles className="w-5 h-5 text-indigo-500" />
+                          <span className="font-semibold text-gray-700 text-lg">Description</span>
+                        </div>
+                        <p className="text-gray-800 leading-relaxed">
+                          {vacationDetails.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {vacationDetails.requirements && (
+                      <div className="bg-white/80 rounded-xl p-6 border border-white/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <FileText className="w-5 h-5 text-rose-500" />
+                          <span className="font-semibold text-gray-700 text-lg">Exigences et prérequis</span>
+                        </div>
+                        <p className="text-gray-800 leading-relaxed">
+                          {vacationDetails.requirements}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                  <Button
+                    variant="outline"
+                    onClick={handleCloseVacationModal}
+                    className="px-6 py-3 border-gray-200 hover:bg-gray-50 transition-all duration-300"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Fermer
+                  </Button>
+                  
+                  {vacationDetails.status === "available" && (
+                    <Button 
+                      onClick={() => {
+                        handleCloseVacationModal();
+                        const vacation = filteredVacations.find(v => v.id === vacationDetails.id);
+                        if (vacation) {
+                          handleBookingRequest(vacation);
+                        }
+                      }}
+                      className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-lg hover:shadow-blue-200 transition-all duration-300"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Faire une demande
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Vacation non trouvée</p>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
