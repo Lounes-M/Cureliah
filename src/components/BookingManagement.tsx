@@ -329,20 +329,21 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
       if (error) throw error;
 
       toast({
-        title: "Succès",
-        description: "Statut de la réservation mis à jour"
+        title: 'Succès',
+        description: `Statut de la réservation mis à jour : ${getStatusBadge(newStatus)}`
       });
 
       fetchBookings();
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la mise à jour du statut",
-        variant: "destructive"
+        title: 'Erreur',
+        description: error.message || `Erreur lors de la mise à jour du statut (${newStatus})`,
+        variant: 'destructive'
       });
     }
   };
 
+  // Badge de statut de réservation
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { label: 'En attente', className: 'bg-yellow-100 text-yellow-800' },
@@ -351,7 +352,6 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
       cancelled: { label: 'Annulée', className: 'bg-red-100 text-red-800' },
       rejected: { label: 'Rejetée', className: 'bg-red-100 text-red-800' }
     };
-
     const config = statusConfig[status as keyof typeof statusConfig] || { label: status, className: 'bg-gray-100 text-gray-800' };
     return <Badge className={config.className}>{config.label}</Badge>;
   };
@@ -468,39 +468,36 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
             const isExpanded = expandedCards.has(booking.id);
             
             return (
-              <Card key={booking.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-lg">
-                        {getEstablishmentTypeIcon(booking.establishment_info?.establishment_type || '')}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {booking.establishment_info?.name || 'Établissement inconnu'}
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-4">
-                          <span>{getEstablishmentTypeLabel(booking.establishment_info?.establishment_type || '')} - {booking.establishment_info?.city}</span>
-                          {booking.urgency && getUrgencyBadge(booking.urgency)}
-                        </CardDescription>
-                      </div>
+              <Card key={booking.id} className="mb-4">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base font-semibold">
+                      {booking.vacation_post?.title || 'Vacation'}
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      {getStatusBadge(booking.status)}
+                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+                        <Badge className={getPaymentStatusColor(booking.payment_status, booking.status) + ' border'}>
+                          {getPaymentStatusText(booking.payment_status, booking.status)}
+                        </Badge>
+                      )}
+                    </CardDescription>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex flex-col items-end space-y-2">
+                      {/* Badge de statut de réservation */}
+                      {getStatusBadge(booking.status)}
+                      
+                      {/* Badge de statut de paiement */}
+                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
+                        <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
+                          {getPaymentStatusText(booking.payment_status, booking.status)}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <div className="flex flex-col items-end space-y-2">
-                        {/* Badge de statut de réservation */}
-                        {getStatusBadge(booking.status)}
-                        
-                        {/* Badge de statut de paiement */}
-                        {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-                          <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
-                            {getPaymentStatusText(booking.payment_status, booking.status)}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Créée le {formatDate(booking.created_at)}
-                      </p>
-                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Créée le {formatDate(booking.created_at)}
+                    </p>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -567,13 +564,26 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                           </>
                         )}
                         {booking.status === 'confirmed' && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleStatusUpdate(booking.id, 'completed')}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            Marquer comme terminé
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleStatusUpdate(booking.id, 'completed')}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Marquer comme terminé
+                            </Button>
+
+                            {/* Paiement */}
+                            {booking.status === 'confirmed' && booking.payment_status !== 'paid' && (
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => window.open(`/payment/${booking.id}`, '_blank')}
+                              >
+                                Régler cette réservation
+                              </Button>
+                            )}
+                          </>
                         )}
                         <Button
                           size="sm"

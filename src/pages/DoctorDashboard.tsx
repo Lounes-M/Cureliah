@@ -136,6 +136,10 @@ const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [doctorProfileFromDB, setDoctorProfileFromDB] = useState<DoctorProfileFromDB | null>(null);
 
+  // Ajout du statut d'abonnement
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'inactive' | 'canceled' | 'trialing' | 'past_due' | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+
   // Fonction pour obtenir la spécialité traduite
   const getTranslatedSpecialty = () => {
     // Priorité : profil de la DB > profil du hook useAuth > défaut
@@ -180,6 +184,24 @@ const DoctorDashboard = () => {
   useEffect(() => {
     console.log("🔄 doctorProfileFromDB a changé:", doctorProfileFromDB);
   }, [doctorProfileFromDB]);
+
+  // Vérification du statut d'abonnement
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user?.id) return;
+      setSubscriptionLoading(true);
+      const { data, error } = await supabase.functions.invoke('get-subscription-status', {
+        body: { userId: user.id },
+      });
+      if (!error && data?.status) {
+        setSubscriptionStatus(data.status);
+      } else {
+        setSubscriptionStatus(null);
+      }
+      setSubscriptionLoading(false);
+    };
+    fetchSubscription();
+  }, [user?.id]);
 
   const loadDashboardData = async () => {
     if (!user?.id) return;

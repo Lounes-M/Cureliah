@@ -27,6 +27,8 @@ import VerifyEmail from "./pages/VerifyEmail";
 import AccountActivation from "@/pages/AccountActivation";
 import LegalPage from "@/pages/LegalPage";
 import Contact from "@/pages/Contact"; // 👈 Ajout de la page de contact
+import PaymentCheckout from "./pages/PaymentCheckout";
+import Subscribe from "./pages/Subscribe";
 
 // Hook personnalisé pour vérifier le profil complet
 const useProfileComplete = (user) => {
@@ -128,13 +130,15 @@ const ProtectedRoute = ({
   requireVerified = true,
   requireActive = true,
   requireComplete = false,
+  requireSubscription = false, // Ajout pour la protection abonnement
 }) => {
-  const { user, loading, getDashboardRoute } = useAuth();
+  const { user, loading, getDashboardRoute, isSubscribed, subscriptionLoading } = useAuth();
   const { isComplete: profileComplete, loading: profileLoading } =
     useProfileComplete(user);
+  const location = window.location.pathname;
 
   // Affichage du loader pendant le chargement
-  if (loading || (requireComplete && profileLoading)) {
+  if (loading || (requireComplete && profileLoading) || (requireSubscription && subscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-emerald-50">
         <div className="text-center">
@@ -171,8 +175,18 @@ const ProtectedRoute = ({
 
   // Vérification du profil complet
   if (requireComplete && !profileComplete) {
-    console.log("❌ Profile not complete, redirecting to /profile/complete");
     return <Navigate to="/profile/complete" replace />;
+  }
+
+  // Protection stricte par abonnement (pour les médecins)
+  if (
+    requireSubscription &&
+    user.user_type === 'doctor' &&
+    !isSubscribed() &&
+    location !== '/subscribe' &&
+    location !== '/profile/complete'
+  ) {
+    return <Navigate to="/subscribe" replace />;
   }
 
   return children;
@@ -270,7 +284,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/dashboard"
         element={
-          <ProtectedRoute requiredUserType="doctor">
+          <ProtectedRoute requiredUserType="doctor" requireSubscription={true}>
             <DoctorDashboard />
           </ProtectedRoute>
         }
@@ -278,7 +292,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/create-vacation"
         element={
-          <ProtectedRoute requiredUserType="doctor" requireComplete={true}>
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
             <CreateVacation />
           </ProtectedRoute>
         }
@@ -286,7 +300,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/manage-vacations"
         element={
-          <ProtectedRoute requiredUserType="doctor" requireComplete={true}>
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
             <ManageVacations />
           </ProtectedRoute>
         }
@@ -294,7 +308,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/vacation/:vacationId"
         element={
-          <ProtectedRoute requiredUserType="doctor">
+          <ProtectedRoute requiredUserType="doctor" requireSubscription={true}>
             <VacationDetails />
           </ProtectedRoute>
         }
@@ -302,7 +316,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/vacation/:vacationId/edit"
         element={
-          <ProtectedRoute requiredUserType="doctor" requireComplete={true}>
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
             <CreateVacation />
           </ProtectedRoute>
         }
@@ -397,6 +411,25 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Page de paiement dédiée */}
+      <Route
+        path="/payment/:bookingId"
+        element={
+          <ProtectedRoute>
+            <PaymentCheckout />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Page d'abonnement */}
+      <Route
+        path="/subscribe"
+        element={
+          <ProtectedRoute requiredUserType="doctor">
+            <Subscribe />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Routes admin */}
       <Route
@@ -413,3 +446,5 @@ export default function AppRoutes() {
     </Routes>
   );
 }
+
+export { ProtectedRoute };

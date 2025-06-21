@@ -55,6 +55,7 @@ const EstablishmentProfile = () => {
     postal_code: '',
     siret: ''
   });
+  const [bookings, setBookings] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user || !profile) {
@@ -113,23 +114,31 @@ const EstablishmentProfile = () => {
     if (!user) return;
 
     try {
-      const { data: bookings, error } = await supabase
+      const { data: bookingsData, error } = await supabase
         .from('vacation_bookings')
-        .select('status, total_amount')
-        .eq('establishment_id', user.id);
+        .select('id, status, total_amount, start_date, end_date, payment_status, vacation_title')
+        .eq('establishment_id', user.id)
+        .order('start_date', { ascending: false });
 
       if (error) throw error;
 
+      setBookings(bookingsData || []);
+
       const stats = {
-        totalBookings: bookings?.length || 0,
-        activeBookings: bookings?.filter(b => b.status === 'booked').length || 0,
-        completedBookings: bookings?.filter(b => b.status === 'completed').length || 0,
-        totalSpent: bookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0
+        totalBookings: bookingsData?.length || 0,
+        activeBookings: bookingsData?.filter(b => b.status === 'booked').length || 0,
+        completedBookings: bookingsData?.filter(b => b.status === 'completed').length || 0,
+        totalSpent: bookingsData?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0
       };
 
       setStats(stats);
     } catch (error: any) {
       console.error('Error fetching stats:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les réservations",
+        variant: "destructive"
+      });
     }
   };
 
@@ -403,6 +412,62 @@ const EstablishmentProfile = () => {
                   Le SIRET est requis pour la vérification de votre établissement
                 </p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Réservations récentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Réservations récentes</CardTitle>
+              <CardDescription>
+                Historique des dernières réservations de l’établissement
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {bookings.length === 0 ? (
+                <div className="text-gray-500">Aucune réservation pour le moment.</div>
+              ) : (
+                <div className="space-y-2">
+                  {bookings.slice(0, 5).map((booking) => (
+                    <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between border-b py-2 gap-2">
+                      <div>
+                        <div className="font-medium">{booking.vacation_title || 'Vacance'}</div>
+                        <div className="text-xs text-gray-500">
+                          {booking.start_date ? new Date(booking.start_date).toLocaleDateString('fr-FR') : ''}
+                          {booking.end_date ? ' - ' + new Date(booking.end_date).toLocaleDateString('fr-FR') : ''}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={
+                          booking.status === 'booked' ? 'bg-blue-100 text-blue-800' :
+                          booking.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }>
+                          {booking.status === 'booked' ? 'Active' :
+                           booking.status === 'completed' ? 'Terminée' :
+                           booking.status === 'pending' ? 'En attente' :
+                           booking.status === 'cancelled' ? 'Annulée' :
+                           booking.status}
+                        </Badge>
+                        {['booked','completed'].includes(booking.status) && (
+                          <Badge className={
+                            booking.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                            booking.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {booking.payment_status === 'paid' ? 'Payé' :
+                             booking.payment_status === 'pending' ? 'En attente paiement' :
+                             'Non payé'}
+                          </Badge>
+                        )}
+                        <span className="text-xs text-gray-500">{booking.total_amount}€</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -334,7 +334,22 @@ const EstablishmentSearch = () => {
         .single();
 
       if (error) throw error;
-      setVacationDetails(data);
+      // Mapping explicite pour correspondre à VacationDetails
+      const mapped: VacationDetails = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        speciality: data.speciality,
+        location: data.location,
+        requirements: data.requirements,
+        act_type: data.act_type,
+        hourly_rate: data.hourly_rate,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        status: data.status,
+        doctor_profiles: Array.isArray(data.doctor_profiles) ? data.doctor_profiles[0] : data.doctor_profiles,
+      };
+      setVacationDetails(mapped);
     } catch (error) {
       console.error("Error fetching vacation details:", error);
       toast({

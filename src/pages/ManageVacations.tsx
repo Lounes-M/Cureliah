@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,8 @@ const ManageVacations = () => {
     pendingRequests: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [vacations, setVacations] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!user || profile?.user_type !== "doctor") {
@@ -52,6 +54,17 @@ const ManageVacations = () => {
     }
     fetchStats();
   }, [user, profile, navigate]);
+
+  // Charger toutes les vacations du médecin
+  const fetchVacations = useCallback(async () => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("vacation_posts")
+      .select("*")
+      .eq("doctor_id", user.id)
+      .order("created_at", { ascending: false });
+    if (!error && data) setVacations(data);
+  }, [user]);
 
   const fetchStats = async () => {
     if (!user) return;
@@ -83,6 +96,18 @@ const ManageVacations = () => {
 
       if (vacationsError) throw vacationsError;
 
+      let pendingRequests = 0;
+      if (vacations && vacations.length > 0) {
+        const vacationIds = vacations.map((v: any) => v.id);
+        // Récupérer le nombre de bookings en attente pour ces vacations
+        const { data: bookings, error: bookingsError } = await supabase
+          .from("bookings")
+          .select("id, status, vacation_post_id")
+          .in("vacation_post_id", vacationIds);
+        if (bookingsError) throw bookingsError;
+        pendingRequests = (bookings || []).filter((b: any) => b.status === "pending").length;
+      }
+
       if (vacations) {
         const now = new Date();
         const totalVacations = vacations.length;
@@ -112,7 +137,7 @@ const ManageVacations = () => {
           bookedSlots,
           totalEarnings,
           upcomingVacations,
-          pendingRequests: 0, // À implémenter plus tard
+          pendingRequests,
         });
       }
     } catch (error) {
@@ -142,6 +167,25 @@ const ManageVacations = () => {
     });
     fetchStats(); // Rafraîchir les stats
   };
+
+  // Suppression d'une vacation (brouillon ou autre)
+  const handleDeleteVacation = async (vacationId: string) => {
+    if (!window.confirm("Supprimer cette vacation ?")) return;
+    const { error } = await supabase
+      .from("vacation_posts")
+      .delete()
+      .eq("id", vacationId);
+    if (!error) {
+      setVacations((prev) => prev.filter((v) => v.id !== vacationId));
+      toast({ title: "Supprimé", description: "Vacation supprimée." });
+    } else {
+      toast({ title: "Erreur", description: "Suppression impossible.", variant: "destructive" });
+    }
+  };
+
+  useEffect(() => {
+    fetchVacations();
+  }, [fetchVacations]);
 
   if (!user || profile?.user_type !== "doctor") {
     return null;
@@ -357,6 +401,84 @@ const ManageVacations = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Liste des vacations */}
+        <div className="mt-12">
+          <h2 className="text-xl font-bold mb-4">Mes vacations</h2>
+          <div className="mb-4 flex gap-2 flex-wrap">
+            {["all", "draft", "available", "booked", "completed", "cancelled", "pending"].map((status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "default" : "outline"}
+                onClick={() => setStatusFilter(status)}
+                className="text-xs"
+              >
+                {status === "all" ? "Toutes" : status.charAt(0).toUpperCase() + status.slice(1)}
+              </Button>
+            ))}
+          </div>
+          <div className="space-y-2">
+            {vacations
+              .filter((v) => statusFilter === "all" || v.status === statusFilter)
+              .map((vacation) => (
+                <Card key={vacation.id} className="flex flex-col md:flex-row items-center justify-between p-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-base truncate">{vacation.title}</span>
+                      <Badge className={
+                        vacation.status === "draft"
+                          ? "bg-gray-100 text-gray-800"
+                          : vacation.status === "available"
+                          ? "bg-green-100 text-green-800"
+                          : vacation.status === "booked"
+                          ? "bg-blue-100 text-blue-800"
+                          : vacation.status === "completed"
+                          ? "bg-gray-100 text-gray-800"
+                          : vacation.status === "cancelled"
+                          ? "bg-red-100 text-red-800"
+                          : vacation.status === "pending"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                      }>
+                        {vacation.status === "draft"
+                          ? "Brouillon"
+                          : vacation.status === "available"
+                          ? "Disponible"
+                          : vacation.status === "booked"
+                          ? "Réservé"
+                          : vacation.status === "completed"
+                          ? "Terminé"
+                          : vacation.status === "cancelled"
+                          ? "Annulé"
+                          : vacation.status === "pending"
+                          ? "En attente"
+                          : "Non spécifié"}
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {vacation.start_date} → {vacation.end_date}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-2 md:mt-0">
+                    <Button size="sm" onClick={() => navigate(`/doctor/vacation/${vacation.id}`)}>
+                      Voir
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => navigate(`/doctor/vacation/${vacation.id}/edit`)}>
+                      Éditer
+                    </Button>
+                    {vacation.status === "draft" && (
+                      <Button size="sm" variant="destructive" onClick={() => handleDeleteVacation(vacation.id)}>
+                        Supprimer
+                      </Button>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            {vacations.filter((v) => statusFilter === "all" || v.status === statusFilter).length === 0 && (
+              <div className="text-center text-gray-400 py-8">Aucune vacation</div>
+            )}
+          </div>
         </div>
       </div>
     </div>

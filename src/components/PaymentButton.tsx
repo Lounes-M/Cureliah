@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
@@ -11,9 +10,10 @@ interface PaymentButtonProps {
   disabled?: boolean;
   onSuccess?: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
-const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, className }: PaymentButtonProps) => {
+const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, className, children }: PaymentButtonProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -49,14 +49,15 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, classNa
     <Button
       onClick={handlePayment}
       disabled={disabled || loading}
-      className={className || "w-full bg-green-600 hover:bg-green-700"}
+      className={className}
     >
-      {loading ? (
-        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-      ) : (
-        <CreditCard className="w-4 h-4 mr-2" />
+      {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+      {children ?? (
+        <>
+          <CreditCard className="w-4 h-4 mr-2" />
+          Régler {amount}€
+        </>
       )}
-      {loading ? 'Traitement...' : `Payer ${amount}€`}
     </Button>
   );
 };

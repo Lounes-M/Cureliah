@@ -78,7 +78,7 @@ const pricingPlans = [
 ];
 
 // Composant PricingCard séparé pour une meilleure lisibilité
-function PricingCard({ plan, isYearly, isLoading }) {
+function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
   const currentPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
   const savings = isYearly
     ? Math.round(
@@ -178,37 +178,62 @@ function PricingCard({ plan, isYearly, isLoading }) {
       </CardContent>
 
       <CardFooter className="pt-6">
-        <Button
-          className={`
-            w-full h-12 font-semibold transition-all duration-200 transform hover:scale-105
-            ${plan.popular ? THEME_COLORS.primary : THEME_COLORS.secondary}
-            disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-          `}
-          disabled={isLoading}
-          asChild={!isLoading}
-          aria-label={`Choisir le plan ${plan.name} à ${currentPrice}€ par mois`}
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Chargement...
-            </span>
-          ) : (
-            <Link
-              to={`/auth?type=doctor&plan=${plan.id}`}
-              className="flex items-center justify-center gap-2"
-            >
-              <IconComponent className="w-4 h-4" />
-              {plan.cta}
-            </Link>
-          )}
-        </Button>
+        {onSubscribe ? (
+          <Button
+            className={`
+              w-full h-12 font-semibold transition-all duration-200 transform hover:scale-105
+              ${plan.popular ? THEME_COLORS.primary : THEME_COLORS.secondary}
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+            `}
+            disabled={isLoading}
+            onClick={() => onSubscribe(plan.id, isYearly)}
+            aria-label={`Choisir le plan ${plan.name} à ${currentPrice}€ par mois`}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Chargement...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                <IconComponent className="w-4 h-4" />
+                {plan.cta}
+              </span>
+            )}
+          </Button>
+        ) : (
+          <Button
+            className={`
+              w-full h-12 font-semibold transition-all duration-200 transform hover:scale-105
+              ${plan.popular ? THEME_COLORS.primary : THEME_COLORS.secondary}
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+            `}
+            disabled={isLoading}
+            asChild={!isLoading}
+            aria-label={`Choisir le plan ${plan.name} à ${currentPrice}€ par mois`}
+          >
+            {isLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Chargement...
+              </span>
+            ) : (
+              <Link
+                to={`/auth?type=doctor&plan=${plan.id}`}
+                className="flex items-center justify-center gap-2"
+              >
+                <IconComponent className="w-4 h-4" />
+                {plan.cta}
+              </Link>
+            )}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
 }
 
-export default function PricingSection() {
+export default function PricingSection({ onSubscribe, loading }) {
   const [isYearly, setIsYearly] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -302,7 +327,8 @@ export default function PricingSection() {
               key={plan.id}
               plan={plan}
               isYearly={isYearly}
-              isLoading={isLoading}
+              isLoading={loading || isLoading}
+              onSubscribe={onSubscribe}
             />
           ))}
         </div>

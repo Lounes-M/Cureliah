@@ -17,6 +17,7 @@ import {
   Heart,
   Euro,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const CTASection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -24,6 +25,7 @@ const CTASection = () => {
   const [hoveredButton, setHoveredButton] = useState(null);
   const [clickedButton, setClickedButton] = useState(null);
   const sectionRef = useRef(null);
+  const navigate = useNavigate();
 
   // Animation d'apparition
   useEffect(() => {
@@ -52,8 +54,14 @@ const CTASection = () => {
   }, [isVisible]);
 
   const trackEvent = (action, persona, section) => {
-    console.log(`Analytics: ${action} - ${persona} - ${section}`);
     // window.gtag?.('event', action, { persona, section: 'cta-section', value: section });
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', action, {
+        persona,
+        section: 'cta-section',
+        value: section
+      });
+    }
   };
 
   const handleClick = (onClick, persona, section) => {
@@ -64,23 +72,19 @@ const CTASection = () => {
   };
 
   const handleDoctorCTA = () => {
-    console.log("Navigation vers inscription médecin");
-    // window.location.href = "/auth?type=doctor&source=cta-section";
+    navigate("/auth?type=doctor&source=cta-section");
   };
 
   const handleEstablishmentCTA = () => {
-    console.log("Navigation vers inscription établissement");
-    // window.location.href = "/auth?type=establishment&source=cta-section";
+    navigate("/auth?type=establishment&source=cta-section");
   };
 
   const handleDemoRequest = () => {
-    console.log("Demande de démo");
-    // window.location.href = "/demo-request";
+    navigate("/demo-request");
   };
 
   const handleContactSales = () => {
-    console.log("Contact équipe commerciale");
-    // window.location.href = "/contact-sales";
+    navigate("/contact-sales");
   };
 
   // Données des étapes du processus
@@ -383,19 +387,22 @@ const CTASection = () => {
           `}
         >
           {processSteps.map((step, index) => (
-            <ProcessStep
-              key={index}
-              step={step}
-              index={index}
-              isActive={activeStep === index}
-            />
+            <div key={index}>
+              <ProcessStep
+                step={step}
+                index={index}
+                isActive={activeStep === index}
+              />
+            </div>
           ))}
         </div>
 
         {/* Avantages en badges */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-12 sm:mb-16">
           {mainBenefits.map((benefit, index) => (
-            <BenefitBadge key={index} benefit={benefit} index={index} />
+            <div key={index}>
+              <BenefitBadge benefit={benefit} index={index} />
+            </div>
           ))}
         </div>
 
@@ -533,3 +540,10 @@ const CTASection = () => {
 };
 
 export default CTASection;
+
+// Ajout pour TypeScript : déclaration de window.gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}

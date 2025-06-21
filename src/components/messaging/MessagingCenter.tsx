@@ -41,7 +41,9 @@ const MessagingCenter = ({
           id: autoOpenDoctorId,
           name: autoOpenDoctorName
         }],
-        bookingId: autoOpenBookingId || autoOpenDoctorId
+        bookingId: autoOpenBookingId || autoOpenDoctorId,
+        bookingStatus: 'pending', // valeur par défaut
+        isActive: true, // valeur par défaut
       };
       
       setSelectedConversation(autoConversation);

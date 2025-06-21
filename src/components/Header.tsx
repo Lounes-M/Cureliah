@@ -31,7 +31,13 @@ import { useToast } from "@/hooks/use-toast";
 import NotificationDropdown from "./NotificationDropdown";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import logoUrl from "/logo.png";
+// Utilisation d'un import dynamique compatible Vite, Jest et TypeScript
+let logoUrl: string;
+try {
+  logoUrl = require('../../public/logo.png');
+} catch {
+  logoUrl = '/logo.png';
+}
 
 const Header = () => {
   const { user, profile, signOut } = useAuth();
@@ -72,9 +78,20 @@ const Header = () => {
 
         if (!error && data) {
           setEstablishmentName(data.name);
+        } else if (error) {
+          toast({
+            title: "Erreur",
+            description: "Impossible de charger le nom de l'établissement.",
+            variant: "destructive"
+          });
         }
       } catch (error) {
         console.error("Error fetching establishment name:", error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors du chargement du nom de l'établissement.",
+          variant: "destructive"
+        });
       } finally {
         setEstablishmentLoading(false);
       }
@@ -100,6 +117,9 @@ const Header = () => {
   useEffect(() => {
     fetchEstablishmentName();
     fetchUnreadNotifications();
+    // Polling notifications toutes les 30s
+    const interval = setInterval(fetchUnreadNotifications, 30000);
+    return () => clearInterval(interval);
   }, [fetchEstablishmentName, fetchUnreadNotifications]);
 
   // Raccourci clavier pour ouvrir le menu utilisateur
@@ -178,6 +198,19 @@ const Header = () => {
     <>
       {user && profile ? (
         <>
+          {profile.user_type === "admin" && (
+            <Link
+              to="/admin"
+              className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
+                mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
+              } ${isActivePath('/admin') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+              onClick={onLinkClick}
+              aria-current={isActivePath('/admin') ? 'page' : undefined}
+            >
+              <LayoutDashboard className="w-4 h-4" aria-hidden="true" />
+              Admin
+            </Link>
+          )}
           {profile.user_type === "doctor" ? (
             <>
               <Link

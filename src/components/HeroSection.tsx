@@ -10,6 +10,7 @@ import {
   Shield,
   MapPin,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const [loading, setLoading] = useState(false);
@@ -18,6 +19,7 @@ const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [hoveredDay, setHoveredDay] = useState(null);
   const heroRef = useRef(null);
+  const navigate = useNavigate();
 
   // Simulation d'auth - à remplacer par votre hook réel
   const mockAuth = useMemo(
@@ -93,12 +95,12 @@ const HeroSection = () => {
         const userType = getUserType();
 
         if (userType === "doctor") {
-          console.log("Navigate to /doctor/dashboard");
+          navigate("/doctor/dashboard");
         } else {
-          console.log("Navigate to /establishment/dashboard");
+          navigate("/establishment/dashboard");
         }
       } else {
-        console.log("Navigate to /auth?type=doctor");
+        navigate("/auth?type=doctor");
       }
       setLoading(false);
     }, 800);
@@ -113,12 +115,12 @@ const HeroSection = () => {
         const userType = getUserType();
 
         if (userType === "establishment") {
-          console.log("Navigate to /establishment/dashboard");
+          navigate("/establishment/dashboard");
         } else {
-          console.log("Navigate to /doctor/dashboard");
+          navigate("/doctor/dashboard");
         }
       } else {
-        console.log("Navigate to /auth?type=establishment");
+        navigate("/auth?type=establishment");
       }
       setLoading(false);
     }, 800);

@@ -25,6 +25,8 @@ interface User {
     specialty?: string;
     establishment_name?: string;
     user_type?: "doctor" | "establishment" | "admin";
+    is_verified?: boolean;
+    is_active?: boolean;
   };
 }
 
@@ -50,6 +52,9 @@ interface AuthContextType {
   isEmailConfirmed: () => boolean;
   getDashboardRoute: () => string;
   redirectToDashboard: () => void;
+  isSubscribed: () => boolean;
+  subscriptionStatus: "active" | "inactive" | "canceled" | "trialing" | "past_due" | null;
+  subscriptionLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<
+    'active' | 'inactive' | 'canceled' | 'trialing' | 'past_due' | null
+  >(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
 
   // Variables pour éviter les hooks conditionnels
   let toast: any;
@@ -558,6 +567,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, fetchUserProfile, toast]
   );
 
+  // Récupération du statut d'abonnement pour les médecins
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user?.id || user.user_type !== 'doctor') {
+        setSubscriptionStatus(null);
+        return;
+      }
+      setSubscriptionLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('get-subscription-status', {
+          body: { userId: user.id },
+        });
+        if (!error && data?.status) {
+          setSubscriptionStatus(data.status);
+        } else {
+          setSubscriptionStatus(null);
+        }
+      } catch (e) {
+        setSubscriptionStatus(null);
+      } finally {
+        setSubscriptionLoading(false);
+      }
+    };
+    fetchSubscription();
+  }, [user?.id, user?.user_type]);
+
+  const isSubscribed = useCallback(() => {
+    // Seuls les médecins sont concernés par l'abonnement
+    if (user?.user_type !== 'doctor') return true;
+    return subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  }, [user, subscriptionStatus]);
+
   const isAdmin = useCallback(() => {
     return user?.user_type === "admin";
   }, [user]);
@@ -574,7 +615,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !!user?.email_confirmed_at;
   }, [user]);
 
-  const contextValue = useMemo<AuthContextType>(
+  const contextValue = useMemo<AuthContextType & {
+    isSubscribed: () => boolean;
+    subscriptionStatus: typeof subscriptionStatus;
+    subscriptionLoading: boolean;
+  }>(
     () => ({
       user,
       profile: user?.profile || null,
@@ -589,6 +634,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isEmailConfirmed,
       getDashboardRoute,
       redirectToDashboard,
+      isSubscribed,
+      subscriptionStatus,
+      subscriptionLoading,
     }),
     [
       user,
@@ -603,6 +651,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isEmailConfirmed,
       getDashboardRoute,
       redirectToDashboard,
+      isSubscribed,
+      subscriptionStatus,
+      subscriptionLoading,
     ]
   );
 
@@ -626,3 +677,5 @@ export function useAuth() {
   }
   return context;
 }
+
+export { AuthContext };
