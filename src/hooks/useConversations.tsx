@@ -16,15 +16,15 @@ export interface Conversation {
   unreadCount: number;
   participants: ConversationParticipant[];
   bookingId: string;
-  bookingStatus: string; // Nouveau: statut de la réservation
-  isActive: boolean; // Nouveau: indique si la conversation est active
+  bookingStatus: string;
+  isActive: boolean;
 }
 
 export function useConversations() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (user) {
@@ -111,7 +111,7 @@ export function useConversations() {
 
       // ÉTAPE 2: Traiter chaque réservation pour créer les conversations
       const conversationsData = await Promise.all(
-        bookings.map(async (booking: any) => {
+        bookings.map(async (booking: Record<string, any>) => {
           try {
             console.log(`🔍 [useConversations] Processing booking: ${booking.id} (status: ${booking.status})`);
             

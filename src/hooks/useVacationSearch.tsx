@@ -19,8 +19,8 @@ const useVacationSearch = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchLoading, setSearchLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<SearchFilters>({

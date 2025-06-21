@@ -699,7 +699,7 @@ export const PlanningMedecin = ({
 
       {/* Calendrier principal avec styles personnalisés */}
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-        <style jsx>{`
+        <style>{`
           .fc {
             background: transparent;
           }

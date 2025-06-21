@@ -1,6 +1,2 @@
-// Fichier JS pour Jest : exporte le mock si NODE_ENV === 'test', sinon importe le vrai client TS
-if (process.env.NODE_ENV === 'test') {
-  module.exports = require('../../../__mocks__/src/integrations/supabase/client.ts');
-} else {
-  module.exports = require('./client.ts');
-}
+// This file is intentionally removed to prevent ESM/CJS import conflicts. Use client.ts for all Supabase imports.
+// If you need a Jest mock, use __mocks__/src/integrations/supabase/client.ts

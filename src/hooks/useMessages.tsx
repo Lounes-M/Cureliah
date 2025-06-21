@@ -26,7 +26,7 @@ export function useMessages(bookingId?: string) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<MessageWithSender[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!bookingId || !user) return;
@@ -136,7 +136,7 @@ export function useMessages(bookingId?: string) {
       }
 
       setMessages(messagesWithProfiles);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching messages:', error);
       toast({
         title: "Erreur",

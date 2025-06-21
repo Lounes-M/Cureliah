@@ -95,7 +95,7 @@ const VacationForm = ({
 
   const handleBlur = (field: keyof VacationPost) => {
     const error = validateField(field, vacationData[field]);
-    if (error) {
+    if (typeof error === 'string' && error) {
       setErrors(prev => ({ ...prev, [field]: error }));
     }
   };

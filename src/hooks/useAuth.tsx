@@ -11,6 +11,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 
+interface UserProfile {
+  first_name?: string;
+  last_name?: string;
+  specialty?: string;
+  establishment_name?: string;
+  user_type?: "doctor" | "establishment" | "admin";
+  is_verified?: boolean;
+  is_active?: boolean;
+}
+
 interface User {
   id: string;
   email: string;
@@ -19,33 +29,25 @@ interface User {
   user_metadata?: {
     user_type?: "doctor" | "establishment" | "admin";
   };
-  profile?: {
-    first_name?: string;
-    last_name?: string;
-    specialty?: string;
-    establishment_name?: string;
-    user_type?: "doctor" | "establishment" | "admin";
-    is_verified?: boolean;
-    is_active?: boolean;
-  };
+  profile?: UserProfile;
 }
 
 interface AuthContextType {
   user: User | null;
-  profile: User["profile"] | null;
+  profile: UserProfile | null;
   loading: boolean;
   signIn: (
     email: string,
     password: string
-  ) => Promise<{ data: any; error: any }>;
+  ) => Promise<{ data: unknown; error: Error | null }>;
   signUp: (
     email: string,
     password: string,
     userType: "doctor" | "establishment",
-    profileData: any
-  ) => Promise<{ data: any; error: any }>;
+    profileData: Record<string, unknown>
+  ) => Promise<{ data: unknown; error: Error | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (profileData: any) => Promise<{ data: any; error: any }>;
+  updateProfile: (profileData: Record<string, unknown>) => Promise<{ data: unknown; error: Error | null }>;
   isAdmin: () => boolean;
   isDoctor: () => boolean;
   isEstablishment: () => boolean;
@@ -68,22 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   >(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
 
-  // Variables pour éviter les hooks conditionnels
-  let toast: any;
-  let navigate: any;
-  let location: any;
-
-  try {
-    toast = useToast().toast;
-    navigate = useNavigate();
-    location = useLocation();
-  } catch (error) {
-    console.error("❌ Hook error in AuthProvider:", error);
-    // Fallbacks
-    toast = (msg: any) => console.log("Toast:", msg);
-    navigate = (path: string) => console.log("Navigate:", path);
-    location = { pathname: window.location.pathname };
-  }
+  // Move hooks to top-level (fixes conditional hook call)
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Auth pages configuration
   const authPages = useMemo(

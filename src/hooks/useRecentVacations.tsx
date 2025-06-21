@@ -8,7 +8,7 @@ export function useRecentVacations() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (user && profile) {

@@ -16,6 +16,8 @@
     "noUnusedLocals": false,
     "strictNullChecks": false,
     "jsx": "react-jsx",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node"
   }
 }

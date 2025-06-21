@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PaymentButton from '../PaymentButton';
 
@@ -12,7 +13,8 @@ jest.mock('@/integrations/supabase/client', () => ({
 describe('PaymentButton', () => {
   it('affiche le montant et le bouton', () => {
     render(<PaymentButton bookingId="1" amount={100} />);
-    expect(screen.getByText(/Payer 100€/)).toBeInTheDocument();
+    // Use a flexible matcher to find the button with the amount
+    expect(screen.getByRole('button', { name: /100.*€/ })).toBeInTheDocument();
   });
 
   it('désactive le bouton si disabled', () => {

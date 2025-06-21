@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +21,7 @@ export function useRecentBookings() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<BookingWithVacation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (user && profile && profile.user_type === 'establishment') {
