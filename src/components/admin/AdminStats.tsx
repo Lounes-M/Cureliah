@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/components/ui/use-toast';
 import { Users, Building2, Calendar, FileText, AlertCircle, Euro, TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -212,4 +212,4 @@ export default function AdminStats() {
       ))}
     </div>
   );
-} 
+}

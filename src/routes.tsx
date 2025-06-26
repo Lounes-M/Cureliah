@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 
 // Pages existantes
 import Index from "./pages/Index";

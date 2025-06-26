@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Building, MapPin, Phone, Mail, FileText, Calendar, Users, TrendingUp, ArrowLeft, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 

@@ -36,7 +36,7 @@ import {
   Building2
 } from "lucide-react";
 import Header from '@/components/Header';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";

@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 export type NotificationType = 'message' | 'payment' | 'booking' | 'document' | 'system';
 
@@ -98,4 +98,4 @@ export const subscribeToNotifications = (
   return () => {
     subscription.unsubscribe();
   };
-}; 
+};

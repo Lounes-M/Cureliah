@@ -22,7 +22,7 @@ import {
 import BookingManagement from "@/components/BookingManagement";
 import EstablishmentBookingManagement from "@/components/EstablishmentBookingManagement";
 import Header from "@/components/Header";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
 
 interface BookingStats {

@@ -37,7 +37,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRecentVacations } from "@/hooks/useRecentVacations";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
 
 // Mapping des spécialités anglais -> français

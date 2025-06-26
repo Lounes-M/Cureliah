@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 import { VacationPost, TimeSlot, Speciality } from "@/types/database";
 import { format, parseISO, addDays, addWeeks, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";

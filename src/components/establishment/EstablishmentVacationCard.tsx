@@ -7,7 +7,7 @@ import { getSpecialityInfo } from '@/utils/specialities';
 import { VacationWithDoctor } from '@/hooks/useEstablishmentSearch';
 import { TimeSlot } from '@/types/database';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorProfileModal } from './DoctorProfileModal';

@@ -30,7 +30,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import NotificationDropdown from "./NotificationDropdown";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client.browser";
 // Utilisation d'un import dynamique compatible Vite, Jest et TypeScript
 let logoUrl: string;
 try {

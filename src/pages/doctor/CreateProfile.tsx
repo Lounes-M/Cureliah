@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { SPECIALITIES } from '@/utils/specialities';
 import Header from '@/components/Header';
@@ -246,4 +246,4 @@ const CreateProfile = () => {
   );
 };
 
-export default CreateProfile; 
+export default CreateProfile;

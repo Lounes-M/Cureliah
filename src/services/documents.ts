@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 export interface Document {
   id: string;
@@ -133,4 +133,4 @@ export const deleteDocument = async (documentId: string) => {
     console.error('Error deleting document:', error);
     throw error;
   }
-}; 
+};

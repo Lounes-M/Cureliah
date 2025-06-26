@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 export interface Profile {
   id: string;
@@ -145,4 +145,4 @@ export const getEstablishments = async (filters?: {
     console.error('Error fetching establishments:', error);
     throw error;
   }
-}; 
+};

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import PricingSection from '@/components/landing/PricingSection';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 export default function Subscribe() {
   const { user, profile } = useAuth();
