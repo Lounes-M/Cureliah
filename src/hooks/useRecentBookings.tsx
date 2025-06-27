@@ -62,7 +62,7 @@ export function useRecentBookings() {
       })) as BookingWithVacation[];
       
       setBookings(formattedBookings || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching bookings:', error);
       toast({
         title: "Erreur",

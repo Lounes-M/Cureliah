@@ -45,7 +45,7 @@ export function useRecentVacations() {
       if (error) throw error;
       console.log('Vacations data with time slots:', data);
       setVacations(data || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching vacations:', error);
       toast({
         title: "Erreur",

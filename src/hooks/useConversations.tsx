@@ -20,6 +20,18 @@ export interface Conversation {
   isActive: boolean;
 }
 
+interface Booking {
+  id: string;
+  doctor_id: string;
+  establishment_id: string;
+  created_at: string;
+  status: string;
+  vacation_posts?: {
+    title?: string;
+    location?: string;
+  };
+}
+
 export function useConversations() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
@@ -30,7 +42,7 @@ export function useConversations() {
     if (user) {
       fetchConversations();
     }
-  }, [user]);
+  }, [user, profile]);
 
   const fetchConversations = async () => {
     if (!user) {
@@ -111,7 +123,7 @@ export function useConversations() {
 
       // ÉTAPE 2: Traiter chaque réservation pour créer les conversations
       const conversationsData = await Promise.all(
-        bookings.map(async (booking: Record<string, any>) => {
+        bookings.map(async (booking: Booking) => {
           try {
             console.log(`🔍 [useConversations] Processing booking: ${booking.id} (status: ${booking.status})`);
             
@@ -126,11 +138,10 @@ export function useConversations() {
 
             // ÉTAPE 2.1: Récupérer les informations de la vacation
             let vacationInfo = { title: 'Vacation', location: null };
-            
             if (booking.vacation_posts) {
               vacationInfo = {
                 title: booking.vacation_posts.title || 'Vacation',
-                location: booking.vacation_posts.location
+                location: booking.vacation_posts.location || null
               };
               console.log(`✅ [useConversations] Vacation found: ${booking.vacation_posts.title}`);
             } else {
@@ -252,41 +263,23 @@ export function useConversations() {
             // ÉTAPE 2.5: Créer l'objet conversation avec le statut
             const conversationName = `${vacationInfo.title} - ${otherUserName}`;
             
-            const conversation: Conversation = {
+            return {
               id: booking.id,
-              name: conversationName,
+              name: otherUserName,
               lastMessage: lastMessageText,
               lastMessageTime: lastMessageTime,
               unreadCount: unreadCount,
-              participants: [{
-                id: otherUserId,
-                name: otherUserName
-              }],
+              participants: [
+                { id: user.id, name: user.email },
+                { id: otherUserId as string, name: otherUserName }
+              ],
               bookingId: booking.id,
-              bookingStatus: booking.status, // Nouveau: stocker le statut
-              isActive: isActive // Nouveau: indiquer si actif
+              bookingStatus: booking.status,
+              isActive: isActive
             };
-
-            console.log(`✅ [useConversations] Created conversation: "${conversationName}" (status: ${booking.status}, active: ${isActive}, ${conversation.unreadCount} unread)`);
-            
-            return conversation;
-          } catch (error) {
-            console.error(`❌ [useConversations] Error processing booking ${booking.id}:`, error);
-            // Retourner une conversation de fallback plutôt que null
-            return {
-              id: booking.id,
-              name: `Conversation ${booking.id.substring(0, 8)}`,
-              lastMessage: 'Erreur lors du chargement',
-              lastMessageTime: booking.created_at,
-              unreadCount: 0,
-              participants: [{
-                id: booking.doctor_id === user.id ? booking.establishment_id : booking.doctor_id,
-                name: 'Utilisateur'
-              }],
-              bookingId: booking.id,
-              bookingStatus: 'unknown',
-              isActive: false
-            };
+          } catch (error: unknown) {
+            console.error('💥 [useConversations] Error processing booking:', error);
+            return null;
           }
         })
       );
@@ -306,11 +299,11 @@ export function useConversations() {
       console.log(`✅ [useConversations] Successfully loaded ${validConversations.length} conversations (${validConversations.filter(c => c.isActive).length} active, ${validConversations.filter(c => !c.isActive).length} archived)`);
       setConversations(validConversations);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('💥 [useConversations] Fatal error loading conversations:', error);
       toast({
         title: "Erreur",
-        description: `Impossible de charger les conversations: ${error.message || 'Erreur inconnue'}`,
+        description: `Impossible de charger les conversations: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
         variant: "destructive"
       });
       setConversations([]);

@@ -84,7 +84,7 @@ export function useUserPresence() {
         presenceMap[presence.user_id] = presence;
       });
       setUserPresences(presenceMap);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching user presences:', error);
     }
   };
@@ -98,7 +98,7 @@ export function useUserPresence() {
       });
 
       if (error) throw error;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating user status:', error);
     }
   };

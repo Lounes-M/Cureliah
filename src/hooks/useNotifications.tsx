@@ -113,7 +113,7 @@ export function useNotifications() {
 
       setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.read_at).length || 0);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching notifications:', error);
       toast({
         title: "Erreur",
@@ -135,7 +135,7 @@ export function useNotifications() {
       if (error) throw error;
 
       // Note: Real-time subscription will handle the state update
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error marking notification as read:', error);
       toast({
         title: "Erreur",
@@ -158,7 +158,7 @@ export function useNotifications() {
       if (error) throw error;
 
       // Note: Real-time subscription will handle the state updates
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error marking all notifications as read:', error);
       toast({
         title: "Erreur",
@@ -207,7 +207,7 @@ export function useNotifications() {
         title: "Notification supprimée",
         description: "La notification a été supprimée avec succès"
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting notification:', error);
       toast({
         title: "Erreur",

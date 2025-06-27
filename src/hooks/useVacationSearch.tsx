@@ -84,9 +84,9 @@ const useVacationSearch = () => {
 
       setVacations(data || []);
       setError(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching vacations:", error);
-      setError(error.message);
+      setError(error instanceof Error ? error.message : String(error));
       toast({
         title: "Erreur",
         description:
@@ -138,7 +138,7 @@ const useVacationSearch = () => {
       }
 
       navigate(`/vacations/${vacationId}/book`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error booking vacation:", error);
       toast({
         title: "Erreur",

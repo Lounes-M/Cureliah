@@ -216,19 +216,18 @@ export function useMessages(bookingId?: string) {
       
       console.log('✅ Message sent and added to local state');
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('💥 Error sending message:', error);
-      
-      // Messages d'erreur plus spécifiques
       let errorMessage = "Impossible d'envoyer le message";
-      if (error.code === '23503') {
-        errorMessage = "Erreur de référence : la réservation n'existe plus";
-      } else if (error.code === '23505') {
-        errorMessage = "Ce message existe déjà";
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (typeof error === 'object' && error !== null) {
+        if ('code' in error && error.code === '23503') {
+          errorMessage = "Erreur de référence : la réservation n'existe plus";
+        } else if ('code' in error && error.code === '23505') {
+          errorMessage = "Ce message existe déjà";
+        } else if ('message' in error && typeof error.message === 'string') {
+          errorMessage = error.message;
+        }
       }
-
       toast({
         title: "Erreur",
         description: errorMessage,
@@ -258,7 +257,7 @@ export function useMessages(bookingId?: string) {
             : msg
         )
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Error marking message as read:', error);
     }
   };

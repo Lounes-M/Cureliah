@@ -10,6 +10,7 @@ import React, {
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface UserProfile {
   first_name?: string;
@@ -31,6 +32,9 @@ interface User {
   };
   profile?: UserProfile;
 }
+
+// Accept both SupabaseUser and local User
+type FetchableUser = SupabaseUser | User;
 
 interface AuthContextType {
   user: User | null;
@@ -98,53 +102,170 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const specialPages = useMemo(() => ["/verify-email"], []);
 
   // Fetch user profile function avec timeout
-  const fetchUserProfile = useCallback(async (authUser: any) => {
-    console.log("🔍 fetchUserProfile started for:", authUser.email);
+  const fetchUserProfile = useCallback(
+    async (authUser: FetchableUser) => {
+      console.log("🔍 fetchUserProfile started for:", authUser.email);
 
-    try {
-      console.log(
-        "Fetching profile for user:",
-        authUser.id,
-        authUser.email,
-        "Email confirmed:",
-        !!authUser.email_confirmed_at
-      );
-
-      // Timeout de sécurité pour la requête Supabase
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Database query timeout")), 5000);
-      });
-
-      // Requête vers la base de données avec timeout
-      const queryPromise = supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", authUser.id)
-        .single();
-
-      console.log("📡 Querying profiles table...");
-
-      let profile, profileError;
       try {
-        const result = await Promise.race([queryPromise, timeoutPromise]);
-        profile = (result as any).data;
-        profileError = (result as any).error;
-        console.log("✅ Database query completed:", {
-          profile: !!profile,
-          error: !!profileError,
-        });
-      } catch (timeoutError) {
-        console.error("⏰ Database query timeout, using fallback");
-        profileError = { code: "TIMEOUT" };
-      }
+        console.log(
+          "Fetching profile for user:",
+          authUser.id,
+          authUser.email,
+          "Email confirmed:",
+          !!authUser.email_confirmed_at
+        );
 
-      if (
-        profileError &&
-        (profileError.code === "PGRST116" || profileError.code === "TIMEOUT")
-      ) {
-        console.log("Profile not found or timeout, using auth user metadata");
-        const userType = authUser.user_metadata?.user_type || "doctor";
-        const userData: User = {
+        // Timeout de sécurité pour la requête Supabase
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Database query timeout")), 5000);
+        });
+
+        // Requête vers la base de données avec timeout
+        const queryPromise = supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", authUser.id)
+          .single();
+
+        console.log("📡 Querying profiles table...");
+
+        let profile: any, profileError: any;
+        try {
+          const result = await Promise.race([queryPromise, timeoutPromise]);
+          if (typeof result === 'object' && result !== null && 'data' in result && 'error' in result) {
+            profile = (result as { data: any; error: any }).data;
+            profileError = (result as { data: any; error: any }).error;
+          } else {
+            profile = null;
+            profileError = { code: 'TIMEOUT' };
+          }
+        } catch (timeoutError) {
+          profileError = { code: 'TIMEOUT' };
+        }
+
+        if (
+          profileError &&
+          (profileError.code === "PGRST116" || profileError.code === "TIMEOUT")
+        ) {
+          console.log("Profile not found or timeout, using auth user metadata");
+          const userType = (authUser as User).user_type || authUser.user_metadata?.user_type || "doctor";
+          const userData: User = {
+            id: authUser.id,
+            email: authUser.email || "",
+            user_type: userType,
+            email_confirmed_at: authUser.email_confirmed_at,
+            user_metadata: {
+              user_type: userType,
+            },
+            profile: {
+              user_type: userType,
+            },
+          };
+
+          console.log("✅ Setting fallback user data:", userData);
+          setUser(userData);
+          setLoading(false);
+          setInitialLoad(false);
+          return;
+        }
+
+        if (profileError) {
+          console.error("❌ Database error:", profileError);
+          throw profileError;
+        }
+
+        console.log("✅ Profile data received:", profile);
+
+        let userData: User = {
+          id: authUser.id,
+          email: authUser.email,
+          user_type: profile.user_type,
+          email_confirmed_at: authUser.email_confirmed_at,
+          user_metadata: {
+            user_type: profile.user_type,
+          },
+          profile: {
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            user_type: profile.user_type,
+          },
+        };
+
+        // Get specialized profile avec timeout aussi
+        console.log("📡 Querying specialized profile for:", profile.user_type);
+
+        if (profile.user_type === "doctor") {
+          try {
+            const doctorQueryPromise = supabase
+              .from("doctor_profiles")
+              .select("*")
+              .eq("id", authUser.id)
+              .single();
+            const doctorResult = await Promise.race([
+              doctorQueryPromise,
+              new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Doctor query timeout")), 3000)
+              ),
+            ]);
+            if (typeof doctorResult === 'object' && doctorResult !== null && 'data' in doctorResult && 'error' in doctorResult) {
+              const { data: doctorProfile, error: doctorError } = doctorResult as { data: any; error: any };
+              if (!doctorError && doctorProfile) {
+                userData.profile = {
+                  ...userData.profile,
+                  specialty: doctorProfile.speciality,
+                };
+                console.log("✅ Doctor profile loaded");
+              }
+            }
+          } catch (error) {
+            console.log("⏰ Doctor profile query timeout, continuing without it");
+          }
+        } else if (profile.user_type === "establishment") {
+          try {
+            const establishmentQueryPromise = supabase
+              .from("establishment_profiles")
+              .select("*")
+              .eq("id", authUser.id)
+              .single();
+            const establishmentResult = await Promise.race([
+              establishmentQueryPromise,
+              new Promise((_, reject) =>
+                setTimeout(
+                  () => reject(new Error("Establishment query timeout")),
+                  3000
+                )
+              ),
+            ]);
+            if (typeof establishmentResult === 'object' && establishmentResult !== null && 'data' in establishmentResult && 'error' in establishmentResult) {
+              const { data: establishmentProfile, error: establishmentError } = establishmentResult as { data: any; error: any };
+              if (!establishmentError && establishmentProfile) {
+                userData.profile = {
+                  ...userData.profile,
+                  establishment_name: establishmentProfile.name,
+                };
+                console.log("✅ Establishment profile loaded");
+              }
+            }
+          } catch (error) {
+            console.log(
+              "⏰ Establishment profile query timeout, continuing without it"
+            );
+          }
+        }
+
+        console.log("✅ User data loaded successfully:", {
+          id: userData.id,
+          email: userData.email,
+          user_type: userData.user_type,
+          email_confirmed: !!userData.email_confirmed_at,
+        });
+
+        setUser(userData);
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+
+        const userType = (authUser as User).user_type || authUser.user_metadata?.user_type || "doctor";
+        const fallbackUser: User = {
           id: authUser.id,
           email: authUser.email || "",
           user_type: userType,
@@ -157,134 +278,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         };
 
-        console.log("✅ Setting fallback user data:", userData);
-        setUser(userData);
+        console.log("⚠️ Using fallback user:", fallbackUser);
+        setUser(fallbackUser);
+      } finally {
+        console.log("🏁 fetchUserProfile finished, setting loading to false");
         setLoading(false);
         setInitialLoad(false);
-        return;
       }
-
-      if (profileError) {
-        console.error("❌ Database error:", profileError);
-        throw profileError;
-      }
-
-      console.log("✅ Profile data received:", profile);
-
-      let userData: User = {
-        id: authUser.id,
-        email: authUser.email,
-        user_type: profile.user_type,
-        email_confirmed_at: authUser.email_confirmed_at,
-        user_metadata: {
-          user_type: profile.user_type,
-        },
-        profile: {
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          user_type: profile.user_type,
-        },
-      };
-
-      // Get specialized profile avec timeout aussi
-      console.log("📡 Querying specialized profile for:", profile.user_type);
-
-      if (profile.user_type === "doctor") {
-        try {
-          const doctorQueryPromise = supabase
-            .from("doctor_profiles")
-            .select("*")
-            .eq("id", authUser.id)
-            .single();
-
-          const doctorResult = await Promise.race([
-            doctorQueryPromise,
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error("Doctor query timeout")), 3000)
-            ),
-          ]);
-
-          const { data: doctorProfile, error: doctorError } =
-            doctorResult as any;
-
-          if (!doctorError && doctorProfile) {
-            userData.profile = {
-              ...userData.profile,
-              specialty: doctorProfile.speciality,
-            };
-            console.log("✅ Doctor profile loaded");
-          }
-        } catch (error) {
-          console.log("⏰ Doctor profile query timeout, continuing without it");
-        }
-      } else if (profile.user_type === "establishment") {
-        try {
-          const establishmentQueryPromise = supabase
-            .from("establishment_profiles")
-            .select("*")
-            .eq("id", authUser.id)
-            .single();
-
-          const establishmentResult = await Promise.race([
-            establishmentQueryPromise,
-            new Promise((_, reject) =>
-              setTimeout(
-                () => reject(new Error("Establishment query timeout")),
-                3000
-              )
-            ),
-          ]);
-
-          const { data: establishmentProfile, error: establishmentError } =
-            establishmentResult as any;
-
-          if (!establishmentError && establishmentProfile) {
-            userData.profile = {
-              ...userData.profile,
-              establishment_name: establishmentProfile.name,
-            };
-            console.log("✅ Establishment profile loaded");
-          }
-        } catch (error) {
-          console.log(
-            "⏰ Establishment profile query timeout, continuing without it"
-          );
-        }
-      }
-
-      console.log("✅ User data loaded successfully:", {
-        id: userData.id,
-        email: userData.email,
-        user_type: userData.user_type,
-        email_confirmed: !!userData.email_confirmed_at,
-      });
-
-      setUser(userData);
-    } catch (error) {
-      console.error("❌ Error fetching user profile:", error);
-
-      const userType = authUser.user_metadata?.user_type || "doctor";
-      const fallbackUser: User = {
-        id: authUser.id,
-        email: authUser.email || "",
-        user_type: userType,
-        email_confirmed_at: authUser.email_confirmed_at,
-        user_metadata: {
-          user_type: userType,
-        },
-        profile: {
-          user_type: userType,
-        },
-      };
-
-      console.log("⚠️ Using fallback user:", fallbackUser);
-      setUser(fallbackUser);
-    } finally {
-      console.log("🏁 fetchUserProfile finished, setting loading to false");
-      setLoading(false);
-      setInitialLoad(false);
-    }
-  }, []);
+    },
+    [supabase]
+  );
 
   // Initialize auth session
   useEffect(() => {
@@ -373,7 +376,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [getDashboardRoute, navigate]);
 
   const signIn = useCallback(
-    async (email: string, password: string) => {
+    async (
+      email: string,
+      password: string
+    ): Promise<{ data: unknown; error: Error | null }> => {
       try {
         console.log("🔐 Signing in user:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -401,30 +407,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         return { data, error: null };
-      } catch (error: any) {
-        console.error("❌ Error signing in:", error);
-
+      } catch (error: unknown) {
         let errorMessage = "Une erreur est survenue lors de la connexion";
-
-        if (error.message.includes("Invalid login credentials")) {
-          errorMessage = "Email ou mot de passe incorrect";
-        } else if (error.message.includes("Email not confirmed")) {
-          errorMessage =
-            "Veuillez confirmer votre email avant de vous connecter";
-        } else if (error.message.includes("Too many requests")) {
-          errorMessage =
-            "Trop de tentatives de connexion. Veuillez réessayer plus tard";
+        if (error instanceof Error) {
+          if (error.message.includes("Invalid login credentials")) {
+            errorMessage = "Email ou mot de passe incorrect";
+          } else if (error.message.includes("Email not confirmed")) {
+            errorMessage = "Veuillez confirmer votre email avant de vous connecter";
+          } else if (error.message.includes("Too many requests")) {
+            errorMessage = "Trop de tentatives de connexion. Veuillez réessayer plus tard";
+          }
         }
-
         toast({
           title: "Erreur de connexion",
           description: errorMessage,
           variant: "destructive",
         });
-        return { data: null, error };
+        return { data: null, error: error instanceof Error ? error : new Error(errorMessage) };
       }
     },
-    [toast]
+    [supabase, toast]
   );
 
   const signUp = useCallback(
@@ -432,8 +434,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: string,
       password: string,
       userType: "doctor" | "establishment",
-      profileData: any
-    ) => {
+      profileData: Record<string, unknown>
+    ): Promise<{ data: unknown; error: Error | null }> => {
       try {
         console.log("📝 Signing up user:", email, userType);
         const { data, error } = await supabase.auth.signUp({
@@ -467,31 +469,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         return { data, error: null };
-      } catch (error: any) {
-        console.error("❌ Error signing up:", error);
-
-        let errorMessage = "Une erreur est survenue lors de l'inscription";
-
-        if (error.message.includes("User already registered")) {
-          errorMessage = "Un compte existe déjà avec cette adresse email";
-        } else if (error.message.includes("Password should be at least")) {
-          errorMessage = "Le mot de passe doit contenir au moins 6 caractères";
-        } else if (error.message.includes("Invalid email")) {
-          errorMessage = "Format d'email invalide";
-        }
-
+      } catch (error: unknown) {
         toast({
           title: "Erreur d'inscription",
-          description: errorMessage,
+          description: error instanceof Error ? error.message : "Une erreur est survenue lors de l'inscription",
           variant: "destructive",
         });
-        return { data: null, error };
+        return { data: null, error: error instanceof Error ? error : new Error("Unknown error") };
       }
     },
-    [toast]
+    [supabase, toast]
   );
 
-  const signOut = useCallback(async () => {
+  const signOut = useCallback(async (): Promise<void> => {
     try {
       console.log("🚪 Signing out user");
       const { error } = await supabase.auth.signOut();
@@ -505,19 +495,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: "Vous avez été déconnecté avec succès",
         variant: "default",
       });
-    } catch (error: any) {
-      console.error("❌ Error signing out:", error);
+    } catch (error: unknown) {
       toast({
         title: "Erreur de déconnexion",
-        description:
-          error.message || "Une erreur est survenue lors de la déconnexion",
+        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la déconnexion",
         variant: "destructive",
       });
     }
-  }, [navigate, toast]);
+  }, [navigate, supabase, toast]);
 
   const updateProfile = useCallback(
-    async (profileData: any) => {
+    async (profileData: Record<string, unknown>): Promise<{ data: unknown; error: Error | null }> => {
       try {
         if (!user) throw new Error("No user logged in");
 
@@ -542,19 +530,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         return { data: null, error: null };
-      } catch (error: any) {
-        console.error("❌ Error updating profile:", error);
+      } catch (error: unknown) {
         toast({
           title: "Erreur de mise à jour",
-          description:
-            error.message ||
-            "Une erreur est survenue lors de la mise à jour du profil",
+          description: error instanceof Error ? error.message : "Une erreur est survenue lors de la mise à jour du profil",
           variant: "destructive",
         });
-        return { data: null, error };
+        return { data: null, error: error instanceof Error ? error : new Error("Unknown error") };
       }
     },
-    [user, fetchUserProfile, toast]
+    [user, fetchUserProfile, supabase, toast]
   );
 
   // Récupération du statut d'abonnement pour les médecins
@@ -581,7 +566,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchSubscription();
-  }, [user?.id, user?.user_type]);
+  }, [user?.id, user?.user_type, supabase]);
 
   const isSubscribed = useCallback(() => {
     // Seuls les médecins sont concernés par l'abonnement
