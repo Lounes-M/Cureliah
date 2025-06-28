@@ -48,6 +48,9 @@ serve(async (req: Request): Promise<Response> => {
           quantity: 1,
         },
       ],
+      metadata: {
+        userId,
+      },
       subscription_data: {
         metadata: {
           userId,

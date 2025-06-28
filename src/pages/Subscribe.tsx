@@ -16,6 +16,7 @@ export default function Subscribe() {
   const handleSubscribe = async (planId: string, isYearly: boolean) => {
     setLoading(true);
     try {
+      console.log("[Subscribe] user.id utilisé pour l'abonnement:", user.id);
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           userId: user.id,

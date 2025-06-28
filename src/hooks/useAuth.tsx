@@ -542,22 +542,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, fetchUserProfile, supabase, toast]
   );
 
+  console.log("[useAuth] Avant useEffect, user:", user);
   // Récupération du statut d'abonnement pour les médecins
   useEffect(() => {
+    console.log("[useAuth] useEffect fetchSubscription triggered", user);
     const fetchSubscription = async () => {
+      console.log("[useAuth] fetchSubscription called", user);
       if (!user?.id || user.user_type !== 'doctor') {
+        console.log("[useAuth] fetchSubscription: user absent ou non-doctor", user);
         setSubscriptionStatus(null);
         return;
       }
       setSubscriptionLoading(true);
       try {
+        console.log("[useAuth] fetchSubscription: avant appel invoke");
         const { data, error } = await supabase.functions.invoke('get-subscription-status');
+        console.log("[useAuth] fetchSubscription: après appel invoke");
+        console.log("[useAuth] Statut abonnement reçu du backend:", data, "Erreur:", error);
         if (!error && data?.status) {
           setSubscriptionStatus(data.status);
         } else {
           setSubscriptionStatus(null);
         }
       } catch (e) {
+        console.log("[useAuth] fetchSubscription: exception", e);
         setSubscriptionStatus(null);
       } finally {
         setSubscriptionLoading(false);
@@ -636,7 +644,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     "user:",
     user?.email || "none"
   );
-
+  console.log("[useAuth] contextValue:", contextValue);
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );

@@ -14,7 +14,7 @@ serve(async (req) => {
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig!, endpointSecret);
+    event = await stripe.webhooks.constructEventAsync(body, sig!, endpointSecret);
     console.log("[stripe-webhook] Event type:", event.type);
   } catch (err) {
     console.error("[stripe-webhook] Webhook Error:", err.message);

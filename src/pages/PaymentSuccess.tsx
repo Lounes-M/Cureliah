@@ -3,11 +3,23 @@ import Confetti from 'react-confetti';
 import Footer from '@/components/Footer';
 import { CheckCircle2, CalendarCheck2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
+  const { isSubscribed, subscriptionLoading } = useAuth();
   const [width, setWidth] = React.useState(window.innerWidth);
   const [height, setHeight] = React.useState(window.innerHeight);
+
+  // Reload automatique tant que l'abonnement n'est pas actif
+  React.useEffect(() => {
+    if (!isSubscribed() && !subscriptionLoading) {
+      const timeout = setTimeout(() => {
+        window.location.reload();
+      }, 2000); // 2 secondes
+      return () => clearTimeout(timeout);
+    }
+  }, [isSubscribed, subscriptionLoading]);
 
   React.useEffect(() => {
     const handleResize = () => {
