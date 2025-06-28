@@ -20,7 +20,7 @@ const THEME_COLORS = {
 
 const pricingPlans = [
   {
-    id: "essentiel",
+    id: "price_1RegyICeORMekP8LJOUjRRyO", // Remplace par ton vrai Price ID Stripe pour Essentiel
     name: "Essentiel",
     monthlyPrice: "49",
     yearlyPrice: "39",
@@ -37,7 +37,7 @@ const pricingPlans = [
     badge: null,
   },
   {
-    id: "pro",
+    id: "price_1RegxuCeORMekP8LY9m2br5I", // Remplace par ton vrai Price ID Stripe pour Pro
     name: "Pro",
     monthlyPrice: "99",
     yearlyPrice: "79",
@@ -56,7 +56,7 @@ const pricingPlans = [
     badge: "Le plus populaire",
   },
   {
-    id: "premium",
+    id: "price_1RegyWCeORMekP8LjR59Wyef", // Remplace par ton vrai Price ID Stripe pour Premium
     name: "Premium",
     monthlyPrice: "199",
     yearlyPrice: "159",

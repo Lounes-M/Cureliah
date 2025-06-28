@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
+import { Loader2 } from "lucide-react";
 
 // Pages existantes
 import Index from "./pages/Index";
@@ -406,12 +407,15 @@ export default function AppRoutes() {
       {/* Pages de paiement */}
       <Route
         path="/payment-success"
-        element={
-          <ProtectedRoute>
-            <PaymentSuccess />
-          </ProtectedRoute>
-        }
+        element={<PaymentSuccess />}
       />
+      <Route
+        path="/payment-failure"
+        element={<React.Suspense fallback={<div>Chargement...</div>}>
+          {React.createElement(React.lazy(() => import("@/pages/PaymentFailure")))}
+        </React.Suspense>}
+      />
+
       {/* Page de paiement dédiée */}
       <Route
         path="/payment/:bookingId"
@@ -444,8 +448,19 @@ export default function AppRoutes() {
 
       {/* Route 404 */}
       <Route path="*" element={<NotFound />} />
+
+      {/* Route pour la gestion de l'abonnement - Docteur */}
+      <Route
+        path="/doctor/subscription"
+        element={
+          <ProtectedRoute requiredUserType="doctor">
+            <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+              {/** Dynamically import the SubscriptionManagement page for code splitting */}
+              {React.createElement(React.lazy(() => import("@/pages/SubscriptionManagement")))}
+            </React.Suspense>
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
-
-export { ProtectedRoute };

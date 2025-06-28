@@ -551,9 +551,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setSubscriptionLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('get-subscription-status', {
-          body: { userId: user.id },
-        });
+        const { data, error } = await supabase.functions.invoke('get-subscription-status');
         if (!error && data?.status) {
           setSubscriptionStatus(data.status);
         } else {

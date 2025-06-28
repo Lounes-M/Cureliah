@@ -24,6 +24,7 @@ import {
   Download,
   BarChart3,
   Loader2,
+  CreditCard,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -39,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
+import React, { lazy } from "react";
 
 // Mapping des spécialités anglais -> français
 const specialityMapping: Record<string, string> = {
@@ -119,6 +121,8 @@ interface DoctorProfileFromDB {
   speciality?: string;
   avatar_url?: string;
 }
+
+const SubscriptionManagementLazy = lazy(() => import("./SubscriptionManagement"));
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -667,7 +671,7 @@ const DoctorDashboard = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-5 bg-white/50 backdrop-blur-sm border shadow-sm">
+          <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm border shadow-sm">
             <TabsTrigger
               value="overview"
               className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
@@ -702,6 +706,13 @@ const DoctorDashboard = () => {
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="subscription"
+              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span className="hidden sm:inline">Abonnement</span>
             </TabsTrigger>
           </TabsList>
 
@@ -995,6 +1006,13 @@ const DoctorDashboard = () => {
 
           <TabsContent value="notifications">
             <NotificationCenter />
+          </TabsContent>
+
+          <TabsContent value="subscription">
+            <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+              {/** Dynamically import the SubscriptionManagement page for code splitting */}
+              <SubscriptionManagementLazy />
+            </React.Suspense>
           </TabsContent>
         </Tabs>
       </div>

@@ -194,9 +194,7 @@ const Footer = () => {
             }`}
           >
             <div className="flex items-center space-x-2 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                C
-              </div>
+              <img src="/logo.png" alt="Cureliah Logo" className="w-22 h-22 rounded-xl shadow-md object-contain" />
             </div>
 
             <p className="text-gray-300 mb-6 leading-relaxed text-lg">
