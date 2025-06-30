@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
-import Footer from '@/components/Footer';
 
 const SubscriptionManagement: React.FC = () => {
   const { user, subscriptionStatus, subscriptionLoading } = useAuth();
@@ -31,17 +31,15 @@ const SubscriptionManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30">
-      <header className="py-12 px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-medical-blue to-medical-green mb-4 drop-shadow-sm tracking-tight">
-          Gérer mon abonnement
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-          Consultez, modifiez ou annulez votre abonnement en toute autonomie via le portail sécurisé Stripe. Retrouvez ici toutes les informations liées à votre facturation.
-        </p>
-      </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl py-10">
+    <div className="flex justify-center items-center py-8">
+      <Card className="w-full max-w-lg shadow-md">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+            <CreditCard className="w-6 h-6 text-blue-600" />
+            Gérer mon abonnement
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="mb-6 text-center">
             <span className="inline-block px-4 py-2 rounded-full bg-blue-100 text-blue-800 font-medium">
               Statut : {subscriptionLoading ? 'Chargement...' : subscriptionStatus === 'active' ? 'Actif' : subscriptionStatus === 'trialing' ? 'Période d\'essai' : subscriptionStatus === 'past_due' ? 'Paiement en retard' : subscriptionStatus === 'canceled' ? 'Annulé' : 'Inactif'}
@@ -56,9 +54,8 @@ const SubscriptionManagement: React.FC = () => {
               Vous pouvez mettre à jour votre carte, consulter vos factures ou annuler votre abonnement à tout moment via le portail sécurisé Stripe.
             </p>
           </div>
-        </div>
-      </main>
-      <Footer />
+        </CardContent>
+      </Card>
     </div>
   );
 };
