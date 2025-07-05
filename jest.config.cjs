@@ -12,6 +12,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^@/integrations/supabase/client$': '<rootDir>/src/integrations/supabase/client.node.ts',
+    '^@/integrations/supabase/client.browser$': '<rootDir>/src/integrations/supabase/client.node.ts',
     '^src/integrations/supabase/client$': '<rootDir>/src/integrations/supabase/client.node.ts',
     '^@/styles/.*\\.(css|less|scss|sass)$': 'identity-obj-proxy',
     '^@/(.*)$': '<rootDir>/src/$1',

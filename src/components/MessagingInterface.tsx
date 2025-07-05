@@ -4,13 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Send, User, Building2, Check, CheckCheck } from 'lucide-react';
+import { Send, User, Building2, Check, CheckCheck, Paperclip, Image, File } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import OnlineStatusIndicator from './OnlineStatusIndicator';
+import { supabase } from '@/integrations/supabase/client.browser';
+import { useToast } from '@/hooks/use-toast';
 
 interface MessagingInterfaceProps {
   bookingId: string;
@@ -28,9 +30,12 @@ const MessagingInterface = ({
   const { user } = useAuth();
   const { messages, loading, sendMessage, markMessageAsRead } = useMessages(bookingId);
   const { getUserStatus } = useUserPresence();
+  const { toast } = useToast();
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,6 +65,74 @@ const MessagingInterface = ({
       setNewMessage('');
     }
     setSending(false);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Erreur",
+        description: "Le fichier ne doit pas dépasser 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'text/plain'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Erreur",
+        description: "Type de fichier non supporté",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('message-files')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('message-files')
+        .getPublicUrl(fileName);
+
+      // Send message with file attachment
+      const messageText = `[File: ${file.name}]`;
+      const success = await sendMessage(messageText, receiverId, {
+        file_url: publicUrl,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size
+      });
+
+      if (success) {
+        toast({
+          title: "Succès",
+          description: "Fichier envoyé avec succès"
+        });
+      }
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer le fichier",
+        variant: "destructive"
+      });
+    } finally {
+      setUploadingFile(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -120,7 +193,47 @@ const MessagingInterface = ({
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  {message.message_type === 'file' && message.file_url ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        {message.file_type?.startsWith('image/') ? (
+                          <Image className="w-4 h-4" />
+                        ) : (
+                          <File className="w-4 h-4" />
+                        )}
+                        <span className="text-sm font-medium">{message.file_name}</span>
+                      </div>
+                      {message.file_type?.startsWith('image/') ? (
+                        <div className="max-w-xs">
+                          <img
+                            src={message.file_url}
+                            alt={message.file_name}
+                            className="rounded-lg max-w-full h-auto cursor-pointer"
+                            onClick={() => window.open(message.file_url, '_blank')}
+                          />
+                        </div>
+                      ) : (
+                        <a
+                          href={message.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg ${
+                            message.sender_id === user?.id
+                              ? 'bg-blue-500 hover:bg-blue-400'
+                              : 'bg-gray-200 hover:bg-gray-300'
+                          }`}
+                        >
+                          <File className="w-4 h-4" />
+                          <span className="text-sm">Télécharger</span>
+                        </a>
+                      )}
+                      {message.content && message.content !== `[File: ${message.file_name}]` && (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  )}
                   <div className="flex items-center justify-between mt-1">
                     <p
                       className={`text-xs ${
@@ -153,6 +266,26 @@ const MessagingInterface = ({
 
         {/* Message Input */}
         <div className="flex space-x-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="image/*,application/pdf,text/plain"
+            style={{ display: 'none' }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingFile}
+            className="self-end"
+          >
+            {uploadingFile ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+            ) : (
+              <Paperclip className="w-4 h-4" />
+            )}
+          </Button>
           <Textarea
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}

@@ -10,6 +10,10 @@ interface Message {
   receiver_id: string;
   content: string;
   message_type?: string;
+  file_url?: string;
+  file_name?: string;
+  file_type?: string;
+  file_size?: number;
   created_at: string;
   read_at?: string | null;
 }
@@ -148,7 +152,12 @@ export function useMessages(bookingId?: string) {
     }
   };
 
-  const sendMessage = async (content: string, receiverId: string) => {
+  const sendMessage = async (content: string, receiverId: string, fileData?: {
+    file_url: string;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+  }) => {
     if (!bookingId || !user || !content.trim()) return false;
 
     try {
@@ -176,15 +185,24 @@ export function useMessages(bookingId?: string) {
 
       console.log('✅ Booking exists, proceeding with message insertion...');
 
+      const messageData: any = {
+        booking_id: bookingId,
+        sender_id: user.id,
+        receiver_id: receiverId,
+        content: content.trim(),
+        message_type: fileData ? 'file' : 'text'
+      };
+
+      if (fileData) {
+        messageData.file_url = fileData.file_url;
+        messageData.file_name = fileData.file_name;
+        messageData.file_type = fileData.file_type;
+        messageData.file_size = fileData.file_size;
+      }
+
       const { data, error } = await supabase
         .from('messages')
-        .insert({
-          booking_id: bookingId,
-          sender_id: user.id,
-          receiver_id: receiverId,
-          content: content.trim(),
-          message_type: 'text'
-        })
+        .insert(messageData)
         .select()
         .single();
 

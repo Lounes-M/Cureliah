@@ -126,7 +126,7 @@ const useProfileComplete = (user) => {
 };
 
 // Composant de protection des routes
-const ProtectedRoute = ({
+export const ProtectedRoute = ({
   children,
   requiredUserType = null,
   requireVerified = true,
