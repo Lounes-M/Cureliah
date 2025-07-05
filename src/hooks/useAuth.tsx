@@ -61,6 +61,8 @@ interface AuthContextType {
   isSubscribed: () => boolean;
   subscriptionStatus: "active" | "inactive" | "canceled" | "trialing" | "past_due" | null;
   subscriptionLoading: boolean;
+  subscriptionPlan: 'essentiel' | 'pro' | 'premium' | null;
+  hasFeature: (feature: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     'active' | 'inactive' | 'canceled' | 'trialing' | 'past_due' | null
   >(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<'essentiel' | 'pro' | 'premium' | null>(null);
 
   // Move hooks to top-level (fixes conditional hook call)
   const { toast } = useToast();
@@ -549,8 +552,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const fetchSubscription = async () => {
       console.log("[useAuth] fetchSubscription called", user);
       if (!user?.id || user.user_type !== 'doctor') {
-        console.log("[useAuth] fetchSubscription: user absent ou non-doctor", user);
         setSubscriptionStatus(null);
+        setSubscriptionPlan(null);
         return;
       }
       setSubscriptionLoading(true);
@@ -561,18 +564,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("[useAuth] Statut abonnement reçu du backend:", data, "Erreur:", error);
         if (!error && data?.status) {
           setSubscriptionStatus(data.status);
+          // Mapping du plan à partir du Price ID ou du champ plan
+          let plan = null;
+          if (data.plan_id) {
+            if (data.plan_id.includes('pro')) plan = 'pro';
+            else if (data.plan_id.includes('premium')) plan = 'premium';
+            else plan = 'essentiel';
+          } else if (data.plan) {
+            plan = data.plan;
+          } else {
+            plan = 'essentiel';
+          }
+          setSubscriptionPlan(plan);
         } else {
           setSubscriptionStatus(null);
+          setSubscriptionPlan(null);
         }
       } catch (e) {
-        console.log("[useAuth] fetchSubscription: exception", e);
         setSubscriptionStatus(null);
+        setSubscriptionPlan(null);
       } finally {
         setSubscriptionLoading(false);
       }
     };
     fetchSubscription();
   }, [user?.id, user?.user_type, supabase]);
+
+  // Helper pour activer/désactiver les features selon le plan
+  const hasFeature = useCallback((feature: string) => {
+    if (user?.user_type !== 'doctor') return true;
+    if (subscriptionPlan === 'premium') return true;
+    if (subscriptionPlan === 'pro') {
+      // Features Pro
+      const proFeatures = [
+        'priorite', 'analytics', 'facturation', 'calendar', 'support-prioritaire',
+      ];
+      return proFeatures.includes(feature) || feature === 'essentiel';
+    }
+    // Essentiel
+    return feature === 'essentiel';
+  }, [user, subscriptionPlan]);
 
   const isSubscribed = useCallback(() => {
     // Seuls les médecins sont concernés par l'abonnement
@@ -600,6 +631,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSubscribed: () => boolean;
     subscriptionStatus: typeof subscriptionStatus;
     subscriptionLoading: boolean;
+    subscriptionPlan: typeof subscriptionPlan;
+    hasFeature: typeof hasFeature;
   }>(
     () => ({
       user,
@@ -618,6 +651,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSubscribed,
       subscriptionStatus,
       subscriptionLoading,
+      subscriptionPlan,
+      hasFeature,
     }),
     [
       user,
@@ -635,6 +670,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isSubscribed,
       subscriptionStatus,
       subscriptionLoading,
+      subscriptionPlan,
+      hasFeature,
     ]
   );
 

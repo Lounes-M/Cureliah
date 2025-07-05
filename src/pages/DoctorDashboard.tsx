@@ -41,6 +41,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
 import React, { lazy } from "react";
+import { Bar } from 'react-chartjs-2';
 
 // Mapping des spécialités anglais -> français
 const specialityMapping: Record<string, string> = {
@@ -126,7 +127,7 @@ const SubscriptionManagementLazy = lazy(() => import("./SubscriptionManagement")
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, subscriptionPlan, hasFeature } = useAuth();
   const doctorProfile = profile as DoctorProfile;
   const { vacations, loading: vacationsLoading } = useRecentVacations();
   const { toast } = useToast();
@@ -590,7 +591,6 @@ const DoctorDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
       <Header />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête du dashboard */}
         <div className="mb-8">
@@ -671,7 +671,7 @@ const DoctorDashboard = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm border shadow-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white/50 backdrop-blur-sm border shadow-sm">
             <TabsTrigger
               value="overview"
               className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
@@ -714,6 +714,51 @@ const DoctorDashboard = () => {
               <CreditCard className="w-4 h-4" />
               <span className="hidden sm:inline">Abonnement</span>
             </TabsTrigger>
+            {hasFeature('analytics') && (
+              <TabsTrigger
+                value="analytics"
+                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Statistiques avancées</span>
+              </TabsTrigger>
+            )}
+            {hasFeature('invoices') && (
+              <TabsTrigger
+                value="invoices"
+                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Factures & Rapports</span>
+              </TabsTrigger>
+            )}
+            {hasFeature('premium_support') && (
+              <TabsTrigger
+                value="support"
+                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                <Star className="w-4 h-4" />
+                <span className="hidden sm:inline">Support Premium</span>
+              </TabsTrigger>
+            )}
+            {hasFeature('premium_api') && (
+              <TabsTrigger
+                value="api"
+                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                <Activity className="w-4 h-4" />
+                <span className="hidden sm:inline">API & Webhooks</span>
+              </TabsTrigger>
+            )}
+            {hasFeature('premium_missions') && (
+              <TabsTrigger
+                value="premium_missions"
+                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              >
+                <Star className="w-4 h-4" />
+                <span className="hidden sm:inline">Missions Premium</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -1014,6 +1059,84 @@ const DoctorDashboard = () => {
               <SubscriptionManagementLazy />
             </React.Suspense>
           </TabsContent>
+
+          {hasFeature('analytics') && (
+            <TabsContent value="analytics" className="space-y-6">
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5" />
+                    Statistiques avancées
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Exemple de graphique (à personnaliser selon les vraies stats) */}
+                  <div className="w-full max-w-2xl mx-auto">
+                    <Bar
+                      data={{
+                        labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
+                        datasets: [
+                          {
+                            label: "Revenus (€)",
+                            data: [1200, 1500, 1100, 1800, 2000, 1700],
+                            backgroundColor: "#2563eb",
+                          },
+                          {
+                            label: "Missions complétées",
+                            data: [8, 10, 7, 12, 14, 11],
+                            backgroundColor: "#10b981",
+                          },
+                        ],
+                      }}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: { position: 'top' },
+                          title: { display: true, text: 'Évolution sur 6 mois' },
+                        },
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          {hasFeature('invoices') && (
+            <TabsContent value="invoices" className="space-y-6">
+              {/* Page Factures & Rapports (Pro/Premium) */}
+              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+                {React.createElement(require('./InvoicesAndReports').default)}
+              </React.Suspense>
+            </TabsContent>
+          )}
+
+          {hasFeature('premium_support') && (
+            <TabsContent value="support" className="space-y-6">
+              {/* Page Support Premium (Premium uniquement) */}
+              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+                {React.createElement(require('./SupportPremium').default)}
+              </React.Suspense>
+            </TabsContent>
+          )}
+
+          {hasFeature('premium_api') && (
+            <TabsContent value="api" className="space-y-6">
+              {/* Page API & Webhooks (Premium uniquement) */}
+              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+                {React.createElement(require('./APIPremium').default)}
+              </React.Suspense>
+            </TabsContent>
+          )}
+
+          {hasFeature('premium_missions') && (
+            <TabsContent value="premium_missions" className="space-y-6">
+              {/* Page Missions Premium (Premium uniquement) */}
+              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+                {React.createElement(require('./PremiumMissions').default)}
+              </React.Suspense>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
