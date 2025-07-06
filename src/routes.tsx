@@ -404,6 +404,30 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Route pour profil de docteur */}
+      <Route
+        path="/doctor/:id"
+        element={
+          <ProtectedRoute>
+            <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+              {React.createElement(React.lazy(() => import("@/pages/DoctorProfile")))}
+            </React.Suspense>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Route pour réservation de vacation */}
+      <Route
+        path="/vacations/:id/book"
+        element={
+          <ProtectedRoute>
+            <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+              {React.createElement(React.lazy(() => import("@/pages/BookingFlow")))}
+            </React.Suspense>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Pages de paiement */}
       <Route
         path="/payment-success"
@@ -438,12 +462,58 @@ export default function AppRoutes() {
 
       {/* Routes admin */}
       <Route
+        path="/admin"
+        element={
+          <ProtectedRoute requiredUserType="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/admin/*"
         element={
           <ProtectedRoute requiredUserType="admin">
             <AdminDashboard />
           </ProtectedRoute>
         }
+      />
+
+      {/* Route Settings */}
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+              {React.createElement(React.lazy(() => import("@/pages/Settings")))}
+            </React.Suspense>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Routes publiques additionnelles */}
+      <Route 
+        path="/demo-request" 
+        element={
+          <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            {React.createElement(React.lazy(() => import("@/pages/DemoRequest")))}
+          </React.Suspense>
+        } 
+      />
+      <Route 
+        path="/contact-sales" 
+        element={
+          <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            {React.createElement(React.lazy(() => import("@/pages/ContactSales")))}
+          </React.Suspense>
+        } 
+      />
+      <Route 
+        path="/faq" 
+        element={
+          <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
+            {React.createElement(React.lazy(() => import("@/pages/FAQ")))}
+          </React.Suspense>
+        } 
       />
 
       {/* Route 404 */}
