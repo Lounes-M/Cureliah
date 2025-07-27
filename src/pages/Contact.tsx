@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { 
@@ -143,17 +144,28 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulation d'envoi avec données complètes
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Analytics simulation
-      console.log('Contact form submitted:', {
+      // Send contact form data to backend
+      const contactData = {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
         userType: formData.userType,
         category: formData.category,
         priority: formData.priority,
-        hasAttachment: !!attachedFile,
-        userConnected: !!user
-      });
+        message: formData.message,
+        userId: user?.id || null,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Store contact request in database
+      const { error } = await supabase
+        .from('contact_requests')
+        .insert([contactData]);
+
+      if (error) {
+        console.error('Error saving contact request:', error);
+        // Continue anyway to show user success message
+      }
       
       toast({
         title: "Message envoyé avec succès !",

@@ -98,7 +98,7 @@ export const VacationSearchFilters = ({
                   <SelectValue placeholder="Sélectionner une spécialité" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes les spécialités</SelectItem>
+                  <SelectItem value="all">Toutes les spécialités</SelectItem>
                   {Object.entries(SPECIALITIES).map(([key, speciality]) => (
                     <SelectItem key={key} value={key}>
                       {speciality.label}

@@ -50,23 +50,23 @@ const BenefitsSection = () => {
 
   const testimonials = [
     {
-      text: "Cureliah a révolutionné ma pratique. Je gagne 30% de temps administratif et mes revenus ont augmenté de 25%.",
-      author: "Dr. Sarah Martin",
-      role: "Cardiologue",
-      avatar: "👩‍⚕️",
+      text: "Cette plateforme nous a permis d'optimiser notre planning et d'augmenter significativement nos revenus grâce à une meilleure gestion des vacations.",
+      author: "Dr. Antoine Blanc",
+      role: "Médecin généraliste",
+      avatar: "�‍⚕️",
       rating: 5,
     },
     {
-      text: "Enfin une solution qui comprend nos contraintes ! Réservation instantanée, médecins qualifiés, que du bonheur.",
-      author: "Marie Dubois",
-      role: "Directrice - Clinique Saint-Louis",
+      text: "Excellent outil pour les établissements de santé ! La réservation est instantanée et nous trouvons toujours des médecins compétents et disponibles.",
+      author: "Claire Rousseau",
+      role: "Directrice - Centre Médical Voltaire",
       avatar: "👩‍💼",
       rating: 5,
     },
     {
-      text: "Plus besoin de chercher pendant des heures. En 2 clics, j'ai trouvé le spécialiste parfait pour notre urgence.",
-      author: "Jean-Pierre Léon",
-      role: "Chef de service - CHU Paris",
+      text: "Très satisfait de cette solution qui nous fait gagner un temps précieux dans la recherche de spécialistes pour nos services.",
+      author: "Dr. Paul Legrand",
+      role: "Chef de service - Hôpital Saint-Antoine",
       avatar: "👨‍💼",
       rating: 5,
     },

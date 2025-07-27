@@ -393,6 +393,10 @@ const DoctorDashboard = () => {
           start_time,
           end_time,
           type
+        ),
+        bookings(
+          id,
+          status
         )
       `
       )
@@ -409,7 +413,7 @@ const DoctorDashboard = () => {
         end_time: vacation.time_slots?.[0]?.end_time || vacation.end_date,
         location: vacation.location,
         status: vacation.status as "available" | "booked",
-        bookings_count: 0, // TODO: Ajouter le count des bookings
+        bookings_count: vacation.bookings?.length || 0,
         act_type: vacation.act_type,
       })) || []
     );
@@ -917,7 +921,7 @@ const DoctorDashboard = () => {
                           <Button
                             variant="outline"
                             className="mt-3"
-                            onClick={() => navigate("/doctor/create-vacation")}
+                            onClick={() => navigate("/doctor/manage-vacations")}
                           >
                             Créer une vacation
                           </Button>

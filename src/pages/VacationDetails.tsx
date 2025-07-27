@@ -258,7 +258,7 @@ const VacationDetails = () => {
 
               <div className="flex space-x-3 mt-6 pt-6 border-t">
                 <Button
-                  onClick={() => navigate(`/doctor/vacation/${vacation.id}/edit`)}
+                  onClick={() => navigate("/doctor/manage-vacations")}
                   className="flex-1"
                 >
                   <Pencil className="w-4 h-4 mr-2" />

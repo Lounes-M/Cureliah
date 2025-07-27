@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth"; // ✅ Import absolu au lieu de relatif
 import { useToast } from "@/components/ui/use-toast"; // ✅ Import absolu
+import { supabase } from "@/integrations/supabase/client.browser";
 import {
   User,
   Building2,
@@ -306,16 +307,46 @@ const SocialButton = ({
   provider,
   icon: Icon,
   children,
-}: SocialButtonProps) => (
-  <Button
-    variant="social"
-    className="w-full justify-center"
-    onClick={() => console.log(`Se connecter avec ${provider}`)}
-  >
-    <Icon className="w-5 h-5 mr-3" />
-    {children}
-  </Button>
-);
+}: SocialButtonProps) => {
+  const { toast } = useToast();
+  
+  const handleSocialLogin = async () => {
+    try {
+      let providerName = provider.toLowerCase();
+      if (providerName === 'linkedin') providerName = 'linkedin_oidc';
+      if (providerName === 'github') providerName = 'github';
+      if (providerName === 'apple') providerName = 'apple';
+      if (providerName === 'google') providerName = 'google';
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: providerName as any,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error(`Erreur connexion ${provider}:`, error);
+      toast({
+        title: "Erreur de connexion",
+        description: `Impossible de se connecter avec ${provider}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <Button
+      variant="social"
+      className="w-full justify-center"
+      onClick={handleSocialLogin}
+    >
+      <Icon className="w-5 h-5 mr-3" />
+      {children}
+    </Button>
+  );
+};
 
 const Auth = () => {
   // Hooks d'authentification
@@ -331,15 +362,10 @@ const Auth = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Debug - vérifier l'état de l'auth
+  // Monitor auth state changes
   useEffect(() => {
-    console.log("Auth State:", {
-      user: user
-        ? { id: user.id, email: user.email, user_type: user.user_type }
-        : null,
-      authLoading,
-      isVisible,
-    });
+    // Auth state monitoring - can be enabled for debugging if needed
+    // console.log("Auth State:", { user, authLoading, isVisible });
   }, [user, authLoading, isVisible]);
 
   // Données de formulaire
@@ -576,16 +602,11 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
-      console.log("Tentative de connexion avec:", { email: signInData.email });
-
       const result = await signIn(signInData.email, signInData.password);
 
-      console.log("Résultat de la connexion:", result);
-
-      // Le toast et la redirection sont gérés dans le hook useAuth
+      // The toast and redirection are handled in the useAuth hook
       if (result && !result.error) {
-        // Succès - le AuthProvider va gérer la redirection
-        console.log("Connexion réussie, redirection en cours...");
+        // Success - AuthProvider will handle redirection
       }
     } catch (error) {
       console.error("Erreur lors de la connexion:", error);
@@ -674,8 +695,11 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implémenter la réinitialisation du mot de passe avec Supabase
-      // const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
 
       toast({
         title: "Email envoyé",

@@ -1,12 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://rlfghipdzxfnwijsylac.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsZmdoaXBkenhmbndpanN5bGFjIiwicm9zZSI6ImFub24iLCJpYXQiOjE3NDg0MjM1MjEsImV4cCI6MjA2Mzk5OTUyMX0.VWlXe8p_SRtgVeE6w3rs9McW5-kc2ooFxGh9ghuQ57c';
+// Production Supabase configuration
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+// Log configuration status in development
+if (import.meta.env.DEV) {
+  console.log('� Supabase Configuration:', {
+    url: supabaseUrl,
+    hasValidCredentials: !!(supabaseUrl && supabaseAnonKey),
+    isProduction: true
+  });
+}
+
+// Ensure we have valid credentials
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase credentials. Please check your .env file.');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: typeof window !== 'undefined' ? localStorage : undefined,
     persistSession: typeof window !== 'undefined',
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce'
   }
 });

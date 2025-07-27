@@ -11,6 +11,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const HeroSection = () => {
   const [loading, setLoading] = useState(false);
@@ -21,17 +22,8 @@ const HeroSection = () => {
   const heroRef = useRef(null);
   const navigate = useNavigate();
 
-  // Simulation d'auth - à remplacer par votre hook réel
-  const mockAuth = useMemo(
-    () => ({
-      user: null, // Simuler un utilisateur non connecté
-      profile: null,
-      loading: false,
-    }),
-    []
-  );
-
-  const { user: authUser, profile, loading: authLoading } = mockAuth;
+  // Use real authentication
+  const { user: authUser, profile, loading: authLoading } = useAuth();
 
   // Animation d'apparition
   useEffect(() => {
@@ -44,15 +36,15 @@ const HeroSection = () => {
     if (!isVisible) return;
 
     const animateStats = () => {
-      const doctorsTarget = 500;
-      const timeTarget = 2;
+      const doctorsTarget = 150; // More realistic number for early platform
+      const timeTarget = 5; // More realistic response time
 
       let doctorsCount = 0;
       let timeCount = 0;
 
       const interval = setInterval(() => {
         if (doctorsCount < doctorsTarget) {
-          doctorsCount += Math.ceil(doctorsTarget / 50);
+          doctorsCount += Math.ceil(doctorsTarget / 30);
           doctorsCount = Math.min(doctorsCount, doctorsTarget);
         }
 
@@ -128,18 +120,22 @@ const HeroSection = () => {
 
   const userType = getUserType();
 
-  // Données du calendrier avec plus de détails
+  // Calendar data with more realistic healthcare scheduling
   const calendarData = useMemo(() => {
+    const currentDate = new Date();
+    const currentDay = currentDate.getDate();
+    
+    // More realistic availability patterns
     const availableDays = [
-      { day: 5, rate: "120€", specialty: "Cardiologue", urgent: false },
-      { day: 6, rate: "150€", specialty: "Urgentiste", urgent: true },
-      { day: 12, rate: "140€", specialty: "Radiologue", urgent: false },
-      { day: 13, rate: "130€", specialty: "Anesthésiste", urgent: false },
-      { day: 19, rate: "160€", specialty: "Chirurgien", urgent: true },
-      { day: 20, rate: "125€", specialty: "Cardiologue", urgent: false },
-      { day: 26, rate: "135€", specialty: "Pneumologue", urgent: false },
-      { day: 27, rate: "180€", specialty: "Neurochirurgien", urgent: true },
-    ];
+      { day: currentDay + 2, rate: "80€", specialty: "Médecin généraliste", urgent: false },
+      { day: currentDay + 3, rate: "95€", specialty: "Médecin d'urgence", urgent: true },
+      { day: currentDay + 5, rate: "110€", specialty: "Spécialiste", urgent: false },
+      { day: currentDay + 7, rate: "85€", specialty: "Médecin généraliste", urgent: false },
+      { day: currentDay + 9, rate: "120€", specialty: "Consultant expert", urgent: true },
+      { day: currentDay + 12, rate: "90€", specialty: "Médecin référent", urgent: false },
+      { day: currentDay + 14, rate: "100€", specialty: "Spécialiste", urgent: false },
+      { day: currentDay + 16, rate: "105€", specialty: "Médecin consultant", urgent: false },
+    ].filter(day => day.day <= 31); // Keep only valid days
 
     return Array.from({ length: 35 }, (_, i) => {
       const dayNumber = i < 31 ? i + 1 : null;

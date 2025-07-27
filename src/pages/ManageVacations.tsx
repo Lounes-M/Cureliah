@@ -464,7 +464,7 @@ const ManageVacations = () => {
                     <Button size="sm" onClick={() => navigate(`/doctor/vacation/${vacation.id}`)}>
                       Voir
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => navigate(`/doctor/vacation/${vacation.id}/edit`)}>
+                    <Button size="sm" variant="outline" onClick={() => navigate("/doctor/manage-vacations")}>
                       Éditer
                     </Button>
                     {vacation.status === "draft" && (

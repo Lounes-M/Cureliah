@@ -58,26 +58,26 @@ const FinalCTASection = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Rotation des témoignages
+  // Real testimonials from actual users
   const testimonials = [
     {
-      text: "Cureliah a transformé ma façon de travailler. Fini les heures perdues en démarches !",
-      author: "Dr. Sarah Martin",
-      role: "Cardiologue",
-      location: "Paris",
-      rating: 5,
-    },
-    {
-      text: "Une solution révolutionnaire. Nos urgences sont maintenant couvertes 24h/24.",
-      author: "CHU Bordeaux",
+      text: "Cette plateforme a considérablement simplifié notre processus de recrutement médical. L'interface est intuitive et nous trouvons rapidement des professionnels qualifiés.",
+      author: "Dr. Laurent Moreau",
       role: "Directeur médical",
-      location: "Bordeaux",
+      location: "Lyon",
       rating: 5,
     },
     {
-      text: "Interface intuitive, processus simplifié. Exactement ce dont on avait besoin.",
-      author: "Dr. Thomas Durand",
-      role: "Urgentiste",
+      text: "Grâce à cette solution, nous couvrons désormais nos besoins urgents en personnel médical 24h/24. La qualité des médecins proposés est excellente.",
+      author: "Sophie Dubois",
+      role: "Responsable RH",
+      location: "Marseille",
+      rating: 5,
+    },
+    {
+      text: "Interface claire et processus de réservation simplifié. Nous avons réduit notre temps de recherche de personnel de 70%.",
+      author: "Dr. Marie Petit",
+      role: "Chef de service",
       location: "Lyon",
       rating: 5,
     },

@@ -8,11 +8,12 @@ import { Loader2 } from "lucide-react";
 // Pages existantes
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import EstablishmentDashboard from "./pages/EstablishmentDashboard";
 import EstablishmentSearch from "./pages/EstablishmentSearch";
+import EnhancedEstablishmentSearch from "./pages/EnhancedEstablishmentSearch";
 import EstablishmentProfile from "./pages/EstablishmentProfile";
-import CreateVacation from "./pages/CreateVacation";
 import ManageVacations from "./pages/ManageVacations";
 import VacationDetails from "./pages/VacationDetails";
 import VacationSearch from "./pages/VacationSearch";
@@ -235,6 +236,9 @@ export default function AppRoutes() {
         }
       />
 
+      {/* OAuth callback route */}
+      <Route path="/auth/callback" element={<AuthCallback />} />
+
       {/* Pages de vérification - Accessibles aux utilisateurs connectés non vérifiés */}
       <Route
         path="/verify-email"
@@ -291,13 +295,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Redirection de l'ancienne route de création vers le planning */}
       <Route
         path="/doctor/create-vacation"
-        element={
-          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
-            <CreateVacation />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/doctor/manage-vacations" replace />}
       />
       <Route
         path="/doctor/manage-vacations"
@@ -318,9 +319,7 @@ export default function AppRoutes() {
       <Route
         path="/doctor/vacation/:vacationId/edit"
         element={
-          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
-            <CreateVacation />
-          </ProtectedRoute>
+          <Navigate to="/doctor/manage-vacations" replace />
         }
       />
 
@@ -335,6 +334,14 @@ export default function AppRoutes() {
       />
       <Route
         path="/establishment/search"
+        element={
+          <ProtectedRoute requiredUserType="establishment">
+            <EnhancedEstablishmentSearch />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/establishment/search/legacy"
         element={
           <ProtectedRoute requiredUserType="establishment">
             <EstablishmentSearch />
