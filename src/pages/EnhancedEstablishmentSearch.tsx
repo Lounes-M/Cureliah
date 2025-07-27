@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getSpecialityInfo, SPECIALITIES as SPECIALITIES_DATA} from '@/utils/specialities';
 import {
   Filter,
   SlidersHorizontal,
@@ -73,26 +74,8 @@ interface SearchFilters {
   sort_by: 'newest' | 'price_low' | 'price_high' | 'rating' | 'distance';
 }
 
-const SPECIALITIES = [
-  'Médecine générale',
-  'Cardiologie',
-  'Dermatologie',
-  'Pédiatrie',
-  'Psychiatrie',
-  'Radiologie',
-  'Anesthésie-Réanimation',
-  'Chirurgie générale',
-  'Gynécologie-Obstétrique',
-  'Orthopédie',
-  'Ophtalmologie',
-  'ORL',
-  'Neurologie',
-  'Pneumologie',
-  'Gastro-entérologie',
-  'Endocrinologie',
-  'Rhumatologie',
-  'Urologie'
-];
+// Créer un tableau des spécialités françaises basé sur les données centralisées
+const SPECIALITIES = Object.values(SPECIALITIES_DATA).map(spec => spec.label);
 
 const ACT_TYPES = [
   { value: 'consultation', label: '🩺 Consultation' },
@@ -270,7 +253,7 @@ export default function EnhancedEstablishmentSearch() {
           vacation.location?.toLowerCase().includes(query) ||
           vacation.doctor_profiles?.first_name?.toLowerCase().includes(query) ||
           vacation.doctor_profiles?.last_name?.toLowerCase().includes(query) ||
-          translateSpeciality(vacation.doctor_profiles?.speciality || '').toLowerCase().includes(query)
+          getSpecialityInfo(vacation.doctor_profiles?.speciality || '').label.toLowerCase().includes(query)
         );
       }
 
@@ -304,36 +287,11 @@ export default function EnhancedEstablishmentSearch() {
   } = useLazyLoading(fetchVacations, 6);
 
   // Fonctions utilitaires
-  const translateSpeciality = (speciality: string): string => {
-    const mapping: Record<string, string> = {
-      'orthopedics': 'Orthopédie',
-      'cardiology': 'Cardiologie',
-      'dermatology': 'Dermatologie',
-      'pediatrics': 'Pédiatrie',
-      'psychiatry': 'Psychiatrie',
-      'radiology': 'Radiologie',
-      'anesthesiology': 'Anesthésie-Réanimation',
-      'general_surgery': 'Chirurgie générale',
-      'general_medicine': 'Médecine générale',
-      'gynecology': 'Gynécologie-Obstétrique'
-    };
-    return mapping[speciality] || speciality;
-  };
-
+  // Fonction pour obtenir la clé anglaise d'une spécialité française
   const getSpecialityKey = (specialityFr: string): string => {
-    const reverseMapping: Record<string, string> = {
-      'Orthopédie': 'orthopedics',
-      'Cardiologie': 'cardiology',
-      'Dermatologie': 'dermatology',
-      'Pédiatrie': 'pediatrics',
-      'Psychiatrie': 'psychiatry',
-      'Radiologie': 'radiology',
-      'Anesthésie-Réanimation': 'anesthesiology',
-      'Chirurgie générale': 'general_surgery',
-      'Médecine générale': 'general_medicine',
-      'Gynécologie-Obstétrique': 'gynecology'
-    };
-    return reverseMapping[specialityFr] || specialityFr.toLowerCase();
+    // Trouver la clé anglaise correspondante dans les données centralisées
+    const entry = Object.entries(SPECIALITIES_DATA).find(([key, data]) => data.label === specialityFr);
+    return entry ? entry[0] : specialityFr.toLowerCase();
   };
 
   // Compter les filtres actifs

@@ -417,7 +417,7 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-              {React.createElement(React.lazy(() => import("@/pages/DoctorProfile")))}
+              {React.createElement(React.lazy(() => import("@/pages/DoctorProfileNew")))}
             </React.Suspense>
           </ProtectedRoute>
         }

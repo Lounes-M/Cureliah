@@ -4,9 +4,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, MapPin, Clock, Star, Phone, Mail, Calendar, User, Stethoscope } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { getSpecialityInfo } from '@/utils/specialities';
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Clock, 
+  Star, 
+  Phone, 
+  Mail, 
+  Calendar, 
+  User, 
+  Stethoscope,
+  Award,
+  GraduationCap,
+  Languages,
+  Shield,
+  CheckCircle2,
+  Heart,
+  TrendingUp,
+  Users,
+  MessageSquare,
+  BookOpen,
+  Briefcase
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
+import Header from '@/components/Header';
 
 interface DoctorProfileData {
   id: string;
@@ -23,6 +48,23 @@ interface DoctorProfileData {
   is_verified?: boolean;
   availability_status?: string;
   created_at?: string;
+  avatar_url?: string;
+  license_number?: string;
+  education?: string[];
+  languages?: string[];
+  certifications?: string[];
+  total_consultations?: number;
+  satisfaction_rate?: number;
+}
+
+interface DoctorStats {
+  totalVacations: number;
+  completedBookings: number;
+  averageRating: number;
+  reviewCount: number;
+  satisfactionRate: number;
+  isNewProvider: boolean;
+  responseTime: string;
 }
 
 export default function DoctorProfile() {
@@ -30,12 +72,22 @@ export default function DoctorProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
+  const [stats, setStats] = useState<DoctorStats>({
+    totalVacations: 0,
+    completedBookings: 0,
+    averageRating: 0,
+    reviewCount: 0,
+    satisfactionRate: 0,
+    isNewProvider: true,
+    responseTime: '2h'
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
       fetchDoctorProfile();
+      fetchDoctorStats();
     }
   }, [id]);
 
@@ -48,15 +100,56 @@ export default function DoctorProfile() {
         .single();
 
       if (error) {
-        setError('Docteur non trouvé');
-        return;
+        throw error;
       }
 
       setDoctor(data);
-    } catch (err) {
-      setError('Erreur lors du chargement du profil');
+    } catch (error) {
+      console.error('Error fetching doctor profile:', error);
+      setError('Impossible de charger le profil du médecin');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDoctorStats = async () => {
+    try {
+      // Récupérer les vacations
+      const { data: vacationsData } = await supabase
+        .from('vacation_posts')
+        .select('id, status')
+        .eq('doctor_id', id);
+
+      // Récupérer les réservations
+      const { data: bookingsData } = await supabase
+        .from('bookings')
+        .select('id, status')
+        .eq('doctor_id', id);
+
+      // Récupérer les reviews
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('doctor_id', id);
+
+      const reviewCount = reviewsData?.length || 0;
+      const avgRating = reviewCount > 0 
+        ? reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewCount 
+        : 0;
+
+      const completedBookings = bookingsData?.filter(b => b.status === 'completed').length || 0;
+      
+      setStats({
+        totalVacations: vacationsData?.length || 0,
+        completedBookings,
+        averageRating: avgRating,
+        reviewCount,
+        satisfactionRate: reviewCount >= 5 ? Math.round(avgRating * 20) : 0,
+        isNewProvider: reviewCount < 5,
+        responseTime: '2h'
+      });
+    } catch (error) {
+      console.error('Error fetching doctor stats:', error);
     }
   };
 

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { getSpecialityInfo } from '@/utils/specialities';
 import {
   Star,
   MapPin,
@@ -74,7 +75,9 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
     totalVacations: 0,
     completedBookings: 0,
     averageResponse: '2h',
-    satisfactionRate: 95
+    satisfactionRate: 0,
+    reviewCount: 0,
+    isNewProvider: false
   });
   const [loading, setLoading] = useState(false);
 
@@ -98,35 +101,32 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
         .select('id, status')
         .eq('doctor_id', doctor.id);
 
+      // Récupérer les vraies reviews depuis la base de données
+      const { data: reviewsData } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('doctor_id', doctor.id);
+
+      const reviewCount = reviewsData?.length || 0;
+      const avgRating = reviewCount > 0 
+        ? reviewsData.reduce((sum, review) => sum + review.rating, 0) / reviewCount 
+        : 0;
+
       const completedBookings = bookingsData?.filter(b => b.status === 'completed').length || 0;
       
       setDoctorStats({
         totalVacations: vacationsData?.length || 0,
         completedBookings,
         averageResponse: '2h',
-        satisfactionRate: Math.round((doctor.average_rating || 4.5) * 20)
+        satisfactionRate: reviewCount >= 5 ? Math.round(avgRating * 20) : 0,
+        reviewCount,
+        isNewProvider: reviewCount < 5
       });
     } catch (error) {
       console.error('Error loading doctor stats:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const translateSpeciality = (speciality: string): string => {
-    const mapping: Record<string, string> = {
-      'orthopedics': 'Orthopédie',
-      'cardiology': 'Cardiologie',
-      'dermatology': 'Dermatologie',
-      'pediatrics': 'Pédiatrie',
-      'psychiatry': 'Psychiatrie',
-      'radiology': 'Radiologie',
-      'anesthesiology': 'Anesthésie-Réanimation',
-      'general_surgery': 'Chirurgie générale',
-      'general_medicine': 'Médecine générale',
-      'gynecology': 'Gynécologie'
-    };
-    return mapping[speciality] || speciality;
   };
 
   const getActTypeInfo = (actType: string) => {
@@ -198,7 +198,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <Stethoscope className="w-4 h-4 text-blue-500" />
               <span className="text-blue-700 font-medium text-sm">
-                {translateSpeciality(doctor.speciality)}
+                {getSpecialityInfo(doctor.speciality).label}
               </span>
             </div>
 
@@ -290,16 +290,30 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-gray-600 flex items-center gap-1">
               <Heart className="w-4 h-4 text-pink-500" />
-              Taux de satisfaction
+              Satisfaction
             </span>
             <span className="text-sm font-bold text-pink-600">
-              {doctorStats.satisfactionRate}%
+              {doctorStats.isNewProvider ? (
+                <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                  Nouveau
+                </Badge>
+              ) : (
+                `${doctorStats.satisfactionRate}%`
+              )}
             </span>
           </div>
-          <Progress 
-            value={doctorStats.satisfactionRate} 
-            className="h-2"
-          />
+          {doctorStats.isNewProvider ? (
+            <div className="bg-blue-50 rounded-lg p-2 border border-blue-200">
+              <p className="text-xs text-blue-700 text-center">
+                Nouveau praticien sur la plateforme
+              </p>
+            </div>
+          ) : (
+            <Progress 
+              value={doctorStats.satisfactionRate} 
+              className="h-2"
+            />
+          )}
         </div>
 
         {/* Bio courte */}
