@@ -37,6 +37,7 @@ import LegalPage from "@/pages/LegalPage";
 import Contact from "@/pages/Contact"; // 👈 Ajout de la page de contact
 import PaymentCheckout from "./pages/PaymentCheckout";
 import Subscribe from "./pages/Subscribe";
+import SetupProfile from "./pages/SetupProfile"; // 👈 Page de configuration du profil OAuth
 
 // Hook personnalisé pour vérifier le profil complet
 const useProfileComplete = (user) => {
@@ -243,6 +244,16 @@ export default function AppRoutes() {
 
       {/* OAuth callback route */}
       <Route path="/auth/callback" element={<AuthCallback />} />
+
+      {/* Configuration du profil pour les nouveaux utilisateurs OAuth */}
+      <Route 
+        path="/setup-profile" 
+        element={
+          <ProtectedRoute requireVerified={false} requireActive={false}>
+            <SetupProfile />
+          </ProtectedRoute>
+        } 
+      />
 
       {/* Pages de vérification - Accessibles aux utilisateurs connectés non vérifiés */}
       <Route
