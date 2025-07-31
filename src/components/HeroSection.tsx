@@ -477,7 +477,7 @@ const HeroSection = () => {
             <div className="absolute -top-5 -left-8 bg-white rounded-xl shadow-lg p-3 border border-gray-100 animate-pulse z-20">
               <div className="flex items-center text-sm whitespace-nowrap">
                 <CheckCircle className="w-4 h-4 text-emerald-600 mr-2" />
-                <span className="text-gray-700">Nouvelle réservation!</span>
+                <span className="text-gray-700">Nouvelle réservation !</span>
               </div>
             </div>
           </div>

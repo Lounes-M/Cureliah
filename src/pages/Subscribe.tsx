@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 
 export default function Subscribe() {
   const { user, profile } = useAuth();
@@ -39,6 +40,7 @@ export default function Subscribe() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30">
+      <Header />
       <header className="py-12 px-4 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-medical-blue to-medical-green mb-4 drop-shadow-sm tracking-tight">
           Souscrire à un abonnement
