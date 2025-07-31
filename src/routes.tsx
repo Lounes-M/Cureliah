@@ -17,6 +17,11 @@ import EstablishmentProfile from "./pages/EstablishmentProfile";
 import ManageVacations from "./pages/ManageVacations";
 import VacationDetails from "./pages/VacationDetails";
 import VacationSearch from "./pages/VacationSearch";
+import DoctorBookings from "./pages/DoctorBookings";
+import DoctorCalendar from "./pages/DoctorCalendar";
+import InvoicesAndReports from "./pages/InvoicesAndReports";
+import SupportPremium from "./pages/SupportPremium";
+import APIPremiumDoctor from "./pages/APIPremiumDoctor";
 import MyBookings from "./pages/MyBookings";
 import ProfileComplete from "./pages/ProfileComplete";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -320,6 +325,46 @@ export default function AppRoutes() {
         path="/doctor/vacation/:vacationId/edit"
         element={
           <Navigate to="/doctor/manage-vacations" replace />
+        }
+      />
+      <Route
+        path="/doctor/bookings"
+        element={
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
+            <DoctorBookings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/calendar"
+        element={
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
+            <DoctorCalendar />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/reports"
+        element={
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
+            <InvoicesAndReports />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/support"
+        element={
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
+            <SupportPremium />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/api"
+        element={
+          <ProtectedRoute requiredUserType="doctor" requireComplete={true} requireSubscription={true}>
+            <APIPremiumDoctor />
+          </ProtectedRoute>
         }
       />
 

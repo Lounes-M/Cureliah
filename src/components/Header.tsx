@@ -383,6 +383,11 @@ const Header = () => {
                         aria-label={`Menu utilisateur - ${getDisplayName()} (Alt + U)`}
                       >
                         <Avatar className="h-8 w-8 ring-2 ring-blue-100 flex-shrink-0">
+                          <AvatarImage 
+                            src={profile?.avatar_url || undefined} 
+                            alt={getDisplayName()} 
+                            className="object-cover"
+                          />
                           <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-semibold">
                             {establishmentLoading && profile?.user_type === "establishment" ? (
                               <div className="animate-pulse bg-blue-300 rounded-full w-full h-full" />
@@ -468,6 +473,11 @@ const Header = () => {
                         {/* Profil utilisateur mobile */}
                         <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg mb-6">
                           <Avatar className="h-12 w-12 ring-2 ring-blue-200 flex-shrink-0">
+                            <AvatarImage 
+                              src={profile?.avatar_url || undefined} 
+                              alt={getDisplayName()} 
+                              className="object-cover"
+                            />
                             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
                               {establishmentLoading && profile?.user_type === "establishment" ? (
                                 <div className="animate-pulse bg-blue-300 rounded-full w-full h-full" />

@@ -16,10 +16,12 @@ interface UserProfile {
   first_name?: string;
   last_name?: string;
   specialty?: string;
+  speciality?: string;
   establishment_name?: string;
   user_type?: "doctor" | "establishment" | "admin";
   is_verified?: boolean;
   is_active?: boolean;
+  avatar_url?: string;
 }
 
 interface User {

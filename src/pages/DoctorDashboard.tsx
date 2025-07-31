@@ -548,18 +548,18 @@ const DoctorDashboard = () => {
       action: () => navigate("/doctor/manage-vacations"),
     },
     {
-      title: "Gérer mon planning",
-      description: "Voir et modifier mes créneaux",
+      title: "Mon calendrier",
+      description: "Vue calendrier de mes vacations",
       icon: Calendar,
       color: "bg-gradient-to-r from-green-500 to-green-600",
-      action: () => navigate("/doctor/manage-vacations"),
+      action: () => navigate("/doctor/calendar"),
     },
     {
       title: "Mes réservations",
       description: "Consulter les réservations actives",
       icon: Users,
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
-      action: () => navigate("/bookings"),
+      action: () => navigate("/doctor/bookings"),
     },
     {
       title: "Messages patients",
@@ -567,6 +567,34 @@ const DoctorDashboard = () => {
       icon: MessageSquare,
       color: "bg-gradient-to-r from-orange-500 to-orange-600",
       action: () => setActiveTab("messages"),
+    },
+  ];
+
+  // Actions premium (affichées seulement pour les utilisateurs premium)
+  const premiumActions = [
+    {
+      title: "Rapports & Facturation",
+      description: "Analyses financières détaillées",
+      icon: FileText,
+      color: "bg-gradient-to-r from-amber-500 to-yellow-600",
+      action: () => navigate("/doctor/reports"),
+      premium: true,
+    },
+    {
+      title: "Support Premium",
+      description: "Assistance prioritaire 24/7",
+      icon: Star,
+      color: "bg-gradient-to-r from-pink-500 to-rose-600",
+      action: () => navigate("/doctor/support"),
+      premium: true,
+    },
+    {
+      title: "API & Intégrations",
+      description: "Connectez vos applications",
+      icon: Activity,
+      color: "bg-gradient-to-r from-indigo-500 to-purple-600",
+      action: () => navigate("/doctor/api"),
+      premium: true,
     },
   ];
 
@@ -895,6 +923,43 @@ const DoctorDashboard = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Fonctionnalités Premium */}
+                {hasFeature('premium_features') && (
+                  <Card className="shadow-sm border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Star className="w-5 h-5 text-amber-600" />
+                        <span className="text-amber-900">Fonctionnalités Premium</span>
+                        <Badge className="bg-amber-600 text-white">PRO</Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {premiumActions.map((action, index) => (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            className="h-auto p-4 flex flex-col items-center space-y-3 hover:shadow-md transition-all border-amber-300 hover:border-amber-400 bg-white/50 hover:bg-white"
+                            onClick={action.action}
+                          >
+                            <div className={`p-3 rounded-xl ${action.color}`}>
+                              <action.icon className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="text-center">
+                              <div className="font-medium text-sm">
+                                {action.title}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                {action.description}
+                              </div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Planning du jour */}
