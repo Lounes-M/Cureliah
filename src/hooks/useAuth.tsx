@@ -218,8 +218,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 userData.profile = {
                   ...userData.profile,
                   specialty: doctorProfile.speciality,
+                  speciality: doctorProfile.speciality,
+                  avatar_url: doctorProfile.avatar_url,
                 };
-                console.log("✅ Doctor profile loaded");
+                console.log("✅ Doctor profile loaded with avatar:", doctorProfile.avatar_url);
               }
             }
           } catch (error) {
@@ -247,8 +249,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 userData.profile = {
                   ...userData.profile,
                   establishment_name: establishmentProfile.name,
+                  avatar_url: establishmentProfile.avatar_url,
                 };
-                console.log("✅ Establishment profile loaded");
+                console.log("✅ Establishment profile loaded with avatar:", establishmentProfile.avatar_url);
               }
             }
           } catch (error) {
