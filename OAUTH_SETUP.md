@@ -22,7 +22,7 @@
      ```
    - **URIs de redirection autorisées :**
      ```
-     https://your-project-ref.supabase.co/auth/v1/callback
+     https://[VOTRE_PROJET_SUPABASE].supabase.co/auth/v1/callback
      http://localhost:8081/auth/callback
      ```
 
@@ -31,8 +31,8 @@
 1. **Aller dans Supabase Dashboard > Authentication > Providers**
 2. **Activer Google :**
    - Enable : ✅
-   - Client ID : `votre-google-client-id`
-   - Client Secret : `votre-google-client-secret`
+   - Client ID : `[VOTRE_GOOGLE_CLIENT_ID]`
+   - Client Secret : `[VOTRE_GOOGLE_CLIENT_SECRET]`
 
 ### 2. LinkedIn OAuth
 
@@ -43,7 +43,7 @@
 3. **Configurer l'OAuth :**
    - **Redirect URLs :**
      ```
-     https://your-project-ref.supabase.co/auth/v1/callback
+     https://[VOTRE_PROJET_SUPABASE].supabase.co/auth/v1/callback
      http://localhost:8081/auth/callback
      ```
    - **Scopes requis :**
@@ -64,8 +64,8 @@ Ajouter à votre `.env.local` :
 
 ```bash
 # OAuth Configuration
-VITE_GOOGLE_CLIENT_ID=your-google-client-id
-VITE_LINKEDIN_CLIENT_ID=your-linkedin-client-id
+VITE_GOOGLE_CLIENT_ID=[VOTRE_GOOGLE_CLIENT_ID]
+VITE_LINKEDIN_CLIENT_ID=[VOTRE_LINKEDIN_CLIENT_ID]
 VITE_REDIRECT_URL=http://localhost:8081/auth/callback
 ```
 
