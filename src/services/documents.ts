@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import Logger, { ErrorHandler } from '@/utils/logger';
 
 export interface Document {
   id: string;
@@ -20,7 +21,8 @@ export const uploadDocument = async (
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
     const filePath = `documents/${fileName}`;
 
-    console.log('Uploading document:', { filePath, fileType: file.type, fileSize: file.size });
+    const logger = Logger.getInstance();
+    logger.debug('Uploading document', { filePath, fileType: file.type, fileSize: file.size }, 'Documents', 'upload_start');
 
     // Upload file to Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -28,7 +30,7 @@ export const uploadDocument = async (
       .upload(filePath, file);
 
     if (uploadError) {
-      console.error('Storage upload error:', uploadError);
+      ErrorHandler.handleError(uploadError, { filePath, fileType: file.type }, 'Documents', 'storage_upload_error');
       throw uploadError;
     }
 
@@ -37,7 +39,7 @@ export const uploadDocument = async (
       .from('documents')
       .getPublicUrl(filePath);
 
-    console.log('Creating document record:', { userId, name: file.name, type: file.type });
+    logger.debug('Creating document record', { userId, name: file.name, type: file.type }, 'Documents', 'db_insert_start');
 
     // Create document record
     const { data: document, error: dbError } = await supabase
@@ -56,20 +58,21 @@ export const uploadDocument = async (
       .single();
 
     if (dbError) {
-      console.error('Database insert error:', dbError);
+      ErrorHandler.handleError(dbError, { userId, fileName: file.name }, 'Documents', 'db_insert_error');
       throw dbError;
     }
 
     return document;
   } catch (error) {
-    console.error('Error uploading document:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId, fileName: file.name });
     throw error;
   }
 };
 
 export const getDocuments = async (userId: string) => {
   try {
-    console.log('Fetching documents for user:', userId);
+    const logger = Logger.getInstance();
+    logger.debug('Fetching documents for user', { userId }, 'Documents', 'fetch_start');
     
     const { data, error } = await supabase
       .from('documents')
@@ -78,21 +81,22 @@ export const getDocuments = async (userId: string) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Database select error:', error);
+      ErrorHandler.handleError(error, { userId }, 'Documents', 'db_select_error');
       throw error;
     }
 
-    console.log('Documents fetched successfully:', data?.length);
+    logger.debug('Documents fetched successfully', { count: data?.length, userId }, 'Documents', 'fetch_success');
     return data;
   } catch (error) {
-    console.error('Error fetching documents:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId });
     throw error;
   }
 };
 
 export const deleteDocument = async (documentId: string) => {
   try {
-    console.log('Deleting document:', documentId);
+    const logger = Logger.getInstance();
+    logger.debug('Deleting document', { documentId }, 'Documents', 'delete_start');
 
     // Get document details
     const { data: document, error: fetchError } = await supabase
@@ -102,7 +106,7 @@ export const deleteDocument = async (documentId: string) => {
       .single();
 
     if (fetchError) {
-      console.error('Document fetch error:', fetchError);
+      ErrorHandler.handleError(fetchError, { documentId }, 'Documents', 'document_fetch_error');
       throw fetchError;
     }
 
@@ -113,7 +117,7 @@ export const deleteDocument = async (documentId: string) => {
       .remove([`${document.user_id}/${filePath}`]);
 
     if (storageError) {
-      console.error('Storage delete error:', storageError);
+      ErrorHandler.handleError(storageError, { documentId, filePath }, 'Documents', 'storage_delete_error');
       throw storageError;
     }
 
@@ -124,13 +128,13 @@ export const deleteDocument = async (documentId: string) => {
       .eq('id', documentId);
 
     if (dbError) {
-      console.error('Database delete error:', dbError);
+      ErrorHandler.handleError(dbError, { documentId }, 'Documents', 'db_delete_error');
       throw dbError;
     }
 
-    console.log('Document deleted successfully');
+    logger.info('Document deleted successfully', { documentId }, 'Documents', 'delete_success');
   } catch (error) {
-    console.error('Error deleting document:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { documentId });
     throw error;
   }
 };

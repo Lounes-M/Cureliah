@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import { ErrorHandler } from '@/utils/logger';
 
 export interface CreateNotificationParams {
   user_id: string;
@@ -29,7 +30,7 @@ export class NotificationService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error creating notification:', error);
+      ErrorHandler.handleUnexpectedError(error as Error, { userId: params.user_id, type: params.type });
       throw error;
     }
   }
@@ -52,7 +53,7 @@ export class NotificationService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error creating bulk notifications:', error);
+      ErrorHandler.handleUnexpectedError(error as Error, { notificationCount: notifications.length });
       throw error;
     }
   }

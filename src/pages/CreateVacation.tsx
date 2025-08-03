@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLogger } from '@/utils/logger';
 import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import VacationForm from "@/components/vacation/VacationForm";
@@ -52,6 +53,7 @@ const CreateVacation = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const logger = useLogger();
 
   // États principaux
   const [initialLoading, setInitialLoading] = useState(isEditing);
@@ -239,7 +241,7 @@ const CreateVacation = () => {
 
       setHasUnsavedChanges(false);
     } catch (error: any) {
-      console.error("Error fetching vacation:", error);
+      logger.error("Error fetching vacation", error as Error, { vacationId }, 'CreateVacation', 'fetch_vacation_error');
       toast({
         title: "Erreur",
         description: "Impossible de charger la vacation",
@@ -310,7 +312,7 @@ const CreateVacation = () => {
       setLastSaved(new Date());
       setHasUnsavedChanges(false);
     } catch (error: any) {
-      console.error("Error auto-saving draft:", error);
+      logger.error("Error auto-saving draft", error as Error, { vacationId, formData }, 'CreateVacation', 'auto_save_error');
     } finally {
       setSaving(false);
     }
@@ -430,7 +432,7 @@ const CreateVacation = () => {
       });
       navigate("/doctor/manage-vacations");
     } catch (error: any) {
-      console.error("Error saving vacation:", error);
+      logger.error("Error saving vacation", error as Error, { vacationId, formData }, 'CreateVacation', 'save_vacation_error');
       toast({
         title: "Erreur",
         description: error.message || "Impossible de publier la vacation",

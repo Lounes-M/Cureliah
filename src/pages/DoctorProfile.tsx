@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useLogger } from '@/utils/logger';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,6 +72,7 @@ export default function DoctorProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const logger = useLogger();
   const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
   const [stats, setStats] = useState<DoctorStats>({
     totalVacations: 0,
@@ -105,7 +107,7 @@ export default function DoctorProfile() {
 
       setDoctor(data);
     } catch (error) {
-      console.error('Error fetching doctor profile:', error);
+      logger.error('Error fetching doctor profile', error as Error, { doctorId: id }, 'DoctorProfile', 'fetch_profile_error');
       setError('Impossible de charger le profil du médecin');
     } finally {
       setLoading(false);
@@ -149,7 +151,7 @@ export default function DoctorProfile() {
         responseTime: '2h'
       });
     } catch (error) {
-      console.error('Error fetching doctor stats:', error);
+      logger.error('Error fetching doctor stats', error as Error, { doctorId: id }, 'DoctorProfile', 'fetch_stats_error');
     }
   };
 

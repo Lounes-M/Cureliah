@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLogger } from '@/utils/logger';
 import { supabase } from "@/integrations/supabase/client.browser";
 import {
   Mail,
@@ -59,6 +60,7 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const { user, redirectToDashboard } = useAuth();
   const { toast } = useToast();
+  const logger = useLogger();
 
   const [verificationStatus, setVerificationStatus] = useState("pending");
   const [isResending, setIsResending] = useState(false);
@@ -136,7 +138,7 @@ const VerifyEmail = () => {
         }
       }, 2000);
     } catch (error) {
-      console.error("Erreur lors de la vérification:", error);
+      logger.error("Erreur lors de la vérification", error as Error, { token, userId: user?.id }, 'VerifyEmail', 'verification_error');
       setVerificationStatus("error");
 
       let errorMsg = "Une erreur est survenue lors de la vérification.";
@@ -168,7 +170,7 @@ const VerifyEmail = () => {
     try {
       navigate("/auth");
     } catch (error) {
-      console.error("Navigation error:", error);
+      logger.error("Navigation error", error as Error, { targetPath: "/auth" }, 'VerifyEmail', 'navigation_error');
       window.location.href = "/auth";
     }
   };
@@ -197,7 +199,7 @@ const VerifyEmail = () => {
       setVerificationStatus("pending"); // Reset status après renvoi
       setErrorMessage("");
     } catch (error) {
-      console.error("Erreur lors du renvoi:", error);
+      logger.error("Erreur lors du renvoi", error as Error, { email }, 'VerifyEmail', 'resend_error');
 
       let errorMsg =
         "Impossible d'envoyer l'email. Veuillez réessayer plus tard.";

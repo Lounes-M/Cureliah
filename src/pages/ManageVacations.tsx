@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useLogger } from '@/utils/logger';
 import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import { PlanningMedecin } from "@/components/vacation/PlanningMedecin";
@@ -32,9 +33,10 @@ interface VacationStats {
 }
 
 const ManageVacations = () => {
-  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
+  const logger = useLogger();
   const [stats, setStats] = useState<VacationStats>({
     totalVacations: 0,
     availableSlots: 0,
@@ -141,7 +143,7 @@ const ManageVacations = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      logger.error("Error fetching stats", error as Error, { userId: user?.id }, 'ManageVacations', 'fetch_stats_error');
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",

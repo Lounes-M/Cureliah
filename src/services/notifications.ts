@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import { ErrorHandler } from '@/utils/logger';
 
 export type NotificationType = 'message' | 'payment' | 'booking' | 'document' | 'system';
 
@@ -40,7 +41,7 @@ export const createNotification = async (
     if (error) throw error;
     return notification;
   } catch (error) {
-    console.error('Error creating notification:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId, title, type });
     throw error;
   }
 };
@@ -56,7 +57,7 @@ export const getNotifications = async (userId: string) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId });
     throw error;
   }
 };
@@ -70,7 +71,7 @@ export const markNotificationAsRead = async (notificationId: string) => {
 
     if (error) throw error;
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { notificationId });
     throw error;
   }
 };

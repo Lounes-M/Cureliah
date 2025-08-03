@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useLogger } from '@/utils/logger';
+import Logger from '@/utils/logger';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,9 +70,10 @@ const specialityMapping: Record<string, string> = {
 
 // Fonction pour traduire les spécialités
 const translateSpeciality = (speciality: string): string => {
-  console.log("🔄 translateSpeciality appelée avec:", speciality);
+  const logger = Logger.getInstance();
+  logger.debug("translateSpeciality appelée", { speciality }, 'DoctorDashboard', 'translate_speciality');
   const result = specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
-  console.log("🔄 translateSpeciality retourne:", result);
+  logger.debug("translateSpeciality retourne", { result }, 'DoctorDashboard', 'translate_speciality');
   return result;
 };
 
@@ -131,6 +134,7 @@ const DoctorDashboard = () => {
   const doctorProfile = profile as DoctorProfile;
   const { vacations, loading: vacationsLoading } = useRecentVacations();
   const { toast } = useToast();
+  const logger = useLogger();
   const [activeTab, setActiveTab] = useState("overview");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
@@ -151,20 +155,20 @@ const DoctorDashboard = () => {
     const specialty = doctorProfileFromDB?.speciality || doctorProfile?.specialty || doctorProfile?.speciality;
     
     // Logs pour debug
-    console.log("🔍 Debug spécialité:");
-    console.log("- doctorProfileFromDB?.speciality:", doctorProfileFromDB?.speciality);
-    console.log("- doctorProfile?.specialty:", doctorProfile?.specialty);
-    console.log("- doctorProfile?.speciality:", doctorProfile?.speciality);
-    console.log("- specialty final:", specialty);
+    logger.debug("Debug spécialité", {
+      doctorProfileFromDB_speciality: doctorProfileFromDB?.speciality,
+      doctorProfile_specialty: doctorProfile?.specialty,
+      doctorProfile_speciality: doctorProfile?.speciality,
+      specialty_final: specialty
+    }, 'DoctorDashboard', 'debug_speciality');
     
     if (!specialty) {
-      console.log("- Aucune spécialité trouvée, retour du message par défaut");
+      logger.debug("Aucune spécialité trouvée, retour du message par défaut", {}, 'DoctorDashboard', 'no_speciality');
       return "Spécialité pas encore ajoutée";
     }
     
     const translated = translateSpeciality(specialty);
-    console.log("- translated:", translated);
-    console.log("- specialityMapping:", specialityMapping);
+    logger.debug("Spécialité traduite", { translated, specialityMapping }, 'DoctorDashboard', 'translated_speciality');
     
     return translated;
   };
@@ -187,7 +191,7 @@ const DoctorDashboard = () => {
 
   // Debug: surveiller les changements du profil
   useEffect(() => {
-    console.log("🔄 doctorProfileFromDB a changé:", doctorProfileFromDB);
+    logger.debug("doctorProfileFromDB a changé", { doctorProfileFromDB }, 'DoctorDashboard', 'profile_change');
   }, [doctorProfileFromDB]);
 
   // Vérification du statut d'abonnement
@@ -227,11 +231,12 @@ const DoctorDashboard = () => {
       setRecentActivity(activityData);
       setDoctorProfileFromDB(profileData);
       
-      console.log("✅ Toutes les données chargées:");
-      console.log("- statsData:", statsData);
-      console.log("- profileData:", profileData);
+      logger.info("Toutes les données chargées", {
+        statsData,
+        profileData
+      }, 'DoctorDashboard', 'data_loaded');
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      logger.error("Error loading dashboard data", error as Error, { userId: user?.id }, 'DoctorDashboard', 'load_data_error');
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du tableau de bord",
@@ -244,7 +249,7 @@ const DoctorDashboard = () => {
 
   const loadDoctorProfile = async (): Promise<DoctorProfileFromDB | null> => {
     try {
-      console.log("🔍 Chargement du profil médecin pour user.id:", user.id);
+      logger.debug("Chargement du profil médecin", { userId: user.id }, 'DoctorDashboard', 'load_profile_start');
       
       const { data, error } = await supabase
         .from("doctor_profiles")
@@ -252,17 +257,16 @@ const DoctorDashboard = () => {
         .eq("id", user.id)
         .single();
 
-      console.log("📋 Données profil récupérées:", data);
-      console.log("❌ Erreur profil:", error);
+      logger.debug("Données profil récupérées", { data, error }, 'DoctorDashboard', 'profile_data_retrieved');
 
       if (error) {
-        console.error("Error loading doctor profile:", error);
+        logger.error("Error loading doctor profile", error, { userId: user.id }, 'DoctorDashboard', 'profile_load_error');
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error("Error in loadDoctorProfile:", error);
+      logger.error("Error in loadDoctorProfile", error as Error, { userId: user.id }, 'DoctorDashboard', 'profile_load_unexpected_error');
       return null;
     }
   };
@@ -645,7 +649,7 @@ const DoctorDashboard = () => {
                   {(() => {
                     const specialty = getTranslatedSpecialty();
                     const isNotSet = specialty === "Spécialité pas encore ajoutée";
-                    console.log("🎯 Spécialité affichée dans le rendu:", specialty);
+                    logger.debug("Spécialité affichée dans le rendu", { specialty }, 'DoctorDashboard', 'render_speciality');
                     
                     return isNotSet ? (
                       <Button

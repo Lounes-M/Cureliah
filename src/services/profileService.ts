@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import { ErrorHandler } from '@/utils/logger';
 
 export interface Profile {
   id: string;
@@ -30,7 +31,7 @@ export const getProfile = async (userId: string) => {
 
     return data;
   } catch (error: any) {
-    console.error('Error fetching profile:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId });
     throw error;
   }
 };
@@ -48,7 +49,7 @@ export const updateProfile = async (userId: string, updates: Partial<Profile>) =
 
     return data;
   } catch (error: any) {
-    console.error('Error updating profile:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId, updates });
     throw error;
   }
 };
@@ -79,7 +80,7 @@ export const uploadProfilePicture = async (userId: string, file: File, userType:
 
     return publicUrl;
   } catch (error: any) {
-    console.error('Error uploading profile picture:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { userId, fileName: file.name });
     throw error;
   }
 };
@@ -113,7 +114,7 @@ export const getDoctors = async (filters?: {
 
     return data;
   } catch (error: any) {
-    console.error('Error fetching doctors:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { filters });
     throw error;
   }
 };
@@ -142,7 +143,7 @@ export const getEstablishments = async (filters?: {
 
     return data;
   } catch (error: any) {
-    console.error('Error fetching establishments:', error);
+    ErrorHandler.handleUnexpectedError(error as Error, { filters });
     throw error;
   }
 };
