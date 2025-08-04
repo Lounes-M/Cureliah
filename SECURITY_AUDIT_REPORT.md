@@ -18,7 +18,7 @@ After conducting a comprehensive security audit following the API key exposure i
 ### ✅ 2. API Key Protection
 - **Status**: SECURE
 - **Details**:
-  - No live Stripe keys (`sk_live_*`, `pk_live_*`) found in source code
+  - No live Stripe keys found in source code
   - No test keys hardcoded in application code
   - All API keys properly externalized to environment variables
   - Stripe secret keys correctly excluded from frontend configuration

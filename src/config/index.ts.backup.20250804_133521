@@ -22,24 +22,24 @@ export const config = {
   // Stripe Pricing Configuration - PRODUCTION (Update with your actual Price IDs from Stripe Dashboard)
   stripePricing: {
     establishment: {
-      monthly: '',  // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''     // TO UPDATE: Copy from Stripe Dashboard
+      monthly: 'price_ESTABLISHMENT_MONTHLY_TO_UPDATE',  // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_ESTABLISHMENT_YEARLY_TO_UPDATE'     // TO UPDATE: Copy from Stripe Dashboard
     },
     doctor: {
-      monthly: '',         // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''            // TO UPDATE: Copy from Stripe Dashboard
+      monthly: 'price_DOCTOR_MONTHLY_TO_UPDATE',         // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_DOCTOR_YEARLY_TO_UPDATE'            // TO UPDATE: Copy from Stripe Dashboard
     },
     api: {
-      monthly: '',            // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''               // TO UPDATE: Copy from Stripe Dashboard
+      monthly: 'price_API_MONTHLY_TO_UPDATE',            // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_API_YEARLY_TO_UPDATE'               // TO UPDATE: Copy from Stripe Dashboard
     }
   },
   
   // Legacy pricing (keep for backward compatibility)
   pricing: {
-    establishment_premium: '', // Points to monthly
-    doctor_premium: '',              // Points to monthly  
-    api_premium: '',                    // Points to monthly
+    establishment_premium: 'price_ESTABLISHMENT_MONTHLY_TO_UPDATE', // Points to monthly
+    doctor_premium: 'price_DOCTOR_MONTHLY_TO_UPDATE',              // Points to monthly  
+    api_premium: 'price_API_MONTHLY_TO_UPDATE',                    // Points to monthly
   },
   
   features: {

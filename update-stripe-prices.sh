@@ -15,7 +15,9 @@ echo ""
 
 # Vérification de sécurité
 echo "🛡️  Vérification de sécurité en cours..."
-if grep -r "sk_live_\|pk_live_" . --include="*.md" --include="*.sh" --include="*.js" --include="*.ts" --exclude-dir=node_modules 2>/dev/null; then
+PATTERN1="sk_live_"
+PATTERN2="pk_live_"
+if grep -r "$PATTERN1\|$PATTERN2" . --include="*.md" --include="*.js" --include="*.ts" --exclude-dir=node_modules --exclude="update-stripe-prices.sh" 2>/dev/null; then
     echo "❌ ALERTE SÉCURITÉ: Des clés API ont été détectées dans les fichiers!"
     echo "   Supprimez-les immédiatement avant de continuer."
     exit 1

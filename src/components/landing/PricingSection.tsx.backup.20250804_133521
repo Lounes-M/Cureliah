@@ -20,7 +20,7 @@ const THEME_COLORS = {
 
 const pricingPlans = [
   {
-    id: "", // Will be updated by script after Stripe setup
+    id: "price_DOCTOR_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
     yearlyId: "price_DOCTOR_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
     name: "Essentiel Médecin",
     monthlyPrice: "19.90",
@@ -39,8 +39,8 @@ const pricingPlans = [
     badge: null,
   },
   {
-    id: "", // Will be updated by script after Stripe setup
-    yearlyId: "", // Will be updated by script after Stripe setup
+    id: "price_ESTABLISHMENT_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_ESTABLISHMENT_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
     name: "Premium Établissement",
     monthlyPrice: "29.90",
     yearlyPrice: "299", // ~24.92/mois, économie de ~60€/an
@@ -60,8 +60,8 @@ const pricingPlans = [
     badge: "Le plus populaire",
   },
   {
-    id: "", // Will be updated by script after Stripe setup
-    yearlyId: "", // Will be updated by script after Stripe setup
+    id: "price_API_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_API_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
     name: "API Premium",
     monthlyPrice: "49.90",
     yearlyPrice: "499", // ~41.58/mois, économie de ~100€/an
