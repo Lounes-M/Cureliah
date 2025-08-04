@@ -15,9 +15,9 @@ const corsHeaders = {
 
 // Mapping métier -> Price ID Stripe
 const PLAN_ID_TO_STRIPE_PRICE: Record<string, string> = {
-  essentiel: "price_1RegyICeORMekP8LJOUjRRyO", // Remplace par ton vrai Price ID Stripe
-  pro: "price_1RegxuCeORMekP8LY9m2br5I",            // Remplace par ton vrai Price ID Stripe
-  premium: "price_1RegyWCeORMekP8LjR59Wyef"     // Remplace par ton vrai Price ID Stripe
+  essentiel: "price_1RsMk8EL5OGpZLTY5HHdsRtb", // Remplace par ton vrai Price ID Stripe
+  pro: "price_1RsMkOEL5OGpZLTYVa4yHAz6",            // Remplace par ton vrai Price ID Stripe
+  premium: "price_1RsMlQEL5OGpZLTYAqJFgJIg"     // Remplace par ton vrai Price ID Stripe
 };
 
 serve(async (req: Request): Promise<Response> => {

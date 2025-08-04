@@ -22,16 +22,16 @@ export const config = {
   // Stripe Pricing Configuration - PRODUCTION (Update with your actual Price IDs from Stripe Dashboard)
   stripePricing: {
     essentiel: {
-      monthly: 'price_ESSENTIEL_MONTHLY_TO_UPDATE',  // TO UPDATE: Copy from Stripe Dashboard (€49/mois)
-      yearly: 'price_ESSENTIEL_YEARLY_TO_UPDATE'     // TO UPDATE: Copy from Stripe Dashboard (€470 ~€39/mois)
+      monthly: 'price_1RsMk8EL5OGpZLTY5HHdsRtb',  // TO UPDATE: Copy from Stripe Dashboard (€49/mois)
+      yearly: 'price_1RsMk8EL5OGpZLTY7VcvYyLF'     // TO UPDATE: Copy from Stripe Dashboard (€470 ~€39/mois)
     },
     pro: {
-      monthly: 'price_PRO_MONTHLY_TO_UPDATE',         // TO UPDATE: Copy from Stripe Dashboard (€99/mois)
-      yearly: 'price_PRO_YEARLY_TO_UPDATE'            // TO UPDATE: Copy from Stripe Dashboard (€950 ~€79/mois)
+      monthly: 'price_1RsMkOEL5OGpZLTYVa4yHAz6',         // TO UPDATE: Copy from Stripe Dashboard (€99/mois)
+      yearly: 'price_1RsMkzEL5OGpZLTYLYKANste'            // TO UPDATE: Copy from Stripe Dashboard (€950 ~€79/mois)
     },
     premium: {
-      monthly: 'price_PREMIUM_MONTHLY_TO_UPDATE',      // TO UPDATE: Copy from Stripe Dashboard (€199/mois)
-      yearly: 'price_PREMIUM_YEARLY_TO_UPDATE'         // TO UPDATE: Copy from Stripe Dashboard (€1910 ~€159/mois)
+      monthly: 'price_1RsMlQEL5OGpZLTYAqJFgJIg',      // TO UPDATE: Copy from Stripe Dashboard (€199/mois)
+      yearly: 'price_1RsMlhEL5OGpZLTYBdPpEwJH'         // TO UPDATE: Copy from Stripe Dashboard (€1910 ~€159/mois)
     }
   },
   
