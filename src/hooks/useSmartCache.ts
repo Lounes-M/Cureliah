@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Logger from '@/utils/logger';
 
 interface CacheConfig {
   maxAge: number; // en millisecondes
@@ -361,7 +362,8 @@ export function usePrefetch() {
         const data = await fetcher();
         globalCache.set(key, data);
       } catch (error) {
-        console.warn('Prefetch failed for key:', key, error);
+        const logger = Logger.getInstance();
+        logger.warn('Prefetch failed for key', { key, error: (error as Error).message }, 'useSmartCache', 'prefetch_failed');
       }
     }
   }, []);

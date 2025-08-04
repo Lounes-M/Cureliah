@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useLogger } from '@/utils/logger';
 import { VacationPost } from '@/types/database';
 
 export function useRecentVacations() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const logger = useLogger();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -43,10 +45,10 @@ export function useRecentVacations() {
       const { data, error } = await query;
 
       if (error) throw error;
-      console.log('Vacations data with time slots:', data);
+      logger.debug('Vacations data with time slots', { data: data?.length }, 'useRecentVacations', 'vacations_fetched');
       setVacations(data || []);
     } catch (error: unknown) {
-      console.error('Error fetching vacations:', error);
+      logger.error('Error fetching vacations', error as Error, { userId: user?.id, userType: profile?.user_type }, 'useRecentVacations', 'fetch_error');
       toast({
         title: "Erreur",
         description: "Impossible de charger les vacations",

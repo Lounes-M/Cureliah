@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
+import { useLogger } from '@/utils/logger';
 import { UserPresence, UserStatus } from '@/types/database';
 
 export function useUserPresence() {
   const { user } = useAuth();
+  const logger = useLogger();
   const [userPresences, setUserPresences] = useState<Record<string, UserPresence>>({});
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export function useUserPresence() {
       });
       setUserPresences(presenceMap);
     } catch (error: unknown) {
-      console.error('Error fetching user presences:', error);
+      logger.error('Error fetching user presences', error as Error, { userId: user?.id }, 'useUserPresence', 'fetch_error');
     }
   };
 
@@ -99,7 +101,7 @@ export function useUserPresence() {
 
       if (error) throw error;
     } catch (error: unknown) {
-      console.error('Error updating user status:', error);
+      logger.error('Error updating user status', error as Error, { userId: user?.id, status }, 'useUserPresence', 'update_error');
     }
   };
 

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useLogger } from '@/utils/logger';
 import { supabase } from "@/integrations/supabase/client.browser";
 import { VacationPost } from "@/types/database";
 
@@ -18,6 +19,7 @@ const useVacationSearch = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const logger = useLogger();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);
@@ -84,8 +86,8 @@ const useVacationSearch = () => {
 
       setVacations(data || []);
       setError(null);
-    } catch (error: unknown) {
-      console.error("Error fetching vacations:", error);
+    } catch (error: any) {
+      logger.error("Error fetching vacations", error as Error, { filters }, 'useVacationSearch', 'fetch_error');
       setError(error instanceof Error ? error.message : String(error));
       toast({
         title: "Erreur",
@@ -138,8 +140,8 @@ const useVacationSearch = () => {
       }
 
       navigate(`/vacations/${vacationId}/book`);
-    } catch (error: unknown) {
-      console.error("Error booking vacation:", error);
+    } catch (error: any) {
+      logger.error("Error booking vacation", error as Error, { vacationId, userId: user?.id }, 'useVacationSearch', 'booking_error');
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la réservation.",

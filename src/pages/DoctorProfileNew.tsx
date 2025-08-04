@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { useLogger } from "@/utils/logger";
 import { getSpecialityInfo } from '@/utils/specialities';
 import { 
   ArrowLeft, 
@@ -70,6 +71,7 @@ export default function DoctorProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const logger = useLogger();
   const [doctor, setDoctor] = useState<DoctorProfileData | null>(null);
   const [stats, setStats] = useState<DoctorStats>({
     totalVacations: 0,
@@ -104,7 +106,7 @@ export default function DoctorProfile() {
 
       setDoctor(data);
     } catch (error) {
-      console.error('Error fetching doctor profile:', error);
+      logger.error('Error fetching doctor profile', error as Error, { doctorId: id }, 'DoctorProfile', 'fetch_error');
       setError('Impossible de charger le profil du médecin');
     } finally {
       setLoading(false);
@@ -148,7 +150,7 @@ export default function DoctorProfile() {
         responseTime: '2h'
       });
     } catch (error) {
-      console.error('Error fetching doctor stats:', error);
+      logger.error('Error fetching doctor stats', error as Error, { doctorId: id }, 'DoctorProfile', 'stats_error');
     }
   };
 

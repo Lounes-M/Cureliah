@@ -1,43 +1,55 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { Loader2 } from "lucide-react";
 
-// Pages existantes
+// Essential pages that should load immediately
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
-import DoctorDashboard from "./pages/DoctorDashboard";
-import EstablishmentDashboard from "./pages/EstablishmentDashboard";
-import EstablishmentSearch from "./pages/EstablishmentSearch";
-import EnhancedEstablishmentSearch from "./pages/EnhancedEstablishmentSearch";
-import EstablishmentProfile from "./pages/EstablishmentProfile";
-import ManageVacations from "./pages/ManageVacations";
-import VacationDetails from "./pages/VacationDetails";
-import VacationSearch from "./pages/VacationSearch";
-import DoctorBookings from "./pages/DoctorBookings";
-import DoctorCalendar from "./pages/DoctorCalendar";
-import InvoicesAndReports from "./pages/InvoicesAndReports";
-import SupportPremium from "./pages/SupportPremium";
-import APIPremiumDoctor from "./pages/APIPremiumDoctor";
-import MyBookings from "./pages/MyBookings";
-import ProfileComplete from "./pages/ProfileComplete";
-import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import DoctorCreateProfile from "./pages/doctor/CreateProfile";
-import EstablishmentCreateProfile from "./pages/establishment/CreateProfile";
 
-// Nouvelles pages
-import VerifyEmail from "./pages/VerifyEmail";
-import AccountActivation from "@/pages/AccountActivation";
-import LegalPage from "@/pages/LegalPage";
-import Contact from "@/pages/Contact"; // 👈 Ajout de la page de contact
-import PaymentCheckout from "./pages/PaymentCheckout";
-import Subscribe from "./pages/Subscribe";
-import SetupProfile from "./pages/SetupProfile"; // 👈 Page de configuration du profil OAuth
+// Lazy loaded pages for better performance
+const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
+const EstablishmentDashboard = lazy(() => import("./pages/EstablishmentDashboard"));
+const EstablishmentSearch = lazy(() => import("./pages/EstablishmentSearch"));
+const EnhancedEstablishmentSearch = lazy(() => import("./pages/EnhancedEstablishmentSearch"));
+const EstablishmentProfile = lazy(() => import("./pages/EstablishmentProfile"));
+const ManageVacations = lazy(() => import("./pages/ManageVacations"));
+const VacationDetails = lazy(() => import("./pages/VacationDetails"));
+const VacationSearch = lazy(() => import("./pages/VacationSearch"));
+const DoctorBookings = lazy(() => import("./pages/DoctorBookings"));
+const DoctorCalendar = lazy(() => import("./pages/DoctorCalendar"));
+const InvoicesAndReports = lazy(() => import("./pages/InvoicesAndReports"));
+const SupportPremium = lazy(() => import("./pages/SupportPremium"));
+const APIPremiumDoctor = lazy(() => import("./pages/APIPremiumDoctor"));
+const MyBookings = lazy(() => import("./pages/MyBookings"));
+const ProfileComplete = lazy(() => import("./pages/ProfileComplete"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const DoctorCreateProfile = lazy(() => import("./pages/doctor/CreateProfile"));
+const EstablishmentCreateProfile = lazy(() => import("./pages/establishment/CreateProfile"));
+
+// Additional lazy loaded pages
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const AccountActivation = lazy(() => import("@/pages/AccountActivation"));
+const LegalPage = lazy(() => import("@/pages/LegalPage"));
+const Contact = lazy(() => import("@/pages/Contact"));
+const PaymentCheckout = lazy(() => import("./pages/PaymentCheckout"));
+const Subscribe = lazy(() => import("./pages/Subscribe"));
+const SetupProfile = lazy(() => import("./pages/SetupProfile"));
+
+// Loading component for lazy loaded routes
+const PageLoader = () => (
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
+    <div className="flex flex-col items-center space-y-4">
+      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <p className="text-gray-600">Chargement...</p>
+    </div>
+  </div>
+);
 
 // Hook personnalisé pour vérifier le profil complet
 const useProfileComplete = (user) => {
@@ -224,13 +236,14 @@ const AuthRoute = ({ children }) => {
 
 export default function AppRoutes() {
   return (
-    <Routes>
-      {/* Page d'accueil - Publique */}
-      <Route path="/" element={<Index />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Page d'accueil - Publique */}
+        <Route path="/" element={<Index />} />
 
-      {/* 👇 NOUVELLES ROUTES PUBLIQUES */}
-      <Route path="/legal" element={<LegalPage />} />
-      <Route path="/contact" element={<Contact />} />
+        {/* 👇 NOUVELLES ROUTES PUBLIQUES */}
+        <Route path="/legal" element={<LegalPage />} />
+        <Route path="/contact" element={<Contact />} />
 
       {/* Pages d'authentification */}
       <Route
@@ -595,5 +608,6 @@ export default function AppRoutes() {
         }
       />
     </Routes>
+    </Suspense>
   );
 }

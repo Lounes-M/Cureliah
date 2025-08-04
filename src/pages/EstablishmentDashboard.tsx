@@ -43,6 +43,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLogger } from "@/utils/logger";
 import {
   Dialog,
   DialogContent,
@@ -208,6 +209,7 @@ interface RecentActivity {
 const EstablishmentDashboard = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const logger = useLogger();
   // Convertir le profil en profil étendu pour les établissements
   const extendedProfile = profile as ExtendedProfile;
   const { toast } = useToast();
@@ -340,7 +342,7 @@ const EstablishmentDashboard = () => {
   const fetchVacationDetails = async (bookingId: string) => {
     setLoadingVacation(true);
     try {
-      console.log("Fetching vacation details for booking:", bookingId);
+      logger.debug("Fetching vacation details for booking", { bookingId });
       
       const { data, error } = await supabase
         .from("bookings")
@@ -378,11 +380,11 @@ const EstablishmentDashboard = () => {
         .single();
 
       if (error) {
-        console.error("Supabase error:", error);
+        logger.error("Supabase error when fetching vacation details", { error, bookingId });
         throw error;
       }
       
-      console.log("Raw data from Supabase:", data);
+      logger.debug("Raw data from Supabase", { data, bookingId });
       
       // Vérifications de sécurité pour éviter les erreurs
       if (!data) {
@@ -414,8 +416,10 @@ const EstablishmentDashboard = () => {
         throw new Error("Profil médecin invalide");
       }
       
-      console.log("Vacation post:", vacationPost);
-      console.log("Doctor profile:", doctorProfile);
+      logger.debug("Processing vacation and doctor data", { 
+        vacationPost: vacationPost.id, 
+        doctorProfile: doctorProfile.id 
+      });
       
       // Transformer les données pour correspondre à notre interface
       const transformedData: VacationDetails = {
@@ -449,11 +453,11 @@ const EstablishmentDashboard = () => {
         }
       };
       
-      console.log("Transformed data:", transformedData);
+      logger.debug("Transformed vacation data", { transformedData: transformedData.id, bookingId });
       setVacation(transformedData);
       
     } catch (error) {
-      console.error("Error fetching vacation details:", error);
+      logger.error("Error fetching vacation details", { error, bookingId });
       
       // Messages d'erreur plus spécifiques
       let errorMessage = "Impossible de charger les détails de la vacation";
@@ -577,7 +581,7 @@ const EstablishmentDashboard = () => {
       setPartnerDoctors(doctorsData);
       setRecentActivity(activityData);
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
+      logger.error("Error loading dashboard data", { error, userId: user?.id });
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du tableau de bord",

@@ -20,4 +20,44 @@ export default defineConfig(({ mode }) => ({
   define: {
     "process.env": process.env,
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React ecosystem
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          
+          // UI components and styling
+          'ui-vendor': ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-tabs', '@radix-ui/react-dropdown-menu'],
+          
+          // Supabase and database
+          'supabase-vendor': ['@supabase/supabase-js', '@supabase/postgrest-js'],
+          
+          // Date and utility libraries
+          'utils-vendor': ['date-fns', 'clsx', 'class-variance-authority'],
+          
+          // Large page components
+          'dashboard-pages': [
+            './src/pages/EstablishmentDashboard.tsx',
+            './src/pages/DoctorDashboard.tsx',
+          ],
+          
+          // Authentication and profile pages
+          'auth-pages': [
+            './src/pages/Auth.tsx',
+            './src/pages/ProfileComplete.tsx',
+            './src/pages/SetupProfile.tsx',
+          ],
+          
+          // Search and booking functionality
+          'search-booking': [
+            './src/pages/EstablishmentSearch.tsx',
+            './src/pages/BookingFlow.tsx',
+            './src/pages/VacationDetails.tsx',
+          ],
+        },
+      },
+    },
+  },
 }));

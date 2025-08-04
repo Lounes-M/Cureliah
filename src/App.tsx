@@ -6,8 +6,12 @@ import { AuthProvider } from "@/hooks/useAuth";
 import AppRoutes from "@/routes";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { monitoring } from "@/utils/monitoring";
 
 const queryClient = new QueryClient();
+
+// Initialize monitoring for production
+monitoring.initialize();
 
 function App() {
   return (

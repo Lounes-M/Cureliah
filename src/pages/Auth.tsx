@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth"; // ✅ Import absolu au lieu de relatif
 import { useToast } from "@/components/ui/use-toast"; // ✅ Import absolu
+import { useLogger } from "@/utils/logger";
+import Logger from "@/utils/logger";
+import { announceToScreenReader } from "@/utils/accessibility";
 import { supabase } from "@/integrations/supabase/client.browser";
 import {
   User,
@@ -327,7 +330,7 @@ const SocialButton = ({
 
       if (error) throw error;
     } catch (error: any) {
-      console.error(`Erreur connexion ${provider}:`, error);
+      Logger.getInstance().error(`OAuth connection error`, error, { provider }, 'Auth', 'oauth_error');
       toast({
         title: "Erreur de connexion",
         description: `Impossible de se connecter avec ${provider}`,
@@ -352,6 +355,7 @@ const Auth = () => {
   // Hooks d'authentification
   const { signIn, signUp, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
+  const logger = useLogger();
 
   // États principaux
   const [currentTab, setCurrentTab] = useState<"signin" | "signup">("signin");
@@ -607,9 +611,10 @@ const Auth = () => {
       // The toast and redirection are handled in the useAuth hook
       if (result && !result.error) {
         // Success - AuthProvider will handle redirection
+        announceToScreenReader("Connexion réussie, redirection en cours", "polite");
       }
     } catch (error) {
-      console.error("Erreur lors de la connexion:", error);
+      logger.error("Sign in error", error as Error, { email: signInData.email }, 'Auth', 'signin_error');
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite",
@@ -673,7 +678,7 @@ const Auth = () => {
         setErrors({});
       }
     } catch (error) {
-      console.error("Erreur lors de l'inscription:", error);
+      logger.error("Sign up error", error as Error, { email: signUpData.email, userType: signUpData.userType }, 'Auth', 'signup_error');
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite",
