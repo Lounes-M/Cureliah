@@ -20,60 +20,65 @@ const THEME_COLORS = {
 
 const pricingPlans = [
   {
-    id: "price_1RegyICeORMekP8LJOUjRRyO", // Remplace par ton vrai Price ID Stripe pour Essentiel
-    name: "Essentiel",
-    monthlyPrice: "49",
-    yearlyPrice: "39",
+    id: "price_DOCTOR_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_DOCTOR_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "Essentiel Médecin",
+    monthlyPrice: "19.90",
+    yearlyPrice: "199", // ~16.58/mois, économie de ~40€/an
     description: "Parfait pour commencer votre activité médicale",
     features: [
       "Profil médecin vérifié et sécurisé",
       "Recherche de missions par spécialité",
       "Notifications par email en temps réel",
       "Support technique basique (48h)",
+      "Gestion de planning basique",
     ],
-    cta: "Commencer gratuitement",
+    cta: "Commencer",
     popular: false,
     icon: Check,
     badge: null,
   },
   {
-    id: "price_1RegxuCeORMekP8LY9m2br5I", // Remplace par ton vrai Price ID Stripe pour Pro
-    name: "Pro",
-    monthlyPrice: "99",
-    yearlyPrice: "79",
-    description: "Pour les médecins actifs et ambitieux",
+    id: "price_ESTABLISHMENT_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_ESTABLISHMENT_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "Premium Établissement",
+    monthlyPrice: "29.90",
+    yearlyPrice: "299", // ~24.92/mois, économie de ~60€/an
+    description: "Pour les établissements de santé",
     features: [
-      "Toutes les fonctionnalités Essentiel",
-      "Accès prioritaire aux missions",
-      "Statistiques détaillées et analytics",
+      "Toutes les fonctionnalités médecin",
+      "Gestion multi-praticiens illimitée",
+      "Tableau de bord établissement",
       "Support prioritaire (24h)",
       "Facturation automatique et rapports",
       "Intégration calendrier avancée",
+      "Analytics détaillées",
     ],
-    cta: "Choisir Pro",
+    cta: "Choisir Premium",
     popular: true,
     icon: Star,
     badge: "Le plus populaire",
   },
   {
-    id: "price_1RegyWCeORMekP8LjR59Wyef", // Remplace par ton vrai Price ID Stripe pour Premium
-    name: "Premium",
-    monthlyPrice: "199",
-    yearlyPrice: "159",
-    description: "Pour les médecins experts et établissements",
+    id: "price_API_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_API_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "API Premium",
+    monthlyPrice: "49.90",
+    yearlyPrice: "499", // ~41.58/mois, économie de ~100€/an
+    description: "Pour les développeurs et intégrations",
     features: [
-      "Toutes les fonctionnalités Pro",
-      "Missions exclusives haute rémunération",
-      "Accès aux établissements premium",
-      "Formation personnalisée incluse",
-      "Manager dédicacé personnel",
-      "API complète et webhooks",
-      "Support 24/7 avec hotline directe",
+      "Accès API complet illimité",
+      "Webhooks en temps réel",
+      "Documentation développeur avancée",
+      "Support technique dédié 24/7",
+      "Limites étendues (10x plus)",
+      "Environnements sandbox/production",
+      "SLA 99.9% garanti",
     ],
-    cta: "Devenir Premium",
+    cta: "Accès API",
     popular: false,
     icon: Zap,
-    badge: "Expertise",
+    badge: "Développeurs",
   },
 ];
 

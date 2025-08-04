@@ -17,6 +17,15 @@
 .env.test.local
 .env.production.local
 
+# SECURITY: Files containing sensitive API keys and secrets
+STRIPE_PRODUCTION_*.md
+*_PRODUCTION_*.md
+setup-webhook.sh
+*.secret
+*.key
+config/secrets.js
+src/config/secrets.*
+
 # Backup files (SECURITY)
 *.bak
 *.backup

@@ -19,6 +19,29 @@ export const config = {
     webhookSecret: import.meta.env.VITE_STRIPE_WEBHOOK_SECRET || '',
   },
   
+  // Stripe Pricing Configuration - PRODUCTION (Update with your actual Price IDs from Stripe Dashboard)
+  stripePricing: {
+    establishment: {
+      monthly: 'price_ESTABLISHMENT_MONTHLY_TO_UPDATE',  // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_ESTABLISHMENT_YEARLY_TO_UPDATE'     // TO UPDATE: Copy from Stripe Dashboard
+    },
+    doctor: {
+      monthly: 'price_DOCTOR_MONTHLY_TO_UPDATE',         // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_DOCTOR_YEARLY_TO_UPDATE'            // TO UPDATE: Copy from Stripe Dashboard
+    },
+    api: {
+      monthly: 'price_API_MONTHLY_TO_UPDATE',            // TO UPDATE: Copy from Stripe Dashboard
+      yearly: 'price_API_YEARLY_TO_UPDATE'               // TO UPDATE: Copy from Stripe Dashboard
+    }
+  },
+  
+  // Legacy pricing (keep for backward compatibility)
+  pricing: {
+    establishment_premium: 'price_ESTABLISHMENT_MONTHLY_TO_UPDATE', // Points to monthly
+    doctor_premium: 'price_DOCTOR_MONTHLY_TO_UPDATE',              // Points to monthly  
+    api_premium: 'price_API_MONTHLY_TO_UPDATE',                    // Points to monthly
+  },
+  
   features: {
     enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
     enableNotifications: import.meta.env.VITE_ENABLE_NOTIFICATIONS !== 'false',
