@@ -82,11 +82,15 @@ const pricingPlans = [
 
 // Composant PricingCard séparé pour une meilleure lisibilité
 function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
-  const currentPrice = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+  // Prix affiché selon le mode (annuel divisé par 12 pour l'affichage mensuel)
+  const currentPrice = isYearly 
+    ? Math.round(plan.yearlyPrice / 12) 
+    : plan.monthlyPrice;
+  
+  // Calcul des économies : comparaison entre 12 mois vs prix annuel
+  const monthlyTotal = plan.monthlyPrice * 12;
   const savings = isYearly
-    ? Math.round(
-        ((plan.monthlyPrice - plan.yearlyPrice) / plan.monthlyPrice) * 100
-      )
+    ? Math.round(((monthlyTotal - plan.yearlyPrice) / monthlyTotal) * 100)
     : 0;
   const IconComponent = plan.icon;
 
@@ -159,7 +163,7 @@ function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
           )}
           {isYearly && (
             <p className="text-sm text-gray-500 mt-1">
-              Soit €{(currentPrice * 12).toLocaleString()} facturé annuellement
+              Soit €{plan.yearlyPrice} facturé annuellement
             </p>
           )}
         </div>
@@ -189,7 +193,7 @@ function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
             `}
             disabled={isLoading}
-            onClick={() => onSubscribe(plan.id, isYearly)}
+            onClick={() => onSubscribe(isYearly ? plan.yearlyId : plan.id, isYearly)}
             aria-label={`Choisir le plan ${plan.name} à ${currentPrice}€ par mois`}
           >
             {isLoading ? (
