@@ -27,18 +27,18 @@
 ### Vercel
 ```bash
 # Dans le dashboard Vercel > Settings > Environment Variables
-VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
+VITE_SUPABASE_URL=https://votre-projet-id.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZ...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxxxxxx...
 VITE_ENVIRONMENT=production
 ```
 
 ### Netlify
 ```bash
 # Dans Site settings > Environment variables
-VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
+VITE_SUPABASE_URL=https://votre-projet-id.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZ...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxxxxxx...
 VITE_ENVIRONMENT=production
 ```
 
@@ -80,11 +80,11 @@ npm run preview
 
 ```bash
 # Supabase (OBLIGATOIRE)
-VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsZmdoaXBkenhmbndpanN5bGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTg5MTAsImV4cCI6MjA0Nzc3NDkxMH0.bYq5lGSw_vG2Kpl5yYVt2X_OqvtMo90GfSkx3xS1LsE
+VITE_SUPABASE_URL=https://votre-projet-id.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxx.xxx
 
 # Stripe (OBLIGATOIRE)
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZLTYxFVr8HGXrKcXlWoq8bGwEJIj1zS7s2fOfAunCJU5O9iGqCDzL0rDuuvh3xRWEXdMhNKGPF5H00jXksjbFU
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxxxxxxxxxxxxxx
 
 # Configuration (RECOMMANDÉ)
 VITE_ENVIRONMENT=production

@@ -10,7 +10,7 @@
 
 ```bash
 # EXPOSÉ (maintenant supprimé) :
-const supabaseUrl = 'https://rlfghipdzxfnwijsylac.supabase.co'
+const supabaseUrl = 'https://votre-projet-id.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI...'
 ```
 
