@@ -37,9 +37,9 @@ export const config = {
   
   // Legacy pricing (keep for backward compatibility)
   pricing: {
-    establishment_premium: 'price_PRO_MONTHLY_TO_UPDATE', // Points to Pro monthly
-    doctor_premium: 'price_ESSENTIEL_MONTHLY_TO_UPDATE',  // Points to Essentiel monthly  
-    api_premium: 'price_PREMIUM_MONTHLY_TO_UPDATE',       // Points to Premium monthly
+    establishment_premium: 'price_1RsMkOEL5OGpZLTYVa4yHAz6', // Points to Pro monthly
+    doctor_premium: 'price_1RsMk8EL5OGpZLTY5HHdsRtb',  // Points to Essentiel monthly  
+    api_premium: 'price_1RsMlQEL5OGpZLTYAqJFgJIg',       // Points to Premium monthly
   },
   
   features: {

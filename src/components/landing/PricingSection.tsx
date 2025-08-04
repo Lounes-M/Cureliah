@@ -38,8 +38,8 @@ const pricingPlans = [
     badge: null,
   },
   {
-    id: "price_PRO_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
-    yearlyId: "price_PRO_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    id: "price_1RsMkOEL5OGpZLTYVa4yHAz6", // Price ID Stripe - Pro Monthly
+    yearlyId: "price_1RsMkzEL5OGpZLTYLYKANste", // Price ID Stripe - Pro Yearly
     name: "Pro",
     monthlyPrice: "99",
     yearlyPrice: "950", // ~79€/mois, économie de ~20%
@@ -58,8 +58,8 @@ const pricingPlans = [
     badge: "Le plus populaire",
   },
   {
-    id: "price_PREMIUM_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
-    yearlyId: "price_PREMIUM_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    id: "price_1RsMlQEL5OGpZLTYAqJFgJIg", // Price ID Stripe - Premium Monthly
+    yearlyId: "price_1RsMlhEL5OGpZLTYBdPpEwJH", // Price ID Stripe - Premium Yearly
     name: "Premium",
     monthlyPrice: "199",
     yearlyPrice: "1910", // ~159€/mois, économie de ~20%
