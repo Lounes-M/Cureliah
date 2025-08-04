@@ -20,8 +20,8 @@ const THEME_COLORS = {
 
 const pricingPlans = [
   {
-    id: "price_ESSENTIEL_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
-    yearlyId: "price_ESSENTIEL_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    id: "price_1RsMk8EL5OGpZLTY5HHdsRtb", // Price ID Stripe - Essentiel Monthly
+    yearlyId: "price_1RsMk8EL5OGpZLTY7VcvYyLF", // Price ID Stripe - Essentiel Yearly
     name: "Essentiel",
     monthlyPrice: "49",
     yearlyPrice: "470", // ~39€/mois, économie de ~20%
