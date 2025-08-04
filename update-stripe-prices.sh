@@ -26,24 +26,22 @@ echo "✅ Aucune clé API détectée dans les fichiers publics"
 echo ""
 
 # Prompt pour chaque Price ID
-echo "📦 ESTABLISHMENT PREMIUM"
+echo "📦 ESSENTIEL (€49/mois)"
 echo "------------------------"
-read -p "Price ID Mensuel (price_...): " ESTABLISHMENT_MONTHLY
-read -p "Price ID Annuel (price_...): " ESTABLISHMENT_YEARLY
+read -p "Price ID Mensuel (price_...): " ESSENTIEL_MONTHLY
+read -p "Price ID Annuel (price_...): " ESSENTIEL_YEARLY
 
 echo ""
-echo "👨‍⚕️ DOCTOR PREMIUM"
+echo "� PRO (€99/mois)"
 echo "-------------------"
-read -p "Price ID Mensuel (price_...): " DOCTOR_MONTHLY  
-read -p "Price ID Annuel (price_...): " DOCTOR_YEARLY
+read -p "Price ID Mensuel (price_...): " PRO_MONTHLY
+read -p "Price ID Annuel (price_...): " PRO_YEARLY
 
 echo ""
-echo "🔧 API PREMIUM"
+echo "⭐ PREMIUM (€199/mois)"
 echo "--------------"
-read -p "Price ID Mensuel (price_...): " API_MONTHLY
-read -p "Price ID Annuel (price_...): " API_YEARLY
-
-echo ""
+read -p "Price ID Mensuel (price_...): " PREMIUM_MONTHLY
+read -p "Price ID Annuel (price_...): " PREMIUM_YEARLYecho ""
 echo "🔧 Mise à jour du fichier de configuration..."
 
 # Backup des fichiers originaux
@@ -51,31 +49,31 @@ cp src/config/index.ts src/config/index.ts.backup.$(date +%Y%m%d_%H%M%S)
 cp src/components/landing/PricingSection.tsx src/components/landing/PricingSection.tsx.backup.$(date +%Y%m%d_%H%M%S)
 
 # Mise à jour des Price IDs dans config
-sed -i "" "s/price_ESTABLISHMENT_MONTHLY_TO_UPDATE/$ESTABLISHMENT_MONTHLY/g" src/config/index.ts
-sed -i "" "s/price_ESTABLISHMENT_YEARLY_TO_UPDATE/$ESTABLISHMENT_YEARLY/g" src/config/index.ts
-sed -i "" "s/price_DOCTOR_MONTHLY_TO_UPDATE/$DOCTOR_MONTHLY/g" src/config/index.ts
-sed -i "" "s/price_DOCTOR_YEARLY_TO_UPDATE/$DOCTOR_YEARLY/g" src/config/index.ts
-sed -i "" "s/price_API_MONTHLY_TO_UPDATE/$API_MONTHLY/g" src/config/index.ts
-sed -i "" "s/price_API_YEARLY_TO_UPDATE/$API_YEARLY/g" src/config/index.ts
+sed -i "" "s/price_ESSENTIEL_MONTHLY_TO_UPDATE/$ESSENTIEL_MONTHLY/g" src/config/index.ts
+sed -i "" "s/price_ESSENTIEL_YEARLY_TO_UPDATE/$ESSENTIEL_YEARLY/g" src/config/index.ts
+sed -i "" "s/price_PRO_MONTHLY_TO_UPDATE/$PRO_MONTHLY/g" src/config/index.ts
+sed -i "" "s/price_PRO_YEARLY_TO_UPDATE/$PRO_YEARLY/g" src/config/index.ts
+sed -i "" "s/price_PREMIUM_MONTHLY_TO_UPDATE/$PREMIUM_MONTHLY/g" src/config/index.ts
+sed -i "" "s/price_PREMIUM_YEARLY_TO_UPDATE/$PREMIUM_YEARLY/g" src/config/index.ts
 
 # Mise à jour des Price IDs dans PricingSection
-sed -i "" "s/price_ESTABLISHMENT_MONTHLY_TO_UPDATE/$ESTABLISHMENT_MONTHLY/g" src/components/landing/PricingSection.tsx
-sed -i "" "s/price_ESTABLISHMENT_YEARLY_TO_UPDATE/$ESTABLISHMENT_YEARLY/g" src/components/landing/PricingSection.tsx
-sed -i "" "s/price_DOCTOR_MONTHLY_TO_UPDATE/$DOCTOR_MONTHLY/g" src/components/landing/PricingSection.tsx
-sed -i "" "s/price_DOCTOR_YEARLY_TO_UPDATE/$DOCTOR_YEARLY/g" src/config/index.ts
-sed -i "" "s/price_API_MONTHLY_TO_UPDATE/$API_MONTHLY/g" src/components/landing/PricingSection.tsx
-sed -i "" "s/price_API_YEARLY_TO_UPDATE/$API_YEARLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_ESSENTIEL_MONTHLY_TO_UPDATE/$ESSENTIEL_MONTHLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_ESSENTIEL_YEARLY_TO_UPDATE/$ESSENTIEL_YEARLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_PRO_MONTHLY_TO_UPDATE/$PRO_MONTHLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_PRO_YEARLY_TO_UPDATE/$PRO_YEARLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_PREMIUM_MONTHLY_TO_UPDATE/$PREMIUM_MONTHLY/g" src/components/landing/PricingSection.tsx
+sed -i "" "s/price_PREMIUM_YEARLY_TO_UPDATE/$PREMIUM_YEARLY/g" src/components/landing/PricingSection.tsx
 
 echo "✅ Configuration mise à jour!"
 echo ""
 echo "📋 Résumé des Price IDs configurés:"
 echo "=================================="
-echo "Establishment Monthly: $ESTABLISHMENT_MONTHLY"
-echo "Establishment Yearly:  $ESTABLISHMENT_YEARLY"
-echo "Doctor Monthly:        $DOCTOR_MONTHLY"
-echo "Doctor Yearly:         $DOCTOR_YEARLY"
-echo "API Monthly:           $API_MONTHLY"
-echo "API Yearly:            $API_YEARLY"
+echo "Essentiel Monthly: $ESSENTIEL_MONTHLY"
+echo "Essentiel Yearly:  $ESSENTIEL_YEARLY"
+echo "Pro Monthly:       $PRO_MONTHLY"
+echo "Pro Yearly:        $PRO_YEARLY"
+echo "Premium Monthly:   $PREMIUM_MONTHLY"
+echo "Premium Yearly:    $PREMIUM_YEARLY"
 echo ""
 echo "🔄 Redémarrez votre application pour appliquer les changements:"
 echo "npm run dev"

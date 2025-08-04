@@ -20,62 +20,60 @@ const THEME_COLORS = {
 
 const pricingPlans = [
   {
-    id: "", // Will be updated by script after Stripe setup
-    yearlyId: "price_DOCTOR_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
-    name: "Essentiel Médecin",
-    monthlyPrice: "19.90",
-    yearlyPrice: "199", // ~16.58/mois, économie de ~40€/an
+    id: "price_ESSENTIEL_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_ESSENTIEL_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "Essentiel",
+    monthlyPrice: "49",
+    yearlyPrice: "470", // ~39€/mois, économie de ~20%
     description: "Parfait pour commencer votre activité médicale",
     features: [
       "Profil médecin vérifié et sécurisé",
       "Recherche de missions par spécialité",
       "Notifications par email en temps réel",
       "Support technique basique (48h)",
-      "Gestion de planning basique",
     ],
-    cta: "Commencer",
+    cta: "Commencer gratuitement",
     popular: false,
     icon: Check,
     badge: null,
   },
   {
-    id: "", // Will be updated by script after Stripe setup
-    yearlyId: "", // Will be updated by script after Stripe setup
-    name: "Premium Établissement",
-    monthlyPrice: "29.90",
-    yearlyPrice: "299", // ~24.92/mois, économie de ~60€/an
-    description: "Pour les établissements de santé",
+    id: "price_PRO_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_PRO_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "Pro",
+    monthlyPrice: "99",
+    yearlyPrice: "950", // ~79€/mois, économie de ~20%
+    description: "Pour les médecins actifs et ambitieux",
     features: [
-      "Toutes les fonctionnalités médecin",
-      "Gestion multi-praticiens illimitée",
-      "Tableau de bord établissement",
+      "Toutes les fonctionnalités Essentiel",
+      "Accès prioritaire aux missions",
+      "Statistiques détaillées et analytics",
       "Support prioritaire (24h)",
       "Facturation automatique et rapports",
       "Intégration calendrier avancée",
-      "Analytics détaillées",
     ],
-    cta: "Choisir Premium",
+    cta: "Choisir Pro",
     popular: true,
     icon: Star,
     badge: "Le plus populaire",
   },
   {
-    id: "", // Will be updated by script after Stripe setup
-    yearlyId: "", // Will be updated by script after Stripe setup
-    name: "API Premium",
-    monthlyPrice: "49.90",
-    yearlyPrice: "499", // ~41.58/mois, économie de ~100€/an
-    description: "Pour les développeurs et intégrations",
+    id: "price_PREMIUM_MONTHLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    yearlyId: "price_PREMIUM_YEARLY_TO_UPDATE", // Will be updated by script after Stripe setup
+    name: "Premium",
+    monthlyPrice: "199",
+    yearlyPrice: "1910", // ~159€/mois, économie de ~20%
+    description: "Pour les médecins experts et établissements",
     features: [
-      "Accès API complet illimité",
-      "Webhooks en temps réel",
-      "Documentation développeur avancée",
-      "Support technique dédié 24/7",
-      "Limites étendues (10x plus)",
-      "Environnements sandbox/production",
-      "SLA 99.9% garanti",
+      "Toutes les fonctionnalités Pro",
+      "Missions exclusives haute rémunération",
+      "Accès aux établissements premium",
+      "Formation personnalisée incluse",
+      "Manager dédicacé personnel",
+      "API complète et webhooks",
+      "Support 24/7 avec hotline directe",
     ],
-    cta: "Accès API",
+    cta: "Choisir Premium",
     popular: false,
     icon: Zap,
     badge: "Développeurs",

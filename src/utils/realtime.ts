@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 // WebSocket connection states
 type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';

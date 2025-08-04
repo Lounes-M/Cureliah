@@ -21,25 +21,25 @@ export const config = {
   
   // Stripe Pricing Configuration - PRODUCTION (Update with your actual Price IDs from Stripe Dashboard)
   stripePricing: {
-    establishment: {
-      monthly: '',  // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''     // TO UPDATE: Copy from Stripe Dashboard
+    essentiel: {
+      monthly: 'price_ESSENTIEL_MONTHLY_TO_UPDATE',  // TO UPDATE: Copy from Stripe Dashboard (€49/mois)
+      yearly: 'price_ESSENTIEL_YEARLY_TO_UPDATE'     // TO UPDATE: Copy from Stripe Dashboard (€470 ~€39/mois)
     },
-    doctor: {
-      monthly: '',         // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''            // TO UPDATE: Copy from Stripe Dashboard
+    pro: {
+      monthly: 'price_PRO_MONTHLY_TO_UPDATE',         // TO UPDATE: Copy from Stripe Dashboard (€99/mois)
+      yearly: 'price_PRO_YEARLY_TO_UPDATE'            // TO UPDATE: Copy from Stripe Dashboard (€950 ~€79/mois)
     },
-    api: {
-      monthly: '',            // TO UPDATE: Copy from Stripe Dashboard
-      yearly: ''               // TO UPDATE: Copy from Stripe Dashboard
+    premium: {
+      monthly: 'price_PREMIUM_MONTHLY_TO_UPDATE',      // TO UPDATE: Copy from Stripe Dashboard (€199/mois)
+      yearly: 'price_PREMIUM_YEARLY_TO_UPDATE'         // TO UPDATE: Copy from Stripe Dashboard (€1910 ~€159/mois)
     }
   },
   
   // Legacy pricing (keep for backward compatibility)
   pricing: {
-    establishment_premium: '', // Points to monthly
-    doctor_premium: '',              // Points to monthly  
-    api_premium: '',                    // Points to monthly
+    establishment_premium: 'price_PRO_MONTHLY_TO_UPDATE', // Points to Pro monthly
+    doctor_premium: 'price_ESSENTIEL_MONTHLY_TO_UPDATE',  // Points to Essentiel monthly  
+    api_premium: 'price_PREMIUM_MONTHLY_TO_UPDATE',       // Points to Premium monthly
   },
   
   features: {

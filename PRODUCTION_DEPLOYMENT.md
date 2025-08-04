@@ -1,4 +1,115 @@
-# Production Deployment Guide - Cureliah
+# Guide de Déploiement Production - Cureliah
+
+## 🔐 Configuration Sécurisée des Variables d'Environnement
+
+### Méthode Recommandée (Sécurisée)
+
+1. **Configuration locale** :
+   ```bash
+   # Exécutez le script de configuration
+   ./setup-production.sh
+   
+   # OU manuellement :
+   cp .env.example .env.local
+   # Puis éditez .env.local avec vos vraies clés
+   ```
+
+2. **Variables à configurer dans .env.local** :
+   ```bash
+   VITE_SUPABASE_URL=https://votre-projet-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZ...
+   VITE_ENVIRONMENT=production
+   ```
+
+## 🚀 Déploiement par Plateforme
+
+### Vercel
+```bash
+# Dans le dashboard Vercel > Settings > Environment Variables
+VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZ...
+VITE_ENVIRONMENT=production
+```
+
+### Netlify
+```bash
+# Dans Site settings > Environment variables
+VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZ...
+VITE_ENVIRONMENT=production
+```
+
+### Autres plateformes (Railway, Render, etc.)
+Consultez la documentation de votre plateforme pour ajouter les variables d'environnement.
+
+## 🛡️ Sécurité
+
+### ✅ Ce qui est sûr à commiter :
+- `.env.example` (valeurs d'exemple)
+- `setup-production.sh` (script de configuration)
+- Tous les fichiers de code source
+
+### ❌ Ne JAMAIS commiter :
+- `.env.local` (contient vos vraies clés)
+- Fichiers `*.secret` ou `*.key`
+- Configurations avec vraies clés API
+
+### Vérification avant commit :
+```bash
+# Vérifiez que vos clés ne sont pas trackées
+git status
+git diff --cached
+
+# .env.local ne doit PAS apparaître
+```
+
+## 🔧 Build et Test
+
+```bash
+# Test avec vos clés de production
+npm run build
+npm run preview
+
+# Vérifiez que tout fonctionne avant de déployer
+```
+
+## 📱 Variables d'Environnement Complètes
+
+```bash
+# Supabase (OBLIGATOIRE)
+VITE_SUPABASE_URL=https://rlfghipdzxfnwijsylac.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJsZmdoaXBkenhmbndpanN5bGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTg5MTAsImV4cCI6MjA0Nzc3NDkxMH0.bYq5lGSw_vG2Kpl5yYVt2X_OqvtMo90GfSkx3xS1LsE
+
+# Stripe (OBLIGATOIRE)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_51RTjg5EL5OGpZLTYxFVr8HGXrKcXlWoq8bGwEJIj1zS7s2fOfAunCJU5O9iGqCDzL0rDuuvh3xRWEXdMhNKGPF5H00jXksjbFU
+
+# Configuration (RECOMMANDÉ)
+VITE_ENVIRONMENT=production
+
+# Features (OPTIONNEL - par défaut activées)
+VITE_FEATURE_MESSAGING=true
+VITE_FEATURE_BOOKING=true
+VITE_FEATURE_PAYMENT=true
+VITE_FEATURE_ADMIN=true
+VITE_FEATURE_ANALYTICS=true
+```
+
+## 🎯 Résumé des Étapes
+
+1. **Exécuter** : `./setup-production.sh`
+2. **Éditer** : `.env.local` avec vos vraies clés
+3. **Tester** : `npm run build && npm run preview`
+4. **Déployer** : Push vers votre plateforme
+5. **Configurer** : Variables d'environnement sur la plateforme
+
+**✅ Votre application est prête pour la production !**
+
+---
+
+# Production Deployment Guide - Cureliah (Archive)
 
 ## 🚀 Production Readiness Status
 
