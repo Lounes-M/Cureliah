@@ -560,17 +560,17 @@ const Header = () => {
               <div className="flex items-center gap-3">
                 <Button 
                   variant="ghost"
-                  onClick={() => navigate("/auth")}
+                  onClick={() => navigate("/auth?tab=signin")}
                   className="hidden sm:flex hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   Se connecter
                 </Button>
                 <Button 
-                  onClick={() => navigate("/auth")}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  onClick={() => navigate("/auth?tab=signup")}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
                 >
                   <User className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Connexion
+                  Créer un compte
                 </Button>
               </div>
             )}

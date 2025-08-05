@@ -5,6 +5,7 @@ import { useLogger } from "@/utils/logger";
 import Logger from "@/utils/logger";
 import { announceToScreenReader } from "@/utils/accessibility";
 import { supabase } from "@/integrations/supabase/client.browser";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   User,
   Building2,
@@ -356,9 +357,16 @@ const Auth = () => {
   const { signIn, signUp, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
   const logger = useLogger();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Récupération du paramètre tab depuis l'URL
+  const searchParams = new URLSearchParams(location.search);
+  const tabFromUrl = searchParams.get('tab');
+  const initialTab = (tabFromUrl === 'signup' || tabFromUrl === 'signin') ? tabFromUrl : 'signin';
 
   // États principaux
-  const [currentTab, setCurrentTab] = useState<"signin" | "signup">("signin");
+  const [currentTab, setCurrentTab] = useState<"signin" | "signup">(initialTab);
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
