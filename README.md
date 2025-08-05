@@ -2,6 +2,8 @@
 
 Une plateforme de mise en relation entre médecins et établissements de santé pour la gestion des vacations médicales.
 
+*Dernière mise à jour : 5 août 2025 - Configuration email Git mise à jour*
+
 ## 🚀 Fonctionnalités
 
 - **Planning Médical** : Interface de gestion des créneaux horaires avec FullCalendar
