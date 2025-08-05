@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Calendar, CheckCircle, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 const DemoRequest = () => {
   const navigate = useNavigate();
@@ -25,15 +26,62 @@ const DemoRequest = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      // Insert demo request into database
+      const { error } = await supabase
+        .from('demo_requests')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            company: formData.company,
+            phone: formData.phone,
+            message: formData.message,
+            user_type: formData.userType,
+            status: 'pending',
+            requested_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Send notification to admin
+      const { error: notificationError } = await supabase
+        .from('admin_notifications')
+        .insert([
+          {
+            type: 'demo_request',
+            title: 'Nouvelle demande de démonstration',
+            message: `${formData.name} (${formData.company}) a demandé une démonstration`,
+            data: formData,
+            is_read: false,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (notificationError) {
+        console.error('Erreur lors de l\'envoi de la notification:', notificationError);
+        // Continue anyway, the main request was successful
+      }
+
       setLoading(false);
       setSubmitted(true);
       toast({
         title: "Demande envoyée",
         description: "Nous vous recontacterons dans les 24h pour planifier votre démonstration."
       });
-    }, 1000);
+
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la demande:', error);
+      setLoading(false);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer votre demande. Veuillez réessayer.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

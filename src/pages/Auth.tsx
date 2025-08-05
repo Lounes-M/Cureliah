@@ -413,8 +413,9 @@ const Auth = () => {
   // Si l'utilisateur est déjà connecté et email confirmé, redirection automatique
   if (user && user.email_confirmed_at && !authLoading) {
     // DEBUG: Voir les données exactes du profil
-    console.log("🔍 DEBUG USER PROFILE:", {
-      user,
+    logger.debug("User profile debug info", {
+      userId: user?.id,
+      email: user?.email,
       profile: user.profile,
       is_verified: user.profile?.is_verified,
       is_active: user.profile?.is_active,
@@ -431,7 +432,11 @@ const Auth = () => {
             ? "/establishment/dashboard"
             : "/dashboard";
 
-        console.log("🚀 Auto-redirect to:", dashboardRoute);
+        logger.info("Auto-redirect initiated", {
+          dashboardRoute,
+          userType: user.user_type,
+          component: 'Auth'
+        });
         window.location.href = dashboardRoute;
       }, 1500); // Délai de 1.5s pour laisser voir le message
 
@@ -483,7 +488,12 @@ const Auth = () => {
                   : user.user_type === "establishment"
                   ? "/establishment/dashboard"
                   : "/dashboard";
-              console.log("🎯 Manual redirect to:", dashboardRoute);
+              logger.info("Manual redirect initiated", {
+                dashboardRoute,
+                userType: user.user_type,
+                component: 'Auth',
+                trigger: 'manual'
+              });
               window.location.href = dashboardRoute;
             }}
             className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
@@ -643,9 +653,10 @@ const Auth = () => {
     setIsSubmitting(true);
 
     try {
-      console.log("Tentative d'inscription avec:", {
+      logger.info("Sign up attempt", {
         email: signUpData.email,
         userType: signUpData.userType,
+        component: 'Auth'
       });
 
       // Préparer les données du profil selon le type d'utilisateur
@@ -664,7 +675,12 @@ const Auth = () => {
         profileData
       );
 
-      console.log("Résultat de l'inscription:", result);
+      logger.info("Sign up result", {
+        success: !!result,
+        email: signUpData.email,
+        userType: signUpData.userType,
+        component: 'Auth'
+      });
 
       // Le toast est déjà géré dans le hook useAuth
       if (result && !result.error) {

@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Phone, Mail, MapPin, Send, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client.browser';
 
 const ContactSales = () => {
   const navigate = useNavigate();
@@ -25,17 +26,62 @@ const ContactSales = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    
+    try {
+      setLoading(true);
+      
+      // Sauvegarder vraiment dans Supabase
+      const { data, error } = await supabase
+        .from('contact_requests')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            company: formData.company,
+            phone: formData.phone,
+            budget: formData.budget,
+            timeline: formData.timeline,
+            message: formData.message,
+            request_type: 'sales',
+            status: 'new'
+          }
+        ])
+        .select()
+        .single();
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+      if (error) {
+        throw error;
+      }
+
+      // Créer aussi une notification pour l'admin
+      await supabase
+        .from('notifications')
+        .insert([
+          {
+            user_id: 'admin', // ID admin à définir
+            title: 'Nouvelle demande commerciale',
+            message: `${formData.name} de ${formData.company} a envoyé une demande commerciale`,
+            type: 'contact',
+            data: { contact_id: data.id }
+          }
+        ]);
+
       setSubmitted(true);
+      
       toast({
-        title: "Message envoyé",
-        description: "Notre équipe commerciale vous recontactera rapidement."
+        title: "Message envoyé !",
+        description: "Notre équipe commerciale vous contactera sous 24h.",
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer votre message. Veuillez réessayer.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
