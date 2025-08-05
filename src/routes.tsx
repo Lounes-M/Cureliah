@@ -29,6 +29,7 @@ const MyBookings = lazy(() => import("./pages/MyBookings"));
 const ProfileComplete = lazy(() => import("./pages/ProfileComplete"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const MonitoringDashboard = lazy(() => import("./pages/MonitoringDashboard"));
 const DoctorCreateProfile = lazy(() => import("./pages/doctor/CreateProfile"));
 const EstablishmentCreateProfile = lazy(() => import("./pages/establishment/CreateProfile"));
 
@@ -542,6 +543,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requiredUserType="admin">
             <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/monitoring"
+        element={
+          <ProtectedRoute requiredUserType="admin">
+            <MonitoringDashboard />
           </ProtectedRoute>
         }
       />

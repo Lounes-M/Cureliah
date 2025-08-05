@@ -11,6 +11,7 @@ import { monitoring } from "@/utils/monitoring";
 import { SecurityService } from "@/utils/security";
 import PWAInstallPrompt, { registerServiceWorker } from "@/components/PWAInstallPrompt";
 import { useRealtime } from "@/utils/realtime";
+import { useMonitoring } from "@/services/monitoring";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const securityService = SecurityService.getInstance();
 const EnhancedAppContent = () => {
   const { user } = useAuth();
   const [userSegment, setUserSegment] = useState<any>(null);
+  const { setUser } = useMonitoring();
   
   // Initialize realtime connection
   const { connectionState } = useRealtime(user?.id);
@@ -35,6 +37,11 @@ const EnhancedAppContent = () => {
     monitoring.monitorNetworkConditions();
     monitoring.monitorLongTasks();
     monitoring.monitorBundleSize();
+
+    // Set user for new monitoring service
+    if (user) {
+      setUser(user.id, user.user_metadata?.user_type || 'establishment');
+    }
 
     // Set user segment for A/B testing
     if (user) {

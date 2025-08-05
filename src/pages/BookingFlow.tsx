@@ -29,6 +29,7 @@ export default function BookingFlow() {
   const logger = useLogger();
   const [vacation, setVacation] = useState<VacationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookingStep, setBookingStep] = useState(1);
   const [bookingData, setBookingData] = useState({
@@ -81,27 +82,54 @@ export default function BookingFlow() {
     if (!vacation || !user) return;
 
     try {
-      const { error } = await supabase
+      setBookingLoading(true);
+      
+      // 1. Créer la réservation en base
+      const { data: newBooking, error: bookingError } = await supabase
         .from('vacation_bookings')
         .insert([
           {
             vacation_id: vacation.id,
             establishment_id: user.id,
+            doctor_id: vacation.doctor_id,
             message: bookingData.message,
             emergency_contact: bookingData.emergency_contact,
             special_requirements: bookingData.special_requirements,
-            status: 'pending'
+            status: 'pending',
+            payment_status: 'pending',
+            total_amount: vacation.price || 0,
+            start_date: vacation.start_date,
+            end_date: vacation.end_date
+          }
+        ])
+        .select()
+        .single();
+
+      if (bookingError) {
+        throw bookingError;
+      }
+
+      // 2. Créer une notification pour le médecin
+      await supabase
+        .from('notifications')
+        .insert([
+          {
+            user_id: vacation.doctor_id,
+            title: 'Nouvelle demande de réservation',
+            message: `${user.profile?.establishment_name || 'Un établissement'} souhaite réserver votre vacation "${vacation.title}"`,
+            type: 'booking',
+            data: { booking_id: newBooking.id, vacation_id: vacation.id }
           }
         ]);
 
-      if (error) {
-        throw error;
-      }
-
-      setBookingStep(3); // Success step
+      // 3. Rediriger vers le paiement
+      navigate(`/payment/${newBooking.id}`);
+      
     } catch (err) {
       logger.error('Erreur lors de la réservation', err as Error, { vacationId: id, userId: user?.id }, 'BookingFlow', 'booking_error');
       setError('Erreur lors de la réservation');
+    } finally {
+      setBookingLoading(false);
     }
   };
 

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLogger } from '@/utils/logger';
 import { supabase } from "@/integrations/supabase/client.browser";
 import { VacationPost } from "@/types/database";
+import { useGeolocation, LocationCoords } from "@/hooks/useGeolocation";
 
 export interface SearchFilters {
   speciality: string;
@@ -13,6 +14,8 @@ export interface SearchFilters {
   maxRate: string;
   startDate: string;
   endDate: string;
+  radius: string; // Rayon de recherche en km
+  sortBy: 'date' | 'price' | 'distance' | 'rating';
 }
 
 const useVacationSearch = () => {
@@ -32,6 +35,8 @@ const useVacationSearch = () => {
     maxRate: "",
     startDate: "",
     endDate: "",
+    radius: "50", // 50km par défaut
+    sortBy: "date"
   });
 
   const fetchVacations = useCallback(async () => {
@@ -158,6 +163,8 @@ const useVacationSearch = () => {
       maxRate: "",
       startDate: "",
       endDate: "",
+      radius: "50",
+      sortBy: "date"
     });
   };
 
