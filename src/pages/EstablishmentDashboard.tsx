@@ -1015,7 +1015,7 @@ const EstablishmentDashboard = () => {
             <div className="text-gray-600">
               Veuillez vous connecter pour accéder au tableau de bord
             </div>
-            <Button onClick={() => navigate("/auth")} className="mt-4">
+            <Button onClick={() => navigate("/auth?type=establishment")} className="mt-4">
               Se connecter
             </Button>
           </Card>

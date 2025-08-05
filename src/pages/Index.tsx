@@ -41,7 +41,7 @@ const Index = () => {
         <StatsSection />
 
         {/* 9. Pricing - Offres et tarifs */}
-        <PricingSection onSubscribe={() => {}} loading={false} />
+        <PricingSection onSubscribe={null} loading={false} />
 
         {/* 11. Témoignages - Preuve sociale */}
         <TestimonialSection />

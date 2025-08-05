@@ -615,7 +615,7 @@ const DoctorDashboard = () => {
             <div className="text-gray-600">
               Veuillez vous connecter pour accéder au tableau de bord
             </div>
-            <Button onClick={() => navigate("/auth")} className="mt-4">
+            <Button onClick={() => navigate("/auth?type=doctor")} className="mt-4">
               Se connecter
             </Button>
           </Card>

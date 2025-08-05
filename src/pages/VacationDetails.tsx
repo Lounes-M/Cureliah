@@ -21,7 +21,7 @@ const VacationDetails = () => {
 
   useEffect(() => {
     if (!user || profile?.user_type !== 'doctor') {
-      navigate('/auth');
+      navigate('/auth?type=doctor');
       return;
     }
     if (vacationId) {

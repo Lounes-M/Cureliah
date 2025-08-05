@@ -539,7 +539,7 @@ const EstablishmentSearch = () => {
         description: "Veuillez vous connecter pour faire une demande de réservation",
         variant: "destructive",
       });
-      navigate('/auth');
+      navigate('/auth?type=establishment');
       return;
     }
 

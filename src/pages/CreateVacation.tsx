@@ -183,7 +183,7 @@ const CreateVacation = () => {
   // Effets
   useEffect(() => {
     if (!user || profile?.user_type !== "doctor") {
-      navigate("/auth");
+      navigate("/auth?type=doctor");
       return;
     }
 
@@ -491,7 +491,7 @@ const CreateVacation = () => {
               Vous devez être connecté en tant que médecin pour créer une
               vacation.
             </div>
-            <Button onClick={() => navigate("/auth")} className="mt-4">
+            <Button onClick={() => navigate("/auth?type=doctor")} className="mt-4">
               Se connecter
             </Button>
           </Card>

@@ -85,7 +85,7 @@ const InvoicesAndReports = () => {
 
   useEffect(() => {
     if (!user || profile?.user_type !== "doctor") {
-      navigate("/auth");
+      navigate("/auth?type=doctor");
       return;
     }
     fetchBookingsData();

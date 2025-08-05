@@ -15,6 +15,12 @@ export default function Subscribe() {
 
   // Callback pour lancer le paiement Stripe
   const handleSubscribe = async (planId: string, isYearly: boolean) => {
+    // Si l'utilisateur n'est pas connecté, rediriger vers signup médecin
+    if (!user) {
+      navigate(`/auth?type=doctor&plan=${planId}`);
+      return;
+    }
+
     setLoading(true);
     try {
       console.log("[Subscribe] user.id utilisé pour l'abonnement:", user.id);

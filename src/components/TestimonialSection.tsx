@@ -531,7 +531,7 @@ const TestimonialSection = () => {
                   Voir tous les témoignages
                 </button>
                 <button className="border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                  Commencer gratuitement
+                  Commencer tout de suite !
                 </button>
               </div>
             </div>

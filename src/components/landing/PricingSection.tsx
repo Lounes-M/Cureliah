@@ -32,7 +32,7 @@ const pricingPlans = [
       "Notifications par email en temps réel",
       "Support technique basique (48h)",
     ],
-    cta: "Commencer gratuitement",
+    cta: "Choisir Essentiel",
     popular: false,
     icon: Check,
     badge: null,

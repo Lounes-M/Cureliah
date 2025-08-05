@@ -34,13 +34,13 @@ const CreateProfile = () => {
   useEffect(() => {
     // Vérifier si l'utilisateur est connecté
     if (!user) {
-      navigate('/auth');
+      navigate('/auth?type=establishment');
       return;
     }
 
     // Vérifier si les données de l'utilisateur sont présentes
     if (!location.state?.email) {
-      navigate('/auth');
+      navigate('/auth?type=establishment');
       return;
     }
   }, [user, navigate, location]);

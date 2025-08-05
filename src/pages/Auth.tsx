@@ -360,9 +360,10 @@ const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Récupération du paramètre tab depuis l'URL
+  // Récupération des paramètres depuis l'URL
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
+  const typeFromUrl = searchParams.get('type') as 'doctor' | 'establishment' | null;
   const initialTab = (tabFromUrl === 'signup' || tabFromUrl === 'signin') ? tabFromUrl : 'signin';
 
   // États principaux
@@ -380,12 +381,12 @@ const Auth = () => {
     // console.log("Auth State:", { user, authLoading, isVisible });
   }, [user, authLoading, isVisible]);
 
-  // Données de formulaire
+  // Données de formulaire - initialise le userType depuis l'URL si disponible
   const [signUpData, setSignUpData] = useState<SignUpData>({
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "doctor",
+    userType: typeFromUrl || "doctor",
     firstName: "",
     lastName: "",
     establishmentName: "",
@@ -409,6 +410,13 @@ const Auth = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Basculer vers signup si un type est spécifié dans l'URL (suggère une inscription)
+  useEffect(() => {
+    if (typeFromUrl && !tabFromUrl) {
+      setCurrentTab('signup');
+    }
+  }, [typeFromUrl, tabFromUrl]);
 
   // Si l'utilisateur est déjà connecté et email confirmé, redirection automatique
   if (user && user.email_confirmed_at && !authLoading) {

@@ -59,7 +59,7 @@ const EstablishmentProfile = () => {
 
   useEffect(() => {
     if (!user || !profile) {
-      navigate('/auth');
+      navigate('/auth?type=establishment');
       return;
     }
 
