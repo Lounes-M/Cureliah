@@ -299,20 +299,20 @@ const CTASection = () => {
     <section
       ref={sectionRef}
       id="cta-section"
-      className="py-16 sm:py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600 relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-blue-600 via-blue-700 to-emerald-600 relative overflow-hidden"
       aria-labelledby="cta-title"
       role="region"
       aria-label="Inscription à la plateforme"
     >
-      {/* Éléments décoratifs de fond */}
+      {/* Éléments décoratifs de fond - Mobile responsive */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-64 h-64 sm:w-96 sm:h-96 bg-emerald-400/20 rounded-full translate-x-32 sm:translate-x-48 -translate-y-32 sm:-translate-y-48 blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-48 sm:w-64 lg:w-96 h-48 sm:h-64 lg:h-96 bg-emerald-400/20 rounded-full translate-x-24 sm:translate-x-32 lg:translate-x-48 -translate-y-24 sm:-translate-y-32 lg:-translate-y-48 blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-0 left-0 w-64 h-64 sm:w-96 sm:h-96 bg-blue-400/20 rounded-full -translate-x-32 sm:-translate-x-48 translate-y-32 sm:translate-y-48 blur-3xl animate-pulse"
+          className="absolute bottom-0 left-0 w-48 sm:w-64 lg:w-96 h-48 sm:h-64 lg:h-96 bg-blue-400/20 rounded-full -translate-x-24 sm:-translate-x-32 lg:-translate-x-48 translate-y-24 sm:translate-y-32 lg:translate-y-48 blur-3xl animate-pulse"
           style={{ animationDelay: "2s" }}
         ></div>
         <div
-          className="absolute top-1/2 right-1/4 w-48 h-48 sm:w-64 sm:h-64 bg-purple-400/20 rounded-full blur-2xl animate-pulse"
+          className="absolute top-1/2 right-1/4 w-32 sm:w-48 lg:w-64 h-32 sm:h-48 lg:h-64 bg-purple-400/20 rounded-full blur-2xl animate-pulse"
           style={{ animationDelay: "4s" }}
         ></div>
       </div>
@@ -326,12 +326,12 @@ const CTASection = () => {
       ></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* En-tête avec badge */}
-        <div className="text-center mb-12 sm:mb-16">
+        {/* En-tête avec badge - Mobile responsive */}
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16">
           <div
             className={`
-              inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white 
-              px-4 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-lg border border-white/30
+              inline-flex items-center gap-1 sm:gap-2 bg-white/20 backdrop-blur-sm text-white 
+              px-3 sm:px-4 lg:px-6 py-1.5 sm:py-2 lg:py-3 rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4 lg:mb-6 shadow-lg border border-white/30
               transition-all duration-1000 ${
                 isVisible
                   ? "translate-y-0 opacity-100"
@@ -339,15 +339,16 @@ const CTASection = () => {
               }
             `}
           >
-            <Sparkles className="w-4 h-4" />
-            Prêt à transformer votre pratique médicale ?
-            <Star className="w-4 h-4" />
+            <Sparkles className="w-3 sm:w-4 h-3 sm:h-4" />
+            <span className="hidden xs:inline">Prêt à transformer votre pratique médicale ?</span>
+            <span className="xs:hidden">Prêt à transformer ?</span>
+            <Star className="w-3 sm:w-4 h-3 sm:h-4" />
           </div>
 
           <h2
             id="cta-title"
             className={`
-              text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 leading-tight
+              text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 sm:mb-4 lg:mb-6 leading-tight px-2 sm:px-0
               transition-all duration-1000 delay-200 ${
                 isVisible
                   ? "translate-y-0 opacity-100"

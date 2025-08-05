@@ -15,7 +15,31 @@ interface UserActivity {
   action: string;
   timestamp: number;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
+}
+
+// Types pour les APIs du navigateur
+interface WindowWithGtag extends Window {
+  gtag?: (...args: unknown[]) => void;
+  dataLayer?: unknown[];
+}
+
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+    saveData?: boolean;
+    addEventListener?: (event: string, callback: () => void) => void;
+  };
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
 }
 
 class MonitoringService {
@@ -95,8 +119,9 @@ class MonitoringService {
     document.head.appendChild(script2);
 
     // Make gtag available globally
-    (window as any).gtag = (window as any).gtag || function() {
-      ((window as any).dataLayer = (window as any).dataLayer || []).push(arguments);
+    const windowGlobal = window as WindowWithGtag;
+    windowGlobal.gtag = windowGlobal.gtag || function(...args: unknown[]) {
+      (windowGlobal.dataLayer = windowGlobal.dataLayer || []).push(args);
     };
 
     console.log('Google Analytics initialized:', this.config.googleAnalyticsId);
@@ -178,7 +203,7 @@ class MonitoringService {
     // - gtag('event', 'page_load_time', { value: metrics.loadTime })
   }
 
-  trackError(error: Error | any, context?: Record<string, any>): void {
+  trackError(error: Error | unknown, context?: Record<string, unknown>): void {
     if (!this.isEnabled) return;
 
     console.error('Tracked error:', error, context);
@@ -195,8 +220,8 @@ class MonitoringService {
     console.log('User activity:', activity);
     
     // Send to Google Analytics
-    if (this.config.googleAnalyticsId && (window as any).gtag) {
-      (window as any).gtag('event', activity.action, {
+    if (this.config.googleAnalyticsId && (window as WindowWithGtag).gtag) {
+      (window as WindowWithGtag).gtag!('event', activity.action, {
         page_title: activity.page,
         custom_parameters: activity.metadata
       });
@@ -218,14 +243,14 @@ class MonitoringService {
   }
 
   // Track business metrics
-  trackBusinessMetric(metric: string, value: number, tags?: Record<string, any>): void {
+  trackBusinessMetric(metric: string, value: number, tags?: Record<string, unknown>): void {
     if (!this.isEnabled) return;
 
     console.log(`Business Metric: ${metric} = ${value}`, tags);
     
     // Send to analytics
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', 'business_metric', {
+    if (typeof (window as WindowWithGtag).gtag !== 'undefined') {
+      (window as WindowWithGtag).gtag!('event', 'business_metric', {
         metric_name: metric,
         metric_value: value,
         ...tags
@@ -234,18 +259,18 @@ class MonitoringService {
   }
 
   // Track general events
-  trackEvent(eventName: string, properties?: Record<string, any>): void {
+  trackEvent(eventName: string, properties?: Record<string, unknown>): void {
     if (!this.isEnabled) return;
     
     console.log(`Event: ${eventName}`, properties);
     
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', eventName, properties);
+    if (typeof (window as WindowWithGtag).gtag !== 'undefined') {
+      (window as WindowWithGtag).gtag!(eventName, properties);
     }
   }
 
   // Log errors
-  logError(error: Error, context?: Record<string, any>): void {
+  logError(error: Error, context?: Record<string, unknown>): void {
     console.error('Error logged:', error.message, context);
     
     // In production: send to error tracking service
@@ -284,9 +309,12 @@ class MonitoringService {
     if ('PerformanceObserver' in window) {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          console.log('FID:', entry.processingStart - entry.startTime);
-          this.trackPerformanceMetric('first_input_delay', entry.processingStart - entry.startTime);
+        entries.forEach((entry: PerformanceEntry) => {
+          if ('processingStart' in entry && 'startTime' in entry) {
+            const processingStart = (entry as unknown as { processingStart: number }).processingStart;
+            console.log('FID:', processingStart - entry.startTime);
+            this.trackPerformanceMetric('first_input_delay', processingStart - entry.startTime);
+          }
         });
       });
       
@@ -300,9 +328,13 @@ class MonitoringService {
       
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+        entries.forEach((entry: PerformanceEntry) => {
+          const layoutShiftEntry = entry as unknown as { 
+            hadRecentInput?: boolean;
+            value?: number;
+          };
+          if (!layoutShiftEntry.hadRecentInput && layoutShiftEntry.value) {
+            clsValue += layoutShiftEntry.value;
           }
         });
         
@@ -346,22 +378,24 @@ class MonitoringService {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       
-      entries.forEach((entry: any) => {
+      entries.forEach((entry: PerformanceEntry) => {
+        const resourceEntry = entry as PerformanceResourceTiming;
+        
         // Track slow resources (> 1 second)
         if (entry.duration > 1000) {
           console.warn('Slow resource:', entry.name, entry.duration);
           this.trackPerformanceMetric('slow_resource_load', entry.duration, {
             resourceName: entry.name,
-            resourceType: entry.initiatorType
+            resourceType: resourceEntry.initiatorType
           });
         }
 
         // Track large resources (> 1MB)
-        if (entry.transferSize > 1024 * 1024) {
-          console.warn('Large resource:', entry.name, entry.transferSize);
-          this.trackPerformanceMetric('large_resource_size', entry.transferSize, {
+        if (resourceEntry.transferSize && resourceEntry.transferSize > 1024 * 1024) {
+          console.warn('Large resource:', entry.name, resourceEntry.transferSize);
+          this.trackPerformanceMetric('large_resource_size', resourceEntry.transferSize, {
             resourceName: entry.name,
-            resourceType: entry.initiatorType
+            resourceType: resourceEntry.initiatorType
           });
         }
       });
@@ -373,7 +407,7 @@ class MonitoringService {
   // Memory usage monitoring
   monitorMemoryUsage(): void {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as PerformanceWithMemory).memory;
       
       setInterval(() => {
         const usedMB = memory.usedJSHeapSize / 1024 / 1024;
@@ -396,7 +430,7 @@ class MonitoringService {
   // Network monitoring
   monitorNetworkConditions(): void {
     if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as NavigatorWithConnection).connection;
       
       const logConnection = () => {
         console.log('Network:', {
@@ -433,7 +467,7 @@ class MonitoringService {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
           console.warn('Long task detected:', entry.duration, 'ms');
           this.trackPerformanceMetric('long_task_duration', entry.duration);
           
@@ -489,11 +523,12 @@ class MonitoringService {
         let totalJSSize = 0;
         let totalCSSSize = 0;
         
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry) => {
+          const resourceEntry = entry as PerformanceResourceTiming;
           if (entry.name.endsWith('.js')) {
-            totalJSSize += entry.transferSize || 0;
+            totalJSSize += resourceEntry.transferSize || 0;
           } else if (entry.name.endsWith('.css')) {
-            totalCSSSize += entry.transferSize || 0;
+            totalCSSSize += resourceEntry.transferSize || 0;
           }
         });
         
@@ -533,7 +568,7 @@ class MonitoringService {
   }
 
   // Helper to track performance metrics with proper formatting
-  private trackPerformanceMetric(metric: string, value: number, tags?: Record<string, any>): void {
+  private trackPerformanceMetric(metric: string, value: number, tags?: Record<string, unknown>): void {
     // Send to DataDog if configured
     if (this.config.dataDogApiKey && typeof window !== 'undefined') {
       // DataDog RUM would be initialized here
@@ -541,8 +576,8 @@ class MonitoringService {
     }
     
     // Send to Google Analytics
-    if (typeof (window as any).gtag !== 'undefined') {
-      (window as any).gtag('event', 'performance_metric', {
+    if (typeof (window as WindowWithGtag).gtag !== 'undefined') {
+      (window as WindowWithGtag).gtag!('event', 'performance_metric', {
         metric_name: metric,
         metric_value: Math.round(value * 100) / 100, // Round to 2 decimal places
         ...tags
@@ -588,7 +623,7 @@ export const useMonitoring = () => {
     monitoring.trackError(error, { component: componentName });
   };
 
-  const trackUserInteraction = (action: string, metadata?: Record<string, any>) => {
+  const trackUserInteraction = (action: string, metadata?: Record<string, unknown>) => {
     monitoring.trackUserActivity({
       page: window.location.pathname,
       action,

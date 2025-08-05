@@ -15,18 +15,102 @@ type RealtimeEventType =
   | 'appointment_reminder'
   | 'system_alert';
 
+interface BookingPayload {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface NotificationPayload {
+  id?: string;
+  title: string;
+  message: string;
+  [key: string]: unknown;
+}
+
+interface PresencePayload {
+  presences: Array<{
+    user_id?: string;
+    status?: string;
+    last_seen?: string;
+    [key: string]: unknown;
+  }>;
+  [key: string]: unknown;
+}
+
+interface PresenceState {
+  [key: string]: unknown;
+}
+
+interface PresenceItem {
+  user_id?: string;
+  status?: string;
+  last_seen?: string;
+  [key: string]: unknown;
+}
+
+interface BookingItem {
+  id: string;
+  status: string;
+  [key: string]: unknown;
+}
+
+interface MessageItem {
+  id: string;
+  content: string;
+  sender_id: string;
+  [key: string]: unknown;
+}
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  [key: string]: unknown;
+}
+
+interface SupabaseEvent {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new?: Record<string, unknown>;
+  old?: Record<string, unknown>;
+  table?: string;
+}
+
+// Type guards
+function isBookingItem(payload: unknown): payload is BookingItem {
+  return payload !== null && 
+         typeof payload === 'object' && 
+         'id' in payload && 
+         'status' in payload;
+}
+
+function isMessageItem(payload: unknown): payload is MessageItem {
+  return payload !== null && 
+         typeof payload === 'object' && 
+         'id' in payload && 
+         'content' in payload && 
+         'sender_id' in payload;
+}
+
+function isNotificationItem(payload: unknown): payload is NotificationItem {
+  return payload !== null && 
+         typeof payload === 'object' && 
+         'id' in payload && 
+         'title' in payload && 
+         'message' in payload;
+}
+
 interface RealtimeEvent {
   type: RealtimeEventType;
-  payload: any;
+  payload: BookingPayload | NotificationPayload | PresencePayload | unknown;
   timestamp: Date;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface RealtimeSubscription {
   id: string;
   channel: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   callback: (event: RealtimeEvent) => void;
 }
 
@@ -139,13 +223,14 @@ class RealtimeService {
   }
 
   // Handle Supabase realtime events
-  private handleSupabaseEvent(type: string, payload: any): void {
+  private handleSupabaseEvent(type: string, payload: unknown): void {
+    const supabasePayload = payload as SupabaseEvent;
     let eventType: RealtimeEventType;
     
     switch (type) {
       case 'booking':
-        eventType = payload.eventType === 'INSERT' ? 'booking_created' : 
-                   payload.eventType === 'UPDATE' ? 'booking_updated' : 'booking_cancelled';
+        eventType = supabasePayload.eventType === 'INSERT' ? 'booking_created' : 
+                   supabasePayload.eventType === 'UPDATE' ? 'booking_updated' : 'booking_cancelled';
         break;
       case 'message':
         eventType = 'message_received';
@@ -159,16 +244,16 @@ class RealtimeService {
 
     const event: RealtimeEvent = {
       type: eventType,
-      payload: payload.new || payload.old,
+      payload: supabasePayload.new || supabasePayload.old || {},
       timestamp: new Date(),
-      metadata: { source: 'supabase', table: payload.table }
+      metadata: { source: 'supabase', table: supabasePayload.table }
     };
 
     this.emitEvent(event);
   }
 
   // Handle presence updates
-  private handlePresenceUpdate(state: any): void {
+  private handlePresenceUpdate(state: PresenceState): void {
     const event: RealtimeEvent = {
       type: 'user_status_changed',
       payload: { presenceState: state },
@@ -179,7 +264,7 @@ class RealtimeService {
     this.emitEvent(event);
   }
 
-  private handleUserJoin(key: string, presences: any[]): void {
+  private handleUserJoin(key: string, presences: PresenceItem[]): void {
     const event: RealtimeEvent = {
       type: 'user_status_changed',
       payload: { action: 'join', key, presences },
@@ -190,7 +275,7 @@ class RealtimeService {
     this.emitEvent(event);
   }
 
-  private handleUserLeave(key: string, presences: any[]): void {
+  private handleUserLeave(key: string, presences: PresenceItem[]): void {
     const event: RealtimeEvent = {
       type: 'user_status_changed',
       payload: { action: 'leave', key, presences },
@@ -259,7 +344,7 @@ class RealtimeService {
   subscribeToChannel(
     channel: string,
     callback: (event: RealtimeEvent) => void,
-    filters?: Record<string, any>
+    filters?: Record<string, unknown>
   ): string {
     const subscriptionId = `${channel}_${Date.now()}_${Math.random()}`;
     
@@ -281,7 +366,7 @@ class RealtimeService {
   }
 
   // Send message through realtime
-  async sendMessage(channel: string, event: string, payload: any): Promise<void> {
+  async sendMessage(channel: string, event: string, payload: unknown): Promise<void> {
     try {
       const supabaseChannel = supabase.channel(channel);
       await supabaseChannel.send({
@@ -386,12 +471,12 @@ export const useRealtime = (userId?: string) => {
   const subscribeToChannel = useCallback((
     channel: string,
     callback: (event: RealtimeEvent) => void,
-    filters?: Record<string, any>
+    filters?: Record<string, unknown>
   ) => {
     return realtimeService.current.subscribeToChannel(channel, callback, filters);
   }, []);
 
-  const sendMessage = useCallback((channel: string, event: string, payload: any) => {
+  const sendMessage = useCallback((channel: string, event: string, payload: unknown) => {
     return realtimeService.current.sendMessage(channel, event, payload);
   }, []);
 
@@ -412,22 +497,26 @@ export const useRealtime = (userId?: string) => {
 
 // Hook for specific realtime features
 export const useRealtimeBookings = (userId: string) => {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<BookingItem[]>([]);
   const { subscribe } = useRealtime(userId);
 
   useEffect(() => {
     const unsubscribeCreate = subscribe('booking_created', (event) => {
-      setBookings(prev => [event.payload, ...prev]);
+      if (isBookingItem(event.payload)) {
+        setBookings(prev => [event.payload as BookingItem, ...prev]);
+      }
     });
 
     const unsubscribeUpdate = subscribe('booking_updated', (event) => {
+      const payload = event.payload as BookingPayload;
       setBookings(prev => prev.map(booking => 
-        booking.id === event.payload.id ? { ...booking, ...event.payload } : booking
+        booking.id === payload.id ? { ...booking, ...payload } : booking
       ));
     });
 
     const unsubscribeCancel = subscribe('booking_cancelled', (event) => {
-      setBookings(prev => prev.filter(booking => booking.id !== event.payload.id));
+      const payload = event.payload as BookingPayload;
+      setBookings(prev => prev.filter(booking => booking.id !== payload.id));
     });
 
     return () => {
@@ -441,14 +530,16 @@ export const useRealtimeBookings = (userId: string) => {
 };
 
 export const useRealtimeMessages = (userId: string) => {
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MessageItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { subscribe } = useRealtime(userId);
 
   useEffect(() => {
     const unsubscribe = subscribe('message_received', (event) => {
-      setMessages(prev => [event.payload, ...prev]);
-      setUnreadCount(prev => prev + 1);
+      if (isMessageItem(event.payload)) {
+        setMessages(prev => [event.payload as MessageItem, ...prev]);
+        setUnreadCount(prev => prev + 1);
+      }
     });
 
     return unsubscribe;
@@ -462,17 +553,20 @@ export const useRealtimeMessages = (userId: string) => {
 };
 
 export const useRealtimeNotifications = (userId: string) => {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const { subscribe } = useRealtime(userId);
 
   useEffect(() => {
     const unsubscribe = subscribe('notification_received', (event) => {
-      setNotifications(prev => [event.payload, ...prev]);
+      const payload = event.payload as NotificationPayload;
+      if (isNotificationItem(payload)) {
+        setNotifications(prev => [payload as NotificationItem, ...prev]);
+      }
       
       // Show browser notification if permission granted
       if (Notification.permission === 'granted') {
-        new Notification(event.payload.title, {
-          body: event.payload.message,
+        new Notification(payload.title, {
+          body: payload.message,
           icon: '/logo.png'
         });
       }
@@ -490,17 +584,22 @@ export const useUserPresence = (userId: string) => {
 
   useEffect(() => {
     const unsubscribe = subscribe('user_status_changed', (event) => {
+      const payload = event.payload as PresencePayload;
       if (event.metadata?.type === 'user_join') {
-        event.payload.presences.forEach((presence: any) => {
-          setOnlineUsers(prev => new Set([...prev, presence.userId]));
+        payload.presences.forEach((presence) => {
+          if (presence.user_id && typeof presence.user_id === 'string') {
+            setOnlineUsers(prev => new Set([...prev, presence.user_id as string]));
+          }
         });
       } else if (event.metadata?.type === 'user_leave') {
-        event.payload.presences.forEach((presence: any) => {
-          setOnlineUsers(prev => {
-            const updated = new Set(prev);
-            updated.delete(presence.userId);
-            return updated;
-          });
+        payload.presences.forEach((presence) => {
+          if (presence.user_id && typeof presence.user_id === 'string') {
+            setOnlineUsers(prev => {
+              const updated = new Set(prev);
+              updated.delete(presence.user_id as string);
+              return updated;
+            });
+          }
         });
       }
     });

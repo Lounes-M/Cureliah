@@ -8,6 +8,37 @@ import React, {
   useMemo,
 } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
+
+// Type guard pour vérifier si les données correspondent à un UserProfile
+function isUserProfile(data: unknown): data is UserProfile {
+  if (!data || typeof data !== 'object') return false;
+  const profile = data as Record<string, unknown>;
+  return typeof profile.user_type === 'string' && 
+         ['doctor', 'establishment', 'admin'].includes(profile.user_type);
+}
+
+// Interfaces pour les profils spécialisés
+interface DoctorProfile {
+  id?: string;
+  specialty?: string;
+  speciality?: string;
+  avatar_url?: string;
+  [key: string]: unknown;
+}
+
+interface EstablishmentProfile {
+  id?: string;
+  name?: string;
+  establishment_name?: string;
+  avatar_url?: string;
+  [key: string]: unknown;
+}
+
+// Type pour les réponses de base de données
+interface DatabaseResponse<T> {
+  data: T | null;
+  error: { code?: string; message?: string } | null;
+}
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -134,12 +165,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log("📡 Querying profiles table...");
 
-        let profile: any, profileError: any;
+        let profile: Record<string, unknown> | null = null;
+        let profileError: { code?: string; message?: string } | null = null;
         try {
           const result = await Promise.race([queryPromise, timeoutPromise]);
           if (typeof result === 'object' && result !== null && 'data' in result && 'error' in result) {
-            profile = (result as { data: any; error: any }).data;
-            profileError = (result as { data: any; error: any }).error;
+            const dbResult = result as { data: Record<string, unknown> | null; error: { code?: string; message?: string } | null };
+            profile = dbResult.data;
+            profileError = dbResult.error;
           } else {
             profile = null;
             profileError = { code: 'TIMEOUT' };
@@ -181,23 +214,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log("✅ Profile data received:", profile);
 
+        // Vérifier que le profil est valide
+        if (!isUserProfile(profile)) {
+          console.error("❌ Invalid profile data:", profile);
+          throw new Error("Invalid profile data received from database");
+        }
+
+        // Maintenant profile est du type UserProfile
+        const validProfile = profile as UserProfile;
+
         let userData: User = {
           id: authUser.id,
           email: authUser.email,
-          user_type: profile.user_type,
+          user_type: validProfile.user_type!,
           email_confirmed_at: authUser.email_confirmed_at,
           user_metadata: {
-            user_type: profile.user_type,
+            user_type: validProfile.user_type,
           },
           profile: {
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            user_type: profile.user_type,
+            first_name: validProfile.first_name,
+            last_name: validProfile.last_name,
+            user_type: validProfile.user_type,
           },
         };
 
         // Get specialized profile avec timeout aussi
-        console.log("📡 Querying specialized profile for:", profile.user_type);
+        console.log("📡 Querying specialized profile for:", validProfile.user_type);
 
         if (profile.user_type === "doctor") {
           try {
@@ -213,13 +255,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ),
             ]);
             if (typeof doctorResult === 'object' && doctorResult !== null && 'data' in doctorResult && 'error' in doctorResult) {
-              const { data: doctorProfile, error: doctorError } = doctorResult as { data: any; error: any };
+              const { data: doctorProfile, error: doctorError } = doctorResult as DatabaseResponse<DoctorProfile>;
               if (!doctorError && doctorProfile) {
                 userData.profile = {
                   ...userData.profile,
-                  specialty: doctorProfile.speciality,
-                  speciality: doctorProfile.speciality,
-                  avatar_url: doctorProfile.avatar_url,
+                  specialty: doctorProfile.speciality as string | undefined,
+                  speciality: doctorProfile.speciality as string | undefined,
+                  avatar_url: doctorProfile.avatar_url as string | undefined,
                 };
                 console.log("✅ Doctor profile loaded with avatar:", doctorProfile.avatar_url);
               }
@@ -244,12 +286,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ),
             ]);
             if (typeof establishmentResult === 'object' && establishmentResult !== null && 'data' in establishmentResult && 'error' in establishmentResult) {
-              const { data: establishmentProfile, error: establishmentError } = establishmentResult as { data: any; error: any };
+              const { data: establishmentProfile, error: establishmentError } = establishmentResult as DatabaseResponse<EstablishmentProfile>;
               if (!establishmentError && establishmentProfile) {
                 userData.profile = {
                   ...userData.profile,
-                  establishment_name: establishmentProfile.name,
-                  avatar_url: establishmentProfile.avatar_url,
+                  establishment_name: establishmentProfile.name as string | undefined,
+                  avatar_url: establishmentProfile.avatar_url as string | undefined,
                 };
                 console.log("✅ Establishment profile loaded with avatar:", establishmentProfile.avatar_url);
               }

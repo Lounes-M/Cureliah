@@ -16,6 +16,23 @@ import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
+// Interface pour le segment utilisateur
+interface UserSegment {
+  userType: 'doctor' | 'establishment' | 'admin';
+  newUser: boolean;
+  deviceType: 'mobile' | 'tablet' | 'desktop';
+}
+
+// Interface pour les utilisateurs avec created_at
+interface UserWithTimestamp {
+  id: string;
+  created_at?: string;
+  user_metadata?: {
+    user_type?: 'doctor' | 'establishment' | 'admin';
+  };
+  [key: string]: unknown;
+}
+
 // Initialize monitoring and security for production
 monitoring.initialize();
 const securityService = SecurityService.getInstance();
@@ -23,7 +40,7 @@ const securityService = SecurityService.getInstance();
 // Enhanced App Content with advanced features
 const EnhancedAppContent = () => {
   const { user } = useAuth();
-  const [userSegment, setUserSegment] = useState<any>(null);
+  const [userSegment, setUserSegment] = useState<UserSegment | null>(null);
   const { setUser } = useMonitoring();
   
   // Initialize realtime connection
@@ -45,9 +62,10 @@ const EnhancedAppContent = () => {
 
     // Set user segment for A/B testing
     if (user) {
+      const userWithTimestamp = user as unknown as UserWithTimestamp;
       setUserSegment({
-        userType: user.user_metadata?.user_type || 'establishment',
-        newUser: new Date((user as any).created_at || '').getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000,
+        userType: (user.user_metadata?.user_type || 'establishment') as 'doctor' | 'establishment' | 'admin',
+        newUser: new Date(userWithTimestamp.created_at || '').getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000,
         deviceType: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop'
       });
 

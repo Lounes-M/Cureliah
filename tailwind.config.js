@@ -17,6 +17,14 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'xs': '375px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -51,12 +59,17 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        'medical-blue': '#2563eb',
-        'medical-blue-dark': '#1d4ed8',
-        'medical-blue-light': '#dbeafe',
-        'medical-green': '#059669',
-        'medical-green-dark': '#047857',
-        'medical-green-light': '#d1fae5',
+        // Couleurs médicales personnalisées
+        'medical-blue': {
+          DEFAULT: '#2563eb',
+          dark: '#1d4ed8',
+          light: '#3b82f6',
+        },
+        'medical-green': {
+          DEFAULT: '#10b981',
+          dark: '#059669',
+          light: '#34d399',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -76,6 +89,17 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+      maxWidth: {
+        '8xl': '88rem',
+        '9xl': '96rem',
+      },
+      fontSize: {
+        'xxs': '0.625rem',
       },
     },
   },

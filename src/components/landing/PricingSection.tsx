@@ -107,12 +107,12 @@ function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
       role="article"
       aria-labelledby={`plan-${plan.id}-title`}
     >
-      {/* Badge populaire amélioré */}
+      {/* Badge populaire amélioré - Mobile responsive */}
       {plan.badge && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 z-10">
           <div
             className={`
-            px-6 py-2 rounded-full text-sm font-bold shadow-lg flex items-center gap-2
+            px-3 sm:px-6 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center gap-1 sm:gap-2
             ${
               plan.popular
                 ? "bg-gradient-to-r from-medical-blue to-blue-600 text-white"
@@ -120,75 +120,75 @@ function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
             }
           `}
           >
-            <IconComponent className="w-4 h-4" />
+            <IconComponent className="w-3 sm:w-4 h-3 sm:h-4" />
             {plan.badge}
           </div>
         </div>
       )}
 
-      <CardHeader className="text-center pb-4">
-        <div className="mx-auto mb-4 p-3 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 w-fit">
+      <CardHeader className="text-center pb-3 sm:pb-4">
+        <div className="mx-auto mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 w-fit">
           <IconComponent
-            className={`w-8 h-8 ${
+            className={`w-6 sm:w-8 h-6 sm:h-8 ${
               plan.popular ? "text-medical-blue" : "text-medical-green"
             }`}
           />
         </div>
         <CardTitle
           id={`plan-${plan.id}-title`}
-          className="text-2xl font-bold text-gray-900 mb-2"
+          className="text-xl sm:text-2xl font-bold text-gray-900 mb-2"
         >
           {plan.name}
         </CardTitle>
-        <CardDescription className="text-gray-600 text-base leading-relaxed">
+        <CardDescription className="text-gray-600 text-sm sm:text-base leading-relaxed px-2 sm:px-0">
           {plan.description}
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-1 pt-0">
-        {/* Prix avec économies */}
-        <div className="text-center mb-8">
+      <CardContent className="flex-1 pt-0 px-4 sm:px-6">
+        {/* Prix avec économies - Mobile responsive */}
+        <div className="text-center mb-6 sm:mb-8">
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-5xl font-bold text-gray-900">
+            <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900">
               €{currentPrice}
             </span>
-            <span className="text-gray-600 font-medium">/mois</span>
+            <span className="text-gray-600 font-medium text-sm sm:text-base">/mois</span>
           </div>
           {isYearly && savings > 0 && (
             <div className="mt-2">
-              <span className="inline-block bg-green-100 text-green-800 text-sm font-semibold px-3 py-1 rounded-full">
+              <span className="inline-block bg-green-100 text-green-800 text-xs sm:text-sm font-semibold px-2 sm:px-3 py-1 rounded-full">
                 Économisez {savings}% par an
               </span>
             </div>
           )}
           {isYearly && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Soit €{plan.yearlyPrice} facturé annuellement
             </p>
           )}
         </div>
 
-        {/* Liste des fonctionnalités */}
-        <ul className="space-y-4" role="list">
+        {/* Liste des fonctionnalités - Mobile responsive */}
+        <ul className="space-y-3 sm:space-y-4" role="list">
           {plan.features.map((feature, index) => (
-            <li key={index} className="flex items-start gap-3" role="listitem">
-              <div className="flex-shrink-0 mt-1">
+            <li key={index} className="flex items-start gap-2 sm:gap-3" role="listitem">
+              <div className="flex-shrink-0 mt-0.5 sm:mt-1">
                 <Check
-                  className="w-5 h-5 text-medical-green"
+                  className="w-4 sm:w-5 h-4 sm:h-5 text-medical-green"
                   aria-hidden="true"
                 />
               </div>
-              <span className="text-gray-700 leading-relaxed">{feature}</span>
+              <span className="text-gray-700 leading-relaxed text-sm sm:text-base">{feature}</span>
             </li>
           ))}
         </ul>
       </CardContent>
 
-      <CardFooter className="pt-6">
+      <CardFooter className="pt-4 sm:pt-6 px-4 sm:px-6">
         {onSubscribe ? (
           <Button
             className={`
-              w-full h-12 font-semibold transition-all duration-200 transform hover:scale-105
+              w-full h-11 sm:h-12 font-semibold transition-all duration-200 transform hover:scale-105 text-sm sm:text-base
               ${plan.popular ? THEME_COLORS.primary : THEME_COLORS.secondary}
               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
             `}
@@ -255,29 +255,29 @@ export default function PricingSection({ onSubscribe, loading }) {
 
   return (
     <section
-      className="py-20 bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30 relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30 relative overflow-hidden"
       aria-labelledby="pricing-title"
     >
-      {/* Éléments décoratifs de fond */}
+      {/* Éléments décoratifs de fond - Mobile responsive */}
       <div
         className="absolute inset-0 bg-grid-pattern opacity-5"
         aria-hidden="true"
       />
       <div
-        className="absolute top-0 left-0 w-72 h-72 bg-medical-blue/10 rounded-full -translate-x-36 -translate-y-36 blur-3xl"
+        className="absolute top-0 left-0 w-48 sm:w-64 lg:w-72 h-48 sm:h-64 lg:h-72 bg-medical-blue/10 rounded-full -translate-x-24 sm:-translate-x-32 lg:-translate-x-36 -translate-y-24 sm:-translate-y-32 lg:-translate-y-36 blur-3xl"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 right-0 w-72 h-72 bg-medical-green/10 rounded-full translate-x-36 translate-y-36 blur-3xl"
+        className="absolute bottom-0 right-0 w-48 sm:w-64 lg:w-72 h-48 sm:h-64 lg:h-72 bg-medical-green/10 rounded-full translate-x-24 sm:translate-x-32 lg:translate-x-36 translate-y-24 sm:translate-y-32 lg:translate-y-36 blur-3xl"
         aria-hidden="true"
       />
 
-      <div className="container mx-auto px-4 relative z-10">
-        {/* En-tête de section */}
-        <header className="text-center mb-16">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* En-tête de section - Mobile responsive */}
+        <header className="text-center mb-8 sm:mb-12 lg:mb-16">
           <h2
             id="pricing-title"
-            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight px-2 sm:px-0"
           >
             Nos offres d'abonnement
           </h2>

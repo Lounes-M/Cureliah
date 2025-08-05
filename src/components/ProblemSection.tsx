@@ -103,35 +103,35 @@ const problemsConfig = {
   },
 };
 
-// Composant pour une carte de problème
+// Composant pour une carte de problème - Mobile responsive
 function ProblemCard({ config, isVisible }) {
   const IconComponent = config.icon;
 
   return (
     <div
       className={`
-      relative bg-white rounded-2xl p-8 shadow-lg border-2 transition-all duration-700 hover:shadow-2xl
+      relative bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border-2 transition-all duration-700 hover:shadow-2xl
       ${config.borderColor} hover:scale-105 transform
       ${isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}
     `}
     >
       {/* Gradient decoratif */}
       <div
-        className={`absolute inset-0 ${config.bgColor} rounded-2xl opacity-30`}
+        className={`absolute inset-0 ${config.bgColor} rounded-xl sm:rounded-2xl opacity-30`}
       />
 
       <div className="relative z-10">
-        {/* Header avec icône */}
-        <div className="flex items-center mb-8">
-          <div className={`${config.iconBg} p-4 rounded-2xl mr-6 shadow-lg`}>
-            <IconComponent className={`w-8 h-8 ${config.iconColor}`} />
+        {/* Header avec icône - Responsive */}
+        <div className="flex items-center mb-4 sm:mb-6 lg:mb-8">
+          <div className={`${config.iconBg} p-2 sm:p-3 lg:p-4 rounded-xl sm:rounded-2xl mr-3 sm:mr-4 lg:mr-6 shadow-lg`}>
+            <IconComponent className={`w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 ${config.iconColor}`} />
           </div>
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 truncate">
               {config.title}
             </h3>
             <div
-              className={`w-12 h-1 ${config.iconColor.replace(
+              className={`w-8 sm:w-10 lg:w-12 h-0.5 sm:h-1 ${config.iconColor.replace(
                 "text-",
                 "bg-"
               )} rounded-full`}
@@ -139,31 +139,31 @@ function ProblemCard({ config, isVisible }) {
           </div>
         </div>
 
-        {/* Liste des problèmes */}
-        <div className="space-y-6">
+        {/* Liste des problèmes - Mobile optimized */}
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {config.problems.map((problem, index) => {
             const ProblemIcon = problem.icon;
             return (
               <div
                 key={index}
-                className="group hover:bg-white/80 rounded-xl p-4 -m-4 transition-all duration-300"
+                className="group hover:bg-white/80 rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 -m-2 sm:-m-3 lg:-m-4 transition-all duration-300"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="flex items-start space-x-4">
+                <div className="flex items-start space-x-2 sm:space-x-3 lg:space-x-4">
                   <div
-                    className={`${config.iconBg} p-2 rounded-lg group-hover:scale-110 transition-transform duration-300`}
+                    className={`${config.iconBg} p-1.5 sm:p-2 rounded-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}
                   >
-                    <ProblemIcon className={`w-5 h-5 ${config.accentColor}`} />
+                    <ProblemIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${config.accentColor}`} />
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900 mb-2 group-hover:text-gray-800 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 mb-1 sm:mb-2 group-hover:text-gray-800 transition-colors">
                       {problem.titre}
                     </h4>
-                    <p className="text-gray-600 leading-relaxed mb-2">
+                    <p className="text-xs sm:text-sm lg:text-base text-gray-600 leading-relaxed mb-1 sm:mb-2">
                       {problem.description}
                     </p>
                     <div
-                      className={`text-sm font-semibold ${config.accentColor} bg-white rounded-full px-3 py-1 inline-block`}
+                      className={`text-xs sm:text-sm font-semibold ${config.accentColor} bg-white rounded-full px-2 sm:px-3 py-0.5 sm:py-1 inline-block`}
                     >
                       📊 {problem.impact}
                     </div>
@@ -178,7 +178,7 @@ function ProblemCard({ config, isVisible }) {
   );
 }
 
-// Composant pour les statistiques animées
+// Composant pour les statistiques animées - Mobile responsive
 function AnimatedStat({ stat, delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -190,15 +190,15 @@ function AnimatedStat({ stat, delay = 0 }) {
   return (
     <div
       className={`
-      text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200
+      text-center p-3 sm:p-4 lg:p-6 bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-lg border border-gray-200
       transition-all duration-700 hover:scale-105 hover:shadow-xl
       ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}
     `}
     >
-      <div className={`text-3xl md:text-4xl font-bold mb-2 ${stat.color}`}>
+      <div className={`text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold mb-1 sm:mb-2 ${stat.color}`}>
         {stat.value}
       </div>
-      <div className="text-sm text-gray-600 leading-tight">{stat.label}</div>
+      <div className="text-xs sm:text-sm text-gray-600 leading-tight">{stat.label}</div>
     </div>
   );
 }
@@ -225,38 +225,38 @@ export default function ProblemSection() {
   return (
     <section
       id="problem-section"
-      className="py-20 bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/30 relative overflow-hidden"
+      className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/30 relative overflow-hidden"
       aria-labelledby="problem-title"
     >
-      {/* Éléments décoratifs de fond */}
+      {/* Éléments décoratifs de fond - Adaptés pour mobile */}
       <div
         className="absolute inset-0 bg-grid-pattern opacity-5"
         aria-hidden="true"
       />
       <div
-        className="absolute top-0 left-0 w-96 h-96 bg-red-200/20 rounded-full -translate-x-48 -translate-y-48 blur-3xl animate-pulse"
+        className="absolute top-0 left-0 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-red-200/20 rounded-full -translate-x-24 sm:-translate-x-36 lg:-translate-x-48 -translate-y-24 sm:-translate-y-36 lg:-translate-y-48 blur-3xl animate-pulse"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 right-0 w-96 h-96 bg-orange-200/20 rounded-full translate-x-48 translate-y-48 blur-3xl animate-pulse"
+        className="absolute bottom-0 right-0 w-48 sm:w-72 lg:w-96 h-48 sm:h-72 lg:h-96 bg-orange-200/20 rounded-full translate-x-24 sm:translate-x-36 lg:translate-x-48 translate-y-24 sm:translate-y-36 lg:translate-y-48 blur-3xl animate-pulse"
         aria-hidden="true"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* En-tête avec animation */}
+        {/* En-tête avec animation - Mobile responsive */}
         <header
-          className={`text-center mb-16 transition-all duration-1000 ${
+          className={`text-center mb-8 sm:mb-12 lg:mb-16 transition-all duration-1000 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          <div className="inline-flex items-center gap-2 bg-red-100 text-red-800 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <AlertCircle className="w-4 h-4" />
+          <div className="inline-flex items-center gap-2 bg-red-100 text-red-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+            <AlertCircle className="w-3 sm:w-4 h-3 sm:h-4" />
             Problématiques actuelles
           </div>
 
           <h2
             id="problem-title"
-            className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight px-2 sm:px-0"
           >
             Les défis majeurs du
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600">
@@ -265,22 +265,22 @@ export default function ProblemSection() {
             </span>
           </h2>
 
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-12">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed mb-8 sm:mb-12 px-4 sm:px-0">
             Le système traditionnel de recrutement médical présente des
             inefficacités majeures qui impactent directement la qualité des
             soins et la satisfaction des professionnels.
           </p>
 
-          {/* Statistiques d'impact */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mb-8">
+          {/* Statistiques d'impact - Mobile grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 max-w-5xl mx-auto mb-6 sm:mb-8 px-2 sm:px-0">
             {impactStats.map((stat, index) => (
               <AnimatedStat key={index} stat={stat} delay={index * 200} />
             ))}
           </div>
         </header>
 
-        {/* Grille des problèmes */}
-        <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
+        {/* Grille des problèmes - Mobile stacked */}
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-start mb-8 sm:mb-12 lg:mb-16">
           <ProblemCard config={problemsConfig.medecins} isVisible={isVisible} />
           <ProblemCard
             config={problemsConfig.etablissements}
@@ -288,35 +288,35 @@ export default function ProblemSection() {
           />
         </div>
 
-        {/* Section de conséquences */}
+        {/* Section de conséquences - Mobile responsive */}
         <div
           className={`
-          bg-gradient-to-r from-red-50 via-white to-orange-50 rounded-3xl p-8 md:p-12 mb-12 border-2 border-gray-100 shadow-xl
+          bg-gradient-to-r from-red-50 via-white to-orange-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 xl:p-12 mb-8 sm:mb-12 border-2 border-gray-100 shadow-xl
           transition-all duration-1000 delay-500 ${
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }
         `}
         >
-          <div className="text-center mb-8">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-6 sm:mb-8">
+            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4 px-2 sm:px-0">
               Les conséquences de ces dysfonctionnements
             </h3>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               <div className="text-center">
-                <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <TrendingDown className="w-8 h-8 text-red-600" />
+                <div className="bg-red-100 w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 lg:mb-4">
+                  <TrendingDown className="w-6 sm:w-7 lg:w-8 h-6 sm:h-7 lg:h-8 text-red-600" />
                 </div>
-                <h4 className="font-bold text-gray-900 mb-2">
+                <h4 className="font-bold text-sm sm:text-base lg:text-lg text-gray-900 mb-1 sm:mb-2">
                   Qualité des soins
                 </h4>
-                <p className="text-gray-600 text-sm">
+                <p className="text-gray-600 text-xs sm:text-sm">
                   Services fermés, surcharge du personnel, stress accru
                 </p>
               </div>
 
               <div className="text-center">
-                <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <DollarSign className="w-8 h-8 text-orange-600" />
+                <div className="bg-orange-100 w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3 lg:mb-4">
+                  <DollarSign className="w-6 sm:w-7 lg:w-8 h-6 sm:h-7 lg:h-8 text-orange-600" />
                 </div>
                 <h4 className="font-bold text-gray-900 mb-2">Coûts élevés</h4>
                 <p className="text-gray-600 text-sm">
