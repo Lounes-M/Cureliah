@@ -56,8 +56,8 @@ serve(async (req: Request): Promise<Response> => {
           userId,
         },
       },
-      success_url: "https://cureliah.com/payment-success",
-      cancel_url: "https://cureliah.com/payment-failure",
+      success_url: "https://cureliah.vercel.app/payment-success",
+      cancel_url: "https://cureliah.vercel.app/payment-failure",
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
