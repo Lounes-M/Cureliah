@@ -418,20 +418,19 @@ const Auth = () => {
     }
   }, [typeFromUrl, tabFromUrl]);
 
-  // Si l'utilisateur est déjà connecté et email confirmé, redirection automatique
-  if (user && user.email_confirmed_at && !authLoading) {
-    // DEBUG: Voir les données exactes du profil
-    logger.debug("User profile debug info", {
-      userId: user?.id,
-      email: user?.email,
-      profile: user.profile,
-      is_verified: user.profile?.is_verified,
-      is_active: user.profile?.is_active,
-      email_confirmed_at: user.email_confirmed_at,
-    });
+  // Hook pour la redirection automatique (doit être au niveau racine)
+  useEffect(() => {
+    if (user && user.email_confirmed_at && !authLoading) {
+      // DEBUG: Voir les données exactes du profil
+      logger.debug("User profile debug info", {
+        userId: user?.id,
+        email: user?.email,
+        profile: user.profile,
+        is_verified: user.profile?.is_verified,
+        is_active: user.profile?.is_active,
+        email_confirmed_at: user.email_confirmed_at,
+      });
 
-    // Redirection automatique
-    useEffect(() => {
       const timer = setTimeout(() => {
         const dashboardRoute =
           user.user_type === "doctor"
@@ -449,7 +448,11 @@ const Auth = () => {
       }, 1500); // Délai de 1.5s pour laisser voir le message
 
       return () => clearTimeout(timer);
-    }, []);
+    }
+  }, [user, authLoading, logger]);
+
+  // Si l'utilisateur est déjà connecté et email confirmé, afficher le message de redirection
+  if (user && user.email_confirmed_at && !authLoading) {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
