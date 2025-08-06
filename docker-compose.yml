@@ -1,0 +1,97 @@
+# Configuration Docker Compose pour développement et production
+version: '3.8'
+
+services:
+  # Application Cureliah
+  cureliah-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - NODE_ENV=production
+      - VITE_SUPABASE_URL=${SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - redis
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - cureliah-network
+
+  # Redis pour le cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - cureliah-network
+
+  # Monitoring avec Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - cureliah-network
+
+  # Grafana pour les dashboards
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - cureliah-network
+
+  # Backup service
+  backup:
+    image: cureliah/backup:latest
+    volumes:
+      - backup_data:/backups
+      - ./scripts:/scripts
+    environment:
+      - SUPABASE_PROJECT_ID=${SUPABASE_PROJECT_ID}
+      - SUPABASE_ACCESS_TOKEN=${SUPABASE_ACCESS_TOKEN}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${BACKUP_S3_BUCKET}
+    command: /scripts/backup.sh
+    restart: unless-stopped
+    networks:
+      - cureliah-network
+
+networks:
+  cureliah-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  backup_data:

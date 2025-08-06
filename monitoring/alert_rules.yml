@@ -1,0 +1,83 @@
+# Règles d'alertes Prometheus pour Cureliah
+groups:
+  - name: cureliah_alerts
+    rules:
+      # Application down
+      - alert: CureliahAppDown
+        expr: up{job="cureliah-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Application Cureliah indisponible"
+          description: "L'application Cureliah est down depuis {{ $value }} minutes"
+
+      # High error rate
+      - alert: HighErrorRate
+        expr: (rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Taux d'erreur élevé sur Cureliah"
+          description: "Le taux d'erreur HTTP 5xx est de {{ $value }}% pendant les 5 dernières minutes"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Temps de réponse élevé"
+          description: "Le 95e percentile du temps de réponse est de {{ $value }} secondes"
+
+      # Database connection issues
+      - alert: DatabaseConnectionIssues
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Problème de connexion à la base de données"
+          description: "Impossible de se connecter à la base de données depuis {{ $value }} minutes"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Usage mémoire élevé"
+          description: "L'usage mémoire est de {{ $value }}%"
+
+      # Disk space low
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Espace disque faible"
+          description: "L'espace disque disponible sur {{ $labels.mountpoint }} est de {{ $value }}%"
+
+      # SSL certificate expiration
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Certificat SSL expire bientôt"
+          description: "Le certificat SSL pour {{ $labels.instance }} expire dans {{ $value }} jours"
+
+      # API rate limit
+      - alert: APIRateLimitHigh
+        expr: rate(http_requests_total{status="429"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Taux de limitation d'API élevé"
+          description: "{{ $value }} requêtes par seconde sont bloquées par le rate limiting"
