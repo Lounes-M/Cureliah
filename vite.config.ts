@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "0.0.0.0",
     port: 8080,
+    strictPort: true, // Exit if port is already in use
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(
     Boolean
@@ -17,11 +18,17 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    exclude: ['crypto']
+  },
   define: {
     "process.env": process.env,
   },
   build: {
     chunkSizeWarningLimit: 1000,
+    target: 'es2020',
+    minify: 'terser',
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {

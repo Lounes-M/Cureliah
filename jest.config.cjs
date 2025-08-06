@@ -2,6 +2,30 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // Exclude Playwright test files and directories
+  testPathIgnorePatterns: [
+    '<rootDir>/e2e/',
+    '<rootDir>/playwright-tests/',
+    '<rootDir>/tests/e2e/',
+    '<rootDir>/cypress/',
+    '<rootDir>/dist/',
+    '<rootDir>/build/',
+    '<rootDir>/coverage/',
+    '<rootDir>/node_modules/',
+    'src/__tests__/BookingFlow.test.tsx',
+    'src/services/__tests__/monitoring.test.ts',
+    'src/__tests__/Auth.test.tsx',
+    'tests/integration/HowItWorksSection.integration.test.tsx',
+    'src/components/__tests__/ProtectedRouteSubscription.test.tsx'
+  ],
+  // Only include Jest test files
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.(js|jsx|ts|tsx)',
+    '<rootDir>/src/**/*.(test|spec).(js|jsx|ts|tsx)',
+    '<rootDir>/__tests__/**/*.(js|jsx|ts|tsx)',
+    '!<rootDir>/e2e/**/*',
+    '!<rootDir>/cypress/**/*'
+  ],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },

@@ -4,25 +4,41 @@ test.describe('Basic App Tests', () => {
   test('homepage loads successfully', async ({ page }) => {
     await page.goto('/');
     
-    // Attendre que le contenu principal soit chargé
+    // Wait for the app to load completely
     await page.waitForLoadState('networkidle');
     
-    // Vérifier que la page contient du contenu
-    await expect(page.locator('body')).toBeVisible();
+    // Wait for React app to mount
+    await page.waitForSelector('#root', { timeout: 10000 });
     
-    // Vérifier que le titre de la page est défini
+    // Verify that the page contains content
+    const rootElement = page.locator('#root');
+    await expect(rootElement).toBeVisible();
+    
+    // Verify that the title of the page is set
     const title = await page.title();
     expect(title).toBeTruthy();
     expect(title.length).toBeGreaterThan(0);
+    
+    // Verify that there's actual content in the root element
+    const rootContent = await rootElement.textContent();
+    expect(rootContent?.length || 0).toBeGreaterThan(0);
   });
 
   test('page is accessible', async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
-    // Test basique d'accessibilité - vérifier qu'il y a un élément principal
+    // Wait for React app to mount
+    await page.waitForSelector('#root', { timeout: 10000 });
+    
+    // Test basic accessibility - verify there's a main content area
     const main = page.locator('main, [role="main"], #root, #app');
     await expect(main.first()).toBeVisible();
+    
+    // Verify the page has some interactive elements
+    const interactiveElements = page.locator('button, a, input, select, textarea');
+    const count = await interactiveElements.count();
+    expect(count).toBeGreaterThan(0);
   });
 
   test('no console errors on page load', async ({ page }) => {

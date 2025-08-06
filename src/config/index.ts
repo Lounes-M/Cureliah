@@ -4,8 +4,8 @@ export const config = {
     name: 'Cureliah',
     version: '1.0.0',
     environment: import.meta.env.NODE_ENV || 'development',
-    baseUrl: import.meta.env.VITE_APP_BASE_URL || 'http://localhost:8082',
-    apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:8082/api',
+    baseUrl: import.meta.env.VITE_APP_BASE_URL || (import.meta.env.NODE_ENV === 'production' ? 'https://cureliah.com' : 'http://localhost:8080'),
+    apiUrl: import.meta.env.VITE_API_URL || (import.meta.env.NODE_ENV === 'production' ? 'https://cureliah.com/api' : 'http://localhost:8080/api'),
   },
   
   supabase: {

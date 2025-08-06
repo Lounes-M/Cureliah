@@ -1,4 +1,5 @@
-import crypto from 'crypto';
+// Use Web Crypto API for browser compatibility
+const crypto = globalThis.crypto;
 import { monitoring } from './monitoring';
 
 // Security Event Types

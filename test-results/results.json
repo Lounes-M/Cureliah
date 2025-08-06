@@ -126,8 +126,11 @@
     "workers": 4,
     "webServer": {
       "command": "npm run dev",
-      "port": 8080,
-      "reuseExistingServer": true
+      "url": "http://127.0.0.1:8080",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe"
     }
   },
   "suites": [
@@ -160,12 +163,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4454,
+                      "duration": 3320,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:03.851Z",
+                      "startTime": "2025-08-06T10:46:00.892Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -194,12 +197,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 607,
+                      "duration": 1563,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:03.844Z",
+                      "startTime": "2025-08-06T10:46:00.866Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -209,7 +212,7 @@
               ],
               "id": "d748ac400d08b85935ef-d9a92f24b16c21fd6456",
               "file": "auth.spec.ts",
-              "line": 18,
+              "line": 20,
               "column": 3
             },
             {
@@ -228,12 +231,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4600,
+                      "duration": 2777,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:03.879Z",
+                      "startTime": "2025-08-06T10:46:00.854Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -243,7 +246,7 @@
               ],
               "id": "d748ac400d08b85935ef-8f62bfd2db6cc7446a03",
               "file": "auth.spec.ts",
-              "line": 30,
+              "line": 39,
               "column": 3
             },
             {
@@ -262,12 +265,12 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 4623,
+                      "duration": 3345,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:03.863Z",
+                      "startTime": "2025-08-06T10:46:00.873Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -277,7 +280,7 @@
               ],
               "id": "d748ac400d08b85935ef-0e827ea078f2ee42cc38",
               "file": "auth.spec.ts",
-              "line": 56,
+              "line": 65,
               "column": 3
             }
           ]
@@ -313,12 +316,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4026,
+                      "duration": 2706,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:05.324Z",
+                      "startTime": "2025-08-06T10:46:02.891Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -344,15 +347,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1158,
+                      "duration": 1292,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:09.329Z",
+                      "startTime": "2025-08-06T10:46:04.609Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -362,7 +365,7 @@
               ],
               "id": "8946741c555a0c4515d8-0eec9dcfcb7915def5a7",
               "file": "basic.spec.ts",
-              "line": 19,
+              "line": 27,
               "column": 3
             },
             {
@@ -378,15 +381,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1204,
+                      "duration": 1272,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-08-06T10:31:09.366Z",
+                      "startTime": "2025-08-06T10:46:04.630Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -396,7 +399,7 @@
               ],
               "id": "8946741c555a0c4515d8-dc8de7326785c5eedbae",
               "file": "basic.spec.ts",
-              "line": 28,
+              "line": 44,
               "column": 3
             }
           ]
@@ -406,8 +409,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-08-06T10:31:03.113Z",
-    "duration": 7482.567000000001,
+    "startTime": "2025-08-06T10:45:59.421Z",
+    "duration": 6520.322,
     "expected": 7,
     "skipped": 0,
     "unexpected": 0,

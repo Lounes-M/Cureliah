@@ -12,7 +12,7 @@ export default defineConfig({
     ['junit', { outputFile: 'test-results/results.xml' }]
   ],
   use: {
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.CI ? 'https://cureliah.com' : 'http://localhost:8080',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -39,9 +39,13 @@ export default defineConfig({
       use: { ...devices['iPhone 12'] },
     },
   ],
-  webServer: {
+  // Only start webServer in local development, not in CI (production tests run against live site)
+  webServer: process.env.CI ? undefined : {
     command: 'npm run dev',
-    port: 8080,
-    reuseExistingServer: !process.env.CI,
+    url: 'http://127.0.0.1:8080',
+    reuseExistingServer: true,
+    timeout: 120 * 1000, // 2 minutes timeout
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
 });
