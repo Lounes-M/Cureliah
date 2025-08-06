@@ -9,6 +9,12 @@ module.exports = {
     'ts-jest': {
       tsconfig: '<rootDir>/tsconfig.jest.json',
     },
+    'import.meta': {
+      env: {
+        VITE_MONITORING_API: '/api/monitoring',
+        DEV: false
+      }
+    }
   },
   moduleNameMapper: {
     '^@/integrations/supabase/client$': '<rootDir>/src/integrations/supabase/client.node.ts',
@@ -25,4 +31,7 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(preact|@fullcalendar)/)'
   ],
+  testEnvironmentOptions: {
+    customExportConditions: ['node', 'node-addons']
+  }
 };

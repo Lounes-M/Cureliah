@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React from 'react';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import BookingFlow from '@/pages/BookingFlow';
@@ -6,40 +7,47 @@ import { useAuth } from '@/hooks/useAuth';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock du hook useAuth
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: vi.fn()
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn()
 }));
 
 // Mock de Supabase
-vi.mock('@/integrations/supabase/client.browser', () => ({
+jest.mock('@/integrations/supabase/client.browser', () => ({
   supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({
             data: {
-              id: '123',
+              id: '1',
               title: 'Test Vacation',
-              start_date: '2025-08-10',
-              end_date: '2025-08-15',
-              location: 'Paris',
+              start_date: '2024-03-15',
+              end_date: '2024-03-22',
+              doctor_profile: {
+                full_name: 'Dr. Test',
+              },
+              establishment_profile: {
+                establishment_name: 'Test Hospital',
+                city: 'Paris',
+              },
               price: 500,
-              doctor_id: 'doc-123',
-              doctor_profiles: {
-                first_name: 'Dr.',
-                last_name: 'Test',
-                speciality: 'cardiology'
-              }
             },
             error: null
           }))
         }))
       }))
     })),
-    insert: vi.fn(() => ({
-      select: vi.fn(() => ({
-        single: vi.fn(() => Promise.resolve({
-          data: { id: 'booking-123' },
+    auth: {
+      getUser: jest.fn(() => Promise.resolve({
+        data: { user: { id: 'test-user-id' } }
+      }))
+    },
+    insert: jest.fn(() => ({
+      select: jest.fn(() => ({
+        single: jest.fn(() => Promise.resolve({
+          data: {
+            id: 'booking-123'
+          },
           error: null
         }))
       }))
@@ -47,48 +55,57 @@ vi.mock('@/integrations/supabase/client.browser', () => ({
   }
 }));
 
-// Mock du router
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
-  return {
-    ...actual,
-    useParams: () => ({ id: '123' }),
-    useNavigate: () => vi.fn()
-  };
-});
+// Mock react-router-dom
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    vacationId: '1'
+  }),
+  useNavigate: () => jest.fn()
+}));
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-    mutations: { retry: false }
+// Mock du logger
+jest.mock('@/utils/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn()
   }
-});
+}));
 
-const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+const TestWrapper = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {children}
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
 
 describe('BookingFlow', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    (useAuth as any).mockReturnValue({
-      user: {
-        id: 'user-123',
-        email: 'test@example.com',
-        user_type: 'establishment'
-      },
-      profile: {
-        user_type: 'establishment',
-        establishment_name: 'Test Hospital'
-      }
-    });
+    jest.clearAllMocks();
   });
 
-  it('devrait afficher les détails de la vacation', async () => {
+  it('should render vacation details when loaded', async () => {
+    // Mock des hooks
+    const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+    mockUseAuth.mockReturnValue({
+      user: { 
+        id: 'test-user-id',
+        email: 'test@test.com'
+      },
+      loading: false
+    } as any);
+
     render(
       <TestWrapper>
         <BookingFlow />
@@ -103,112 +120,14 @@ describe('BookingFlow', () => {
     });
   });
 
-  it('devrait permettre de naviguer entre les étapes', async () => {
-    render(
-      <TestWrapper>
-        <BookingFlow />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
-    });
-
-    // Vérifier que l'étape 1 est active
-    const step1 = screen.getByText('1');
-    expect(step1).toHaveClass('bg-blue-600');
-
-    // Passer à l'étape suivante
-    const nextButton = screen.getByText('Continuer');
-    fireEvent.click(nextButton);
-
-    // Vérifier que l'étape 2 est maintenant active
-    await waitFor(() => {
-      const step2 = screen.getByText('2');
-      expect(step2).toHaveClass('bg-blue-600');
-    });
-  });
-
-  it('devrait valider les champs requis du formulaire', async () => {
-    render(
-      <TestWrapper>
-        <BookingFlow />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
-    });
-
-    // Aller à l'étape 2
-    fireEvent.click(screen.getByText('Continuer'));
-
-    await waitFor(() => {
-      // Essayer de soumettre sans remplir les champs
-      const submitButton = screen.getByText('Confirmer la réservation');
-      fireEvent.click(submitButton);
-    });
-
-    // Vérifier que les messages d'erreur apparaissent
-    await waitFor(() => {
-      expect(screen.getByText(/contact d'urgence est requis/)).toBeInTheDocument();
-    });
-  });
-
-  it('devrait rediriger vers le paiement après une réservation réussie', async () => {
-    const mockNavigate = vi.fn();
-    vi.doMock('react-router-dom', async () => {
-      const actual = await vi.importActual('react-router-dom');
-      return {
-        ...actual,
-        useNavigate: () => mockNavigate,
-        useParams: () => ({ id: '123' })
-      };
-    });
-
-    render(
-      <TestWrapper>
-        <BookingFlow />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
-    });
-
-    // Aller à l'étape 2
-    fireEvent.click(screen.getByText('Continuer'));
-
-    await waitFor(() => {
-      // Remplir les champs requis
-      const emergencyContact = screen.getByLabelText(/contact d'urgence/i);
-      fireEvent.change(emergencyContact, { target: { value: '0123456789' } });
-
-      const messageField = screen.getByLabelText(/message/i);
-      fireEvent.change(messageField, { target: { value: 'Test message' } });
-    });
-
-    // Soumettre la réservation
-    const submitButton = screen.getByText('Confirmer la réservation');
-    fireEvent.click(submitButton);
-
-    // Vérifier la redirection vers le paiement
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/payment/booking-123');
-    });
-  });
-
-  it('devrait gérer les erreurs de réservation', async () => {
-    // Mock d'une erreur Supabase
-    vi.mocked(supabase.from).mockReturnValueOnce({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => Promise.resolve({
-            data: null,
-            error: { message: 'Database error' }
-          }))
-        }))
-      }))
+  it('should handle step navigation', async () => {
+    const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+    mockUseAuth.mockReturnValue({
+      user: { 
+        id: 'test-user-id',
+        email: 'test@test.com'
+      },
+      loading: false
     } as any);
 
     render(
@@ -221,18 +140,148 @@ describe('BookingFlow', () => {
       expect(screen.getByText('Test Vacation')).toBeInTheDocument();
     });
 
-    // Aller à l'étape 2 et soumettre
-    fireEvent.click(screen.getByText('Continuer'));
+    // Test navigation steps
+    const step1 = screen.getByTestId('step-1');
+    const step2 = screen.getByTestId('step-2');
+    
+    expect(step1).toHaveClass('bg-blue-600');
+
+    // Click next button
+    const nextButton = screen.getByText('Suivant');
+    fireEvent.click(nextButton);
 
     await waitFor(() => {
-      const emergencyContact = screen.getByLabelText(/contact d'urgence/i);
-      fireEvent.change(emergencyContact, { target: { value: '0123456789' } });
+      expect(step2).toHaveClass('bg-blue-600');
+    });
+  });
 
-      const submitButton = screen.getByText('Confirmer la réservation');
-      fireEvent.click(submitButton);
+  it('should handle form validation', async () => {
+    const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+    mockUseAuth.mockReturnValue({
+      user: { 
+        id: 'test-user-id',
+        email: 'test@test.com'
+      },
+      loading: false
+    } as any);
+
+    render(
+      <TestWrapper>
+        <BookingFlow />
+      </TestWrapper>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
     });
 
-    // Vérifier que l'erreur est affichée
+    // Try to submit without filling required fields
+    const submitButton = screen.getByText('Finaliser la réservation');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/contact d'urgence est requis/)).toBeInTheDocument();
+    });
+  });
+
+  it('should redirect after successful booking', async () => {
+    const mockNavigate = jest.fn();
+    jest.doMock('react-router-dom', () => ({
+      ...jest.requireActual('react-router-dom'),
+      useNavigate: () => mockNavigate
+    }));
+
+    const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+    mockUseAuth.mockReturnValue({
+      user: { 
+        id: 'test-user-id',
+        email: 'test@test.com'
+      },
+      loading: false
+    } as any);
+
+    render(
+      <TestWrapper>
+        <BookingFlow />
+      </TestWrapper>
+    );
+
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
+    });
+
+    // Fill form with valid data
+    const emergencyContactInput = screen.getByLabelText(/contact d'urgence/i);
+    fireEvent.change(emergencyContactInput, { target: { value: 'John Doe - 0123456789' } });
+
+    const phoneInput = screen.getByLabelText(/téléphone/i);
+    fireEvent.change(phoneInput, { target: { value: '0123456789' } });
+
+    // Mock successful booking
+    const { supabase } = require('@/integrations/supabase/client.browser');
+    jest.mocked(supabase.from).mockReturnValueOnce({
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({
+            data: {
+              id: 'booking-123'
+            },
+            error: null
+          }))
+        }))
+      }))
+    } as any);
+
+    const submitButton = screen.getByText('Finaliser la réservation');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/my-bookings');
+    });
+  });
+
+  it('should handle booking error', async () => {
+    const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+    mockUseAuth.mockReturnValue({
+      user: { 
+        id: 'test-user-id',
+        email: 'test@test.com'
+      },
+      loading: false
+    } as any);
+
+    render(
+      <TestWrapper>
+        <BookingFlow />
+      </TestWrapper>
+    );
+
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByText('Test Vacation')).toBeInTheDocument();
+    });
+
+    // Fill form with valid data
+    const emergencyContactInput = screen.getByLabelText(/contact d'urgence/i);
+    fireEvent.change(emergencyContactInput, { target: { value: 'John Doe - 0123456789' } });
+
+    // Mock booking error
+    const { supabase } = require('@/integrations/supabase/client.browser');
+    jest.mocked(supabase.from).mockReturnValueOnce({
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => Promise.resolve({
+            data: null,
+            error: { message: 'Booking failed' }
+          }))
+        }))
+      }))
+    } as any);
+
+    const submitButton = screen.getByText('Finaliser la réservation');
+    fireEvent.click(submitButton);
+
     await waitFor(() => {
       expect(screen.getByText(/erreur lors de la réservation/i)).toBeInTheDocument();
     });
