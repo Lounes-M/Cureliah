@@ -5,7 +5,7 @@
   "installCommand": "npm ci",
   "build": {
     "env": {
-      "NODE_VERSION": "18"
+      "NODE_VERSION": "22"
     }
   },
   "rewrites": [
