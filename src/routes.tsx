@@ -42,6 +42,16 @@ const PaymentCheckout = lazy(() => import("./pages/PaymentCheckout"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const SetupProfile = lazy(() => import("./pages/SetupProfile"));
 
+// Premium components
+const PremiumMissions = lazy(() => import("./components/premium/PremiumMissions"));
+const PremiumEstablishments = lazy(() => import("./components/premium/PremiumEstablishments"));
+const ProPriorityAccess = lazy(() => import("./components/premium/ProPriorityAccess"));
+const RealAnalyticsDashboard = lazy(() => import("./components/analytics/RealAnalyticsDashboard"));
+
+// Urgent Request components
+const PremiumDashboardUrgentRequests = lazy(() => import("./components/dashboard/PremiumDashboardUrgentRequests"));
+const EstablishmentUrgentRequests = lazy(() => import("./components/establishment/EstablishmentUrgentRequests"));
+
 // Loading component for lazy loaded routes
 const PageLoader = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
@@ -599,6 +609,40 @@ export default function AppRoutes() {
             {React.createElement(React.lazy(() => import("@/pages/FAQ")))}
           </React.Suspense>
         } 
+      />
+
+      {/* Routes Premium - Accessible aux utilisateurs Premium */}
+      <Route
+        path="/premium/missions"
+        element={
+          <ProtectedRoute requireSubscription={true}>
+            <PremiumMissions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/premium/establishments"
+        element={
+          <ProtectedRoute requireSubscription={true}>
+            <PremiumEstablishments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/premium/analytics"
+        element={
+          <ProtectedRoute requireSubscription={true}>
+            <RealAnalyticsDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/premium/pro-access"
+        element={
+          <ProtectedRoute requireSubscription={true}>
+            <ProPriorityAccess />
+          </ProtectedRoute>
+        }
       />
 
       {/* Route 404 */}
