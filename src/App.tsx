@@ -95,7 +95,7 @@ const EnhancedAppContent = () => {
   }, [user, connectionState]);
 
   return (
-    <ABTestProvider userId={user?.id || ''} userSegment={userSegment}>
+    <ABTestProvider userId={user?.id || ''} userSegment={userSegment || undefined}>
       <AppRoutes />
       <Toaster />
       <PWAInstallPrompt 

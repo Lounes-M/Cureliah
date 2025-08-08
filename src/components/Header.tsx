@@ -24,11 +24,13 @@ import {
   Settings,
   Bell,
   Building,
-  Stethoscope
+  Stethoscope,
+  Zap
 } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import NotificationDropdown from "./NotificationDropdown";
+import { UrgentNotificationBell } from "./UrgentNotificationBell";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
 // Utilisation d'un import dynamique compatible Vite, Jest et TypeScript
@@ -40,7 +42,7 @@ try {
 }
 
 const Header = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, subscriptionPlan } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -246,6 +248,22 @@ const Header = () => {
                 <Calendar className="w-4 h-4" aria-hidden="true" />
                 Mes vacations
               </Link>
+              {(subscriptionPlan === 'premium' || subscriptionPlan === 'pro') && (
+                <Link
+                  to="/premium/missions"
+                  className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
+                    mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
+                  } ${isActivePath('/premium/missions') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  onClick={onLinkClick}
+                  aria-current={isActivePath('/premium/missions') ? 'page' : undefined}
+                >
+                  <Zap className="w-4 h-4" aria-hidden="true" />
+                  Missions Urgentes
+                  <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700">
+                    Premium
+                  </Badge>
+                </Link>
+              )}
             </>
           ) : (
             <>
@@ -371,6 +389,14 @@ const Header = () => {
                     </Badge>
                   )}
                 </div>
+
+                {/* Notifications Urgentes (Médecins Premium uniquement) */}
+                {profile?.user_type === 'doctor' && (
+                  <UrgentNotificationBell 
+                    userId={user.id} 
+                    userType="doctor"
+                  />
+                )}
 
                 {/* Menu utilisateur Desktop */}
                 <div className="hidden sm:block">

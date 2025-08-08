@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import DatabaseSetup from "./pages/DatabaseSetup";
 
 // Lazy loaded pages for better performance
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
@@ -41,9 +42,10 @@ const Contact = lazy(() => import("@/pages/Contact"));
 const PaymentCheckout = lazy(() => import("./pages/PaymentCheckout"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const SetupProfile = lazy(() => import("./pages/SetupProfile"));
+const CreditsPage = lazy(() => import("./pages/CreditsPage"));
 
 // Premium components
-const PremiumMissions = lazy(() => import("./components/premium/PremiumMissions"));
+const PremiumMissions = lazy(() => import("./pages/PremiumMissions"));
 const PremiumEstablishments = lazy(() => import("./components/premium/PremiumEstablishments"));
 const ProPriorityAccess = lazy(() => import("./components/premium/ProPriorityAccess"));
 const RealAnalyticsDashboard = lazy(() => import("./components/analytics/RealAnalyticsDashboard"));
@@ -264,6 +266,12 @@ export default function AppRoutes() {
             <Auth />
           </AuthRoute>
         }
+      />
+
+      {/* Configuration base de données */}
+      <Route
+        path="/database-setup"
+        element={<DatabaseSetup />}
       />
 
       {/* OAuth callback route */}
@@ -641,6 +649,16 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requireSubscription={true}>
             <ProPriorityAccess />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Route Crédits - Accessible aux établissements */}
+      <Route
+        path="/credits"
+        element={
+          <ProtectedRoute>
+            <CreditsPage />
           </ProtectedRoute>
         }
       />

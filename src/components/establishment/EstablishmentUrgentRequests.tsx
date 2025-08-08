@@ -21,9 +21,11 @@ import {
   Settings
 } from 'lucide-react';
 import { CreateUrgentRequestModal } from './CreateUrgentRequestModal';
+import { CreditBalance } from '@/components/credits/CreditBalance';
 import { UrgentRequestService } from '@/services/urgentRequestService';
 import { UrgentRequest, UrgentRequestResponse } from '@/types/premium';
 import { useToast } from '@/hooks/use-toast';
+import { checkTablesExist, createUrgentRequestsTables } from '@/utils/initUrgentTables';
 
 interface EstablishmentUrgentRequestsProps {
   establishmentId: string;
@@ -76,6 +78,29 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Vérifier si les tables existent, sinon les créer
+      const tablesExist = await checkTablesExist();
+      if (!tablesExist) {
+        console.log('🔧 Tables manquantes, initialisation...');
+        toast({
+          title: "Initialisation",
+          description: "Mise en place du système de demandes urgentes...",
+          variant: "default",
+        });
+        
+        const success = await createUrgentRequestsTables();
+        if (!success) {
+          throw new Error('Impossible de créer les tables nécessaires');
+        }
+        
+        toast({
+          title: "Succès",
+          description: "Système de demandes urgentes initialisé avec succès !",
+          variant: "default",
+        });
+      }
+      
       const [requestsData, statsData] = await Promise.all([
         UrgentRequestService.getEstablishmentRequests(establishmentId),
         UrgentRequestService.getUrgentRequestStats(establishmentId)
@@ -172,9 +197,12 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
 
   return (
     <div className="space-y-6">
+      {/* Solde de crédits */}
+      <CreditBalance variant="default" showPurchaseButton={true} />
+      
       {/* Header avec statistiques */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+        <div className="flex-1">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <AlertCircle className="w-6 h-6 text-red-600" />
             Demandes Urgentes
@@ -184,12 +212,13 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full xl:w-auto">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={loadData}
             disabled={loading}
+            className="whitespace-nowrap"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser

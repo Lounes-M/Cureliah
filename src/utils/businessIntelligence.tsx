@@ -1,515 +1,247 @@
-import React, { useState, useEffect, useContext, createContext, ReactNode } from 'react';
-import { monitoring } from '@/utils/monitoring';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
 
-// A/B Test configuration
-interface ABTest {
-  id: string;
-  name: string;
-  description: string;
-  variants: ABVariant[];
-  trafficAllocation: number; // Percentage of users to include
-  isActive: boolean;
-  startDate: Date;
-  endDate?: Date;
-  targetMetrics: string[];
-  segmentation?: UserSegment;
+// Types pour les tests A/B
+interface ABTestConfig {
+  testName: string;
+  variants: string[];
+  weights?: number[];
+  enabled?: boolean;
 }
 
-interface ABVariant {
-  id: string;
-  name: string;
-  description: string;
-  weight: number; // Percentage of test traffic
-  config: Record<string, any>;
+interface ABTestContextType {
+  getVariant: (testName: string) => string;
+  trackEvent: (eventName: string, properties?: Record<string, any>) => void;
+  setUserProperty: (property: string, value: any) => void;
 }
 
-interface UserSegment {
-  userType?: ('doctor' | 'establishment' | 'admin')[];
-  newUsers?: boolean;
-  geography?: string[];
-  deviceType?: ('mobile' | 'tablet' | 'desktop')[];
-}
-
-interface ExperimentResult {
-  testId: string;
-  variantId: string;
+interface ABTestProviderProps {
+  children: ReactNode;
   userId: string;
-  timestamp: Date;
-  metric: string;
-  value: number;
-  metadata?: Record<string, any>;
+  userSegment?: string;
 }
 
-// Business Intelligence Metrics
-interface BIMetrics {
-  // User Acquisition
-  newUsersToday: number;
-  newUsersWeek: number;
-  userGrowthRate: number;
-  
-  // User Engagement
-  activeUsers: number;
-  sessionDuration: number;
-  pageViewsPerSession: number;
-  bounceRate: number;
-  
-  // Business Metrics
-  bookingsToday: number;
-  bookingsWeek: number;
-  revenue: number;
-  conversionRate: number;
-  
-  // Medical Platform Specific
-  doctorUtilization: number;
-  establishmentSatisfaction: number;
-  averageBookingValue: number;
-  vaccineCompletionRate: number;
-}
+// Context pour les tests A/B
+const ABTestContext = createContext<ABTestContextType | null>(null);
 
-interface PredictiveInsight {
-  type: 'trend' | 'anomaly' | 'opportunity' | 'risk';
-  title: string;
-  description: string;
-  confidence: number;
-  impact: 'low' | 'medium' | 'high';
-  recommendations: string[];
-  data: Record<string, any>;
-}
-
-class ABTestingService {
-  private static instance: ABTestingService;
-  private activeTests: Map<string, ABTest> = new Map();
-  private userAssignments: Map<string, Map<string, string>> = new Map();
-  
-  static getInstance(): ABTestingService {
-    if (!ABTestingService.instance) {
-      ABTestingService.instance = new ABTestingService();
-    }
-    return ABTestingService.instance;
+// Configuration des tests A/B (peut être étendue selon les besoins)
+const AB_TESTS: Record<string, ABTestConfig> = {
+  'premium-pricing': {
+    testName: 'premium-pricing',
+    variants: ['control', 'variant_a', 'variant_b'],
+    weights: [0.4, 0.3, 0.3],
+    enabled: true
+  },
+  'urgent-requests-ui': {
+    testName: 'urgent-requests-ui',
+    variants: ['standard', 'enhanced'],
+    weights: [0.5, 0.5],
+    enabled: true
+  },
+  'dashboard-layout': {
+    testName: 'dashboard-layout',
+    variants: ['sidebar', 'tabs'],
+    weights: [0.6, 0.4],
+    enabled: false
   }
+};
 
-  // Initialize A/B tests from configuration
-  async initializeTests(): Promise<void> {
-    try {
-      // In production: fetch from A/B testing service
-      const tests = await this.fetchActiveTests();
-      
-      tests.forEach(test => {
-        this.activeTests.set(test.id, test);
-      });
-      
-      console.log('A/B tests initialized:', tests.length);
-    } catch (error) {
-      console.error('Failed to initialize A/B tests:', error);
-    }
-  }
-
-  // Assign user to test variant
-  assignUserToTest(testId: string, userId: string, userSegment?: any): string | null {
-    const test = this.activeTests.get(testId);
-    
-    if (!test || !test.isActive) {
-      return null;
-    }
-
-    // Check if user is in target segment
-    if (!this.isUserInSegment(userSegment, test.segmentation)) {
-      return null;
-    }
-
-    // Check traffic allocation
-    if (Math.random() > test.trafficAllocation / 100) {
-      return null;
-    }
-
-    // Get or create user assignments for this test
-    if (!this.userAssignments.has(userId)) {
-      this.userAssignments.set(userId, new Map());
-    }
-
-    const userTests = this.userAssignments.get(userId)!;
-    
-    // Return existing assignment if available
-    if (userTests.has(testId)) {
-      return userTests.get(testId)!;
-    }
-
-    // Assign to variant based on weights
-    const variant = this.selectVariantByWeight(test.variants);
-    userTests.set(testId, variant.id);
-
-    // Track the assignment
-    monitoring.trackUserActivity({
-      page: 'ab_test',
-      action: 'user_assigned',
-      timestamp: Date.now(),
-      userId,
-      metadata: {
-        testId,
-        variantId: variant.id,
-        testName: test.name
-      }
-    });
-
-    return variant.id;
-  }
-
-  // Get test configuration for user
-  getTestConfig(testId: string, userId: string): Record<string, any> | null {
-    const userTests = this.userAssignments.get(userId);
-    if (!userTests?.has(testId)) {
-      return null;
-    }
-
-    const variantId = userTests.get(testId)!;
-    const test = this.activeTests.get(testId);
-    const variant = test?.variants.find(v => v.id === variantId);
-
-    return variant?.config || null;
-  }
-
-  // Track experiment result
-  async trackResult(result: Omit<ExperimentResult, 'timestamp'>): Promise<void> {
-    const experimentResult: ExperimentResult = {
-      ...result,
-      timestamp: new Date(),
-    };
-
-    try {
-      // Send to analytics service
-      console.log('Experiment result:', experimentResult);
-      
-      // Track with monitoring service
-      monitoring.trackBusinessMetric(
-        `ab_test.${result.metric}`,
-        result.value,
-        {
-          testId: result.testId,
-          variantId: result.variantId,
-        }
-      );
-
-      // In production: send to A/B testing analytics
-      await this.sendResultToAnalytics(experimentResult);
-      
-    } catch (error) {
-      console.error('Failed to track experiment result:', error);
-    }
-  }
-
-  // Private helper methods
-  private async fetchActiveTests(): Promise<ABTest[]> {
-    // Mock tests for demonstration
-    return [
-      {
-        id: 'booking_flow_v2',
-        name: 'Enhanced Booking Flow',
-        description: 'Test new simplified booking process',
-        variants: [
-          {
-            id: 'control',
-            name: 'Current Flow',
-            description: 'Existing booking process',
-            weight: 50,
-            config: { useNewFlow: false }
-          },
-          {
-            id: 'simplified',
-            name: 'Simplified Flow',
-            description: 'New streamlined booking',
-            weight: 50,
-            config: { useNewFlow: true }
-          }
-        ],
-        trafficAllocation: 20,
-        isActive: true,
-        startDate: new Date(),
-        targetMetrics: ['conversion_rate', 'completion_time'],
-        segmentation: { userType: ['establishment'] }
-      }
-    ];
-  }
-
-  private isUserInSegment(userSegment: any, testSegment?: UserSegment): boolean {
-    if (!testSegment) return true;
-
-    if (testSegment.userType && !testSegment.userType.includes(userSegment?.userType)) {
-      return false;
-    }
-
-    // Add more segmentation logic as needed
-    return true;
-  }
-
-  private selectVariantByWeight(variants: ABVariant[]): ABVariant {
-    const totalWeight = variants.reduce((sum, variant) => sum + variant.weight, 0);
-    let random = Math.random() * totalWeight;
-
-    for (const variant of variants) {
-      random -= variant.weight;
-      if (random <= 0) {
-        return variant;
-      }
-    }
-
-    return variants[0]; // Fallback
-  }
-
-  private async sendResultToAnalytics(result: ExperimentResult): Promise<void> {
-    // In production: send to analytics service
-  }
-}
-
-class BusinessIntelligenceService {
-  private static instance: BusinessIntelligenceService;
-
-  static getInstance(): BusinessIntelligenceService {
-    if (!BusinessIntelligenceService.instance) {
-      BusinessIntelligenceService.instance = new BusinessIntelligenceService();
-    }
-    return BusinessIntelligenceService.instance;
-  }
-
-  // Get current business metrics
-  async getBIMetrics(): Promise<BIMetrics> {
-    try {
-      // In production: fetch from analytics database
-      const metrics = await this.fetchMetricsFromDB();
-      
-      return metrics;
-    } catch (error) {
-      console.error('Failed to fetch BI metrics:', error);
-      return this.getDefaultMetrics();
-    }
-  }
-
-  // Generate predictive insights
-  async generateInsights(): Promise<PredictiveInsight[]> {
-    try {
-      const metrics = await this.getBIMetrics();
-      const insights: PredictiveInsight[] = [];
-
-      // Trend analysis
-      if (metrics.userGrowthRate > 20) {
-        insights.push({
-          type: 'trend',
-          title: 'Strong User Growth Detected',
-          description: `User growth rate of ${metrics.userGrowthRate}% indicates strong market adoption`,
-          confidence: 0.85,
-          impact: 'high',
-          recommendations: [
-            'Increase marketing budget to capitalize on growth',
-            'Prepare infrastructure for scaling',
-            'Implement user onboarding optimization'
-          ],
-          data: { growthRate: metrics.userGrowthRate }
-        });
-      }
-
-      // Conversion optimization
-      if (metrics.conversionRate < 5) {
-        insights.push({
-          type: 'opportunity',
-          title: 'Conversion Rate Optimization Opportunity',
-          description: `Current conversion rate of ${metrics.conversionRate}% is below industry average`,
-          confidence: 0.75,
-          impact: 'medium',
-          recommendations: [
-            'A/B test simplified booking flow',
-            'Improve page load speeds',
-            'Add social proof elements'
-          ],
-          data: { conversionRate: metrics.conversionRate }
-        });
-      }
-
-      // Medical platform specific insights
-      if (metrics.doctorUtilization < 70) {
-        insights.push({
-          type: 'risk',
-          title: 'Low Doctor Utilization Risk',
-          description: `Doctor utilization at ${metrics.doctorUtilization}% may indicate supply-demand imbalance`,
-          confidence: 0.80,
-          impact: 'high',
-          recommendations: [
-            'Increase establishment outreach',
-            'Implement dynamic pricing',
-            'Improve doctor profile visibility'
-          ],
-          data: { utilization: metrics.doctorUtilization }
-        });
-      }
-
-      return insights;
-    } catch (error) {
-      console.error('Failed to generate insights:', error);
-      return [];
-    }
-  }
-
-  // Track custom business event
-  async trackBusinessEvent(
-    eventType: string,
-    value: number,
-    properties?: Record<string, any>
-  ): Promise<void> {
-    try {
-      monitoring.trackBusinessMetric(eventType, value, properties);
-      
-      // Store for BI analysis
-      await this.storeBusinessEvent({
-        eventType,
-        value,
-        properties,
-        timestamp: new Date(),
-      });
-      
-    } catch (error) {
-      console.error('Failed to track business event:', error);
-    }
-  }
-
-  // Private methods
-  private async fetchMetricsFromDB(): Promise<BIMetrics> {
-    // Mock data for demonstration
-    return {
-      newUsersToday: 45,
-      newUsersWeek: 312,
-      userGrowthRate: 25.3,
-      activeUsers: 1247,
-      sessionDuration: 18.5,
-      pageViewsPerSession: 4.2,
-      bounceRate: 32.1,
-      bookingsToday: 23,
-      bookingsWeek: 156,
-      revenue: 18450,
-      conversionRate: 3.8,
-      doctorUtilization: 68.4,
-      establishmentSatisfaction: 4.2,
-      averageBookingValue: 185,
-      vaccineCompletionRate: 94.2,
-    };
-  }
-
-  private getDefaultMetrics(): BIMetrics {
-    return {
-      newUsersToday: 0,
-      newUsersWeek: 0,
-      userGrowthRate: 0,
-      activeUsers: 0,
-      sessionDuration: 0,
-      pageViewsPerSession: 0,
-      bounceRate: 0,
-      bookingsToday: 0,
-      bookingsWeek: 0,
-      revenue: 0,
-      conversionRate: 0,
-      doctorUtilization: 0,
-      establishmentSatisfaction: 0,
-      averageBookingValue: 0,
-      vaccineCompletionRate: 0,
-    };
-  }
-
-  private async storeBusinessEvent(event: any): Promise<void> {
-    // In production: store in analytics database
-  }
-}
-
-// React Context for A/B Testing
-const ABTestContext = createContext<{
-  getVariant: (testId: string) => string | null;
-  trackConversion: (testId: string, metric: string, value: number) => void;
-} | null>(null);
-
-export const ABTestProvider: React.FC<{ children: ReactNode; userId: string; userSegment?: any }> = ({ 
+// Provider des tests A/B
+export const ABTestProvider: React.FC<ABTestProviderProps> = ({ 
   children, 
   userId, 
   userSegment 
 }) => {
-  const [abService] = useState(() => ABTestingService.getInstance());
+  const [variants, setVariants] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    abService.initializeTests();
-  }, [abService]);
+  // Fonction pour déterminer la variante d'un utilisateur
+  const getVariant = (testName: string): string => {
+    // Si déjà calculé, retourner la variante stockée
+    if (variants[testName]) {
+      return variants[testName];
+    }
 
-  const getVariant = (testId: string): string | null => {
-    return abService.assignUserToTest(testId, userId, userSegment);
+    const testConfig = AB_TESTS[testName];
+    
+    // Test non configuré ou désactivé
+    if (!testConfig || !testConfig.enabled) {
+      return 'control';
+    }
+
+    // Génération déterministe basée sur l'ID utilisateur
+    const hash = hashString(userId + testName);
+    const randomValue = (hash % 100) / 100; // Valeur entre 0 et 1
+
+    // Sélection de la variante selon les poids
+    const weights = testConfig.weights || testConfig.variants.map(() => 1 / testConfig.variants.length);
+    let cumulativeWeight = 0;
+    
+    for (let i = 0; i < testConfig.variants.length; i++) {
+      cumulativeWeight += weights[i];
+      if (randomValue <= cumulativeWeight) {
+        const selectedVariant = testConfig.variants[i];
+        
+        // Stocker la variante pour cohérence
+        setVariants(prev => ({
+          ...prev,
+          [testName]: selectedVariant
+        }));
+        
+        return selectedVariant;
+      }
+    }
+
+    // Fallback au contrôle
+    return 'control';
   };
 
-  const trackConversion = (testId: string, metric: string, value: number) => {
-    const variantId = abService.getTestConfig(testId, userId);
-    if (variantId) {
-      abService.trackResult({
-        testId,
-        variantId: variantId.toString(),
-        userId,
-        metric,
-        value,
-      });
+  // Fonction de tracking des événements
+  const trackEvent = (eventName: string, properties?: Record<string, any>) => {
+    // En production, envoyer vers votre service d'analytics
+    console.log(`[A/B Test] Event: ${eventName}`, {
+      userId,
+      userSegment,
+      variants,
+      properties,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Exemple d'intégration avec des services d'analytics
+    if (typeof window !== 'undefined') {
+      // Google Analytics
+      if ((window as any).gtag) {
+        (window as any).gtag('event', eventName, {
+          ...properties,
+          user_id: userId,
+          user_segment: userSegment,
+          ab_variants: JSON.stringify(variants)
+        });
+      }
+      
+      // Mixpanel, Amplitude, etc.
+      if ((window as any).mixpanel) {
+        (window as any).mixpanel.track(eventName, {
+          ...properties,
+          userId,
+          userSegment,
+          variants
+        });
+      }
     }
   };
 
+  // Fonction pour définir les propriétés utilisateur
+  const setUserProperty = (property: string, value: any) => {
+    console.log(`[A/B Test] User Property: ${property} = ${value}`, { userId });
+    
+    // En production, synchroniser avec votre service d'analytics
+    if (typeof window !== 'undefined' && (window as any).mixpanel) {
+      (window as any).mixpanel.people.set({ [property]: value });
+    }
+  };
+
+  // Initialiser les variantes au montage
+  useEffect(() => {
+    if (userId) {
+      // Pré-calculer les variantes pour tous les tests actifs
+      const initialVariants: Record<string, string> = {};
+      
+      Object.keys(AB_TESTS).forEach(testName => {
+        initialVariants[testName] = getVariant(testName);
+      });
+      
+      setVariants(initialVariants);
+      
+      // Tracker l'assignation des variantes
+      trackEvent('ab_test_assignment', {
+        variants: initialVariants,
+        userSegment
+      });
+    }
+  }, [userId, userSegment]);
+
+  const contextValue: ABTestContextType = {
+    getVariant,
+    trackEvent,
+    setUserProperty
+  };
+
   return (
-    <ABTestContext.Provider value={{ getVariant, trackConversion }}>
+    <ABTestContext.Provider value={contextValue}>
       {children}
     </ABTestContext.Provider>
   );
 };
 
-// Hooks for A/B Testing and BI
-export const useABTest = (testId: string) => {
+// Hook pour utiliser les tests A/B
+export const useABTest = () => {
   const context = useContext(ABTestContext);
   if (!context) {
-    throw new Error('useABTest must be used within ABTestProvider');
+    throw new Error('useABTest must be used within an ABTestProvider');
   }
-
-  const variant = context.getVariant(testId);
-  const trackConversion = (metric: string, value: number = 1) => {
-    context.trackConversion(testId, metric, value);
-  };
-
-  return { variant, trackConversion };
+  return context;
 };
 
-export const useBusinessIntelligence = () => {
-  const [metrics, setMetrics] = useState<BIMetrics | null>(null);
-  const [insights, setInsights] = useState<PredictiveInsight[]>([]);
-  const [loading, setLoading] = useState(true);
+// Hook spécialisé pour récupérer une variante
+export const useVariant = (testName: string): string => {
+  const { getVariant } = useABTest();
+  return getVariant(testName);
+};
 
-  const biService = BusinessIntelligenceService.getInstance();
+// Fonction utilitaire de hashage simple
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convertir en 32-bit integer
+  }
+  return Math.abs(hash);
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [metricsData, insightsData] = await Promise.all([
-          biService.getBIMetrics(),
-          biService.generateInsights(),
-        ]);
-
-        setMetrics(metricsData);
-        setInsights(insightsData);
-      } catch (error) {
-        console.error('Failed to fetch BI data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [biService]);
-
-  const trackEvent = (eventType: string, value: number, properties?: Record<string, any>) => {
-    biService.trackBusinessEvent(eventType, value, properties);
-  };
-
-  return {
-    metrics,
-    insights,
-    loading,
-    trackEvent,
+// Composant HOC pour tester les variantes
+export const withABTest = (
+  testName: string,
+  variants: Record<string, React.ComponentType<any>>
+) => {
+  return (props: any) => {
+    const variant = useVariant(testName);
+    const Component = variants[variant] || variants.control || variants.default;
+    
+    if (!Component) {
+      console.warn(`[A/B Test] No component found for variant "${variant}" in test "${testName}"`);
+      return null;
+    }
+    
+    return <Component {...props} />;
   };
 };
 
-export { ABTestingService, BusinessIntelligenceService };
-export type { ABTest, ABVariant, BIMetrics, PredictiveInsight };
+// Business Intelligence utilities
+export const BusinessIntelligence = {
+  // Segmentation d'utilisateurs
+  segmentUser: (user: any) => {
+    if (!user) return 'anonymous';
+    
+    // Logique de segmentation selon vos critères business
+    if (user.subscription_plan === 'premium') return 'premium';
+    if (user.account_type === 'doctor') return 'doctor';
+    if (user.account_type === 'establishment') return 'establishment';
+    if (user.created_at && new Date(user.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)) {
+      return 'new_user';
+    }
+    
+    return 'standard';
+  },
+
+  // Métriques clés
+  trackConversion: (conversionType: string, value?: number) => {
+    console.log(`[BI] Conversion: ${conversionType}`, { value, timestamp: new Date() });
+  },
+
+  // Analyse des fonctionnalités
+  trackFeatureUsage: (featureName: string, userId: string) => {
+    console.log(`[BI] Feature Usage: ${featureName}`, { userId, timestamp: new Date() });
+  }
+};
+
+export default ABTestProvider;

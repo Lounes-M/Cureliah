@@ -93,6 +93,7 @@ import ReviewsRatings from "@/components/ReviewsRatings";
 import MessagingCenter from "@/components/messaging/MessagingCenter";
 import PaymentButton from "@/components/PaymentButton"; // Import du PaymentButton
 import { useAuth } from "@/hooks/useAuth";
+import EstablishmentUrgentRequests from "@/components/establishment/EstablishmentUrgentRequests";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client.browser";
@@ -1107,7 +1108,7 @@ const EstablishmentDashboard = () => {
           onValueChange={handleTabChange}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm border shadow-sm">
+          <TabsList className="grid w-full grid-cols-7 bg-white/50 backdrop-blur-sm border shadow-sm">
             <TabsTrigger
               value="overview"
               className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
@@ -1149,6 +1150,13 @@ const EstablishmentDashboard = () => {
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="urgent-requests"
+              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              <AlertCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Demandes Urgentes</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1658,6 +1666,10 @@ const EstablishmentDashboard = () => {
 
           <TabsContent value="notifications">
             <NotificationCenter />
+          </TabsContent>
+
+          <TabsContent value="urgent-requests">
+            <EstablishmentUrgentRequests establishmentId={user?.id || ''} />
           </TabsContent>
         </Tabs>
 

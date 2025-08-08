@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +6,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { AlertCircle, Clock, MapPin, Euro, Zap, Star, Calendar } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Clock, MapPin, Euro, Zap, Star, Calendar, Coins, ShoppingCart } from 'lucide-react';
 import { UrgentRequestService } from '@/services/urgentRequestService';
+import { CreditsService, UserCredits } from '@/services/creditsService';
+import { CreditBalance } from '@/components/credits/CreditBalance';
 import { useToast } from '@/hooks/use-toast';
 
 interface CreateUrgentRequestModalProps {
@@ -48,6 +53,8 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userCredits, setUserCredits] = useState<UserCredits | null>(null);
+  const [creditRefresh, setCreditRefresh] = useState(0);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -74,30 +81,45 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
     expires_at: ''
   });
 
-  const [estimatedCost, setEstimatedCost] = useState(10);
+  const [estimatedCost, setEstimatedCost] = useState(1);
   const { toast } = useToast();
 
-  // Calculer le coût estimé
-  React.useEffect(() => {
-    let cost = 10; // Coût de base
-    
-    switch (formData.urgency_level) {
-      case 'high': cost += 5; break;
-      case 'critical': cost += 10; break;
-      case 'emergency': cost += 20; break;
-    }
-    
-    if (formData.priority_boost) cost += 15;
-    if (formData.featured) cost += 25;
-    
+  // Calculer le coût en crédits
+  useEffect(() => {
+    const cost = CreditsService.calculateUrgentRequestCost(
+      formData.urgency_level,
+      formData.priority_boost,
+      formData.featured
+    );
     setEstimatedCost(cost);
   }, [formData.urgency_level, formData.priority_boost, formData.featured]);
+
+  // Charger les crédits de l'utilisateur
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const credits = await CreditsService.getUserCredits(establishmentId);
+        setUserCredits(credits);
+      } catch (error) {
+        console.error('Erreur lors du chargement des crédits:', error);
+      }
+    };
+
+    if (isOpen && establishmentId) {
+      fetchCredits();
+    }
+  }, [isOpen, establishmentId, creditRefresh]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Validation des crédits
+      if (!userCredits || userCredits.balance < estimatedCost) {
+        throw new Error(`Crédits insuffisants. Vous avez ${userCredits?.balance || 0} crédits, mais il en faut ${estimatedCost} pour cette demande.`);
+      }
+
       // Validation des champs requis
       if (!formData.title.trim() || !formData.description.trim() || !formData.specialty_required) {
         throw new Error('Veuillez remplir tous les champs obligatoires');
@@ -149,9 +171,19 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
 
       await UrgentRequestService.createUrgentRequest(establishmentId, requestData);
 
+      // Consommer les crédits
+      const updatedCredits = await CreditsService.consumeCredits(
+        establishmentId, 
+        estimatedCost, 
+        `Création demande urgente: ${requestData.title}`
+      );
+      
+      setUserCredits(updatedCredits);
+      setCreditRefresh(prev => prev + 1);
+
       toast({
         title: "Demande urgente créée !",
-        description: `Votre demande a été publiée. Coût: ${estimatedCost} crédits. Les médecins qualifiés ont été notifiés.`,
+        description: `Votre demande a été publiée. Coût: ${estimatedCost} crédits. Solde restant: ${updatedCredits.balance} crédits. Les médecins qualifiés ont été notifiés.`,
         variant: "default",
       });
 
@@ -197,9 +229,11 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
   };
 
   const defaultTrigger = (
-    <Button className="bg-red-600 hover:bg-red-700 text-white">
+    <Button className="bg-red-600 hover:bg-red-700 text-white whitespace-nowrap">
       <AlertCircle className="w-4 h-4 mr-2" />
-      Demande Urgente
+      <span className="hidden sm:inline">Demande</span>
+      <span className="sm:hidden">+</span>
+      <span className="hidden sm:inline ml-1">Urgente</span>
     </Button>
   );
 
@@ -215,6 +249,41 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
             Créer une Demande Urgente
           </DialogTitle>
         </DialogHeader>
+
+        {/* Solde de crédits et coût estimé */}
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+              <CreditBalance 
+                variant="compact" 
+                showPurchaseButton={true}
+                refreshTrigger={creditRefresh}
+                onBalanceUpdate={(balance) => setUserCredits(prev => prev ? { ...prev, balance } : null)}
+              />
+              
+              <div className="text-left lg:text-right">
+                <div className="flex items-center gap-2 text-lg font-semibold">
+                  <ShoppingCart className="w-5 h-5 text-green-600" />
+                  <span>Coût: {estimatedCost} crédit{estimatedCost > 1 ? 's' : ''}</span>
+                </div>
+                {userCredits && (
+                  <div className="text-sm text-muted-foreground">
+                    Solde après création: {userCredits.balance - estimatedCost} crédits
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {userCredits && userCredits.balance < estimatedCost && (
+              <Alert className="mt-3" variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Crédits insuffisants ! Vous avez {userCredits.balance} crédits mais il en faut {estimatedCost}.
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Informations principales */}
