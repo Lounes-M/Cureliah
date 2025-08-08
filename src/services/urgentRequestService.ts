@@ -6,7 +6,7 @@ export class UrgentRequestService {
   // Créer une demande urgente (établissements)
   static async createUrgentRequest(
     establishmentId: string, 
-    requestData: Omit<UrgentRequest, 'id' | 'created_at' | 'updated_at' | 'status' | 'response_count' | 'view_count'>
+    requestData: Omit<UrgentRequest, 'id' | 'establishment_id' | 'establishment_name' | 'establishment_logo' | 'establishment_rating' | 'created_at' | 'updated_at' | 'status' | 'response_count' | 'view_count'>
   ): Promise<UrgentRequest> {
     // Vérifier l'abonnement de l'établissement
     const { data: subscription } = await supabase

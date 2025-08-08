@@ -125,7 +125,7 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
         title: formData.title.trim(),
         description: formData.description.trim(),
         specialty_required: formData.specialty_required,
-        urgency_level: formData.urgency_level,
+        urgency_level: formData.urgency_level as 'medium' | 'high' | 'critical' | 'emergency',
         start_date: formData.start_date,
         end_date: formData.end_date,
         start_time: formData.start_time,
