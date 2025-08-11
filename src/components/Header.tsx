@@ -305,33 +305,72 @@ const Header = () => {
         </>
       ) : (
         <>
-          <a
-            href="#fonctionnement"
-            className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-              mobile ? 'block w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-            }`}
-            onClick={onLinkClick}
-          >
-            Comment ça marche
-          </a>
-          <a
-            href="#avantages"
-            className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-              mobile ? 'block w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-            }`}
-            onClick={onLinkClick}
-          >
-            Avantages
-          </a>
-          <a
-            href="#temoignages"
-            className={`transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-              mobile ? 'block w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-            }`}
-            onClick={onLinkClick}
-          >
-            Témoignages
-          </a>
+          {/* Navigation pour la landing page */}
+          {mobile ? (
+            // Version mobile complète
+            <>
+              <a
+                href="#fonctionnement"
+                className="block w-full p-3 hover:bg-blue-50 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Comment ça marche
+              </a>
+              <a
+                href="#avantages"
+                className="block w-full p-3 hover:bg-blue-50 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Avantages
+              </a>
+              <a
+                href="#tarifs"
+                className="block w-full p-3 hover:bg-blue-50 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Tarifs
+              </a>
+              <a
+                href="#temoignages"
+                className="block w-full p-3 hover:bg-blue-50 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Témoignages
+              </a>
+              <a
+                href="#faq"
+                className="block w-full p-3 hover:bg-blue-50 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                FAQ
+              </a>
+            </>
+          ) : (
+            // Version desktop - seulement 3 sections principales
+            <>
+              <a
+                href="#fonctionnement"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Comment ça marche
+              </a>
+              <a
+                href="#avantages"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Avantages
+              </a>
+              <a
+                href="#tarifs"
+                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                onClick={onLinkClick}
+              >
+                Tarifs
+              </a>
+            </>
+          )}
         </>
       )}
     </>
@@ -583,22 +622,93 @@ const Header = () => {
                 </div>
               </>
             ) : (
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="ghost"
-                  onClick={() => navigate("/auth?tab=signin")}
-                  className="hidden sm:flex hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                  Se connecter
-                </Button>
-                <Button 
-                  onClick={() => navigate("/auth?tab=signup")}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
-                >
-                  <User className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Créer un compte
-                </Button>
-              </div>
+              <>                
+                <div className="flex items-center gap-3">
+                  <Button 
+                    variant="ghost"
+                    onClick={() => navigate("/auth?tab=signin")}
+                    className="hidden sm:flex hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Se connecter
+                  </Button>
+                  <Button 
+                    onClick={() => navigate("/auth?tab=signup")}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
+                  >
+                    <User className="w-4 h-4 mr-2" aria-hidden="true" />
+                    <span className="hidden sm:inline">Créer un compte</span>
+                    <span className="sm:hidden">S'inscrire</span>
+                  </Button>
+                  
+                  {/* Menu burger pour visiteurs */}
+                  <div className="md:hidden">
+                    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="hover:bg-blue-50 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          aria-label="Ouvrir le menu de navigation"
+                        >
+                          <Menu className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent 
+                        side="right" 
+                        className="w-80 bg-white/95 backdrop-blur-sm"
+                        aria-label="Menu de navigation mobile"
+                      >
+                        <div className="flex flex-col h-full pt-6">
+                          {/* Header du menu */}
+                          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg mb-6">
+                            <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Stethoscope className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-semibold text-gray-900">
+                                Cureliah
+                              </h3>
+                              <p className="text-xs text-gray-600">
+                                Plateforme médicale
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Navigation */}
+                          <nav className="flex-1 space-y-2">
+                            <NavigationLinks mobile={true} onLinkClick={() => setMobileMenuOpen(false)} />
+                          </nav>
+                          
+                          {/* Actions en bas */}
+                          <div className="border-t border-gray-200 pt-4 space-y-2">
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                navigate("/auth?tab=signin");
+                                setMobileMenuOpen(false);
+                              }}
+                              className="w-full justify-center hover:bg-blue-50 focus:bg-blue-50"
+                            >
+                              <User className="mr-2 h-4 w-4" aria-hidden="true" />
+                              Se connecter
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                navigate("/auth?tab=signup");
+                                setMobileMenuOpen(false);
+                              }}
+                              className="w-full justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                            >
+                              <User className="mr-2 h-4 w-4" aria-hidden="true" />
+                              Créer un compte
+                            </Button>
+                          </div>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>

@@ -6,6 +6,9 @@ import Logger from "@/utils/logger";
 import { announceToScreenReader } from "@/utils/accessibility";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useLocation, useNavigate } from "react-router-dom";
+import { PromoBanner } from "@/components/PromoBanner";
+import { PromoHeaderBanner } from "@/components/PromoHeaderBanner";
+import { usePromoBanner } from "@/hooks/usePromoBanner";
 import {
   User,
   Building2,
@@ -359,7 +362,6 @@ const Auth = () => {
   const logger = useLogger();
   const location = useLocation();
   const navigate = useNavigate();
-
   // Récupération des paramètres depuis l'URL
   const searchParams = new URLSearchParams(location.search);
   const tabFromUrl = searchParams.get('tab');
@@ -392,6 +394,13 @@ const Auth = () => {
     establishmentName: "",
     specialty: "",
     establishmentType: "",
+  });
+
+  // Hook pour la bannière promo - après signUpData
+  const { isVisible: isPromoBannerVisible, dismiss: dismissPromoBanner } = usePromoBanner({
+    user,
+    showForNewUsers: true,
+    intendedUserType: typeFromUrl || signUpData.userType
   });
 
   const [signInData, setSignInData] = useState<SignInData>({
@@ -766,7 +775,19 @@ const Auth = () => {
   const isFormLoading = authLoading || isSubmitting;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <>
+      {/* Promo Header Banner fixe en haut de page pour médecins */}
+      {(typeFromUrl === 'doctor' || signUpData.userType === 'doctor') && 
+       isPromoBannerVisible && (
+        <PromoHeaderBanner 
+          onClose={dismissPromoBanner}
+          user={user}
+        />
+      )}
+      
+      <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center p-4 relative overflow-hidden ${
+        (typeFromUrl === 'doctor' || signUpData.userType === 'doctor') && isPromoBannerVisible ? 'pt-20' : ''
+      }`}>
       {/* Éléments décoratifs */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
       <div
@@ -1221,7 +1242,8 @@ const Auth = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

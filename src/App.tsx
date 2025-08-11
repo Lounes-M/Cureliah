@@ -12,6 +12,8 @@ import { SecurityService } from "@/utils/security";
 import PWAInstallPrompt, { registerServiceWorker } from "@/components/PWAInstallPrompt";
 import { useRealtime } from "@/utils/realtime";
 import { useMonitoring } from "@/services/monitoring";
+import { PromoBanner } from "@/components/PromoBanner";
+import { usePromoBanner } from "@/hooks/usePromoBanner";
 import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,11 @@ const EnhancedAppContent = () => {
   const { user } = useAuth();
   const [userSegment, setUserSegment] = useState<UserSegment | null>(null);
   const { setUser } = useMonitoring();
+  const { isVisible: showPromoBanner, dismiss: dismissPromoBanner } = usePromoBanner({
+    showForNewUsers: true,
+    autoHideDays: 3,
+    user: user // Passer l'utilisateur au hook
+  });
   
   // Initialize realtime connection
   const { connectionState } = useRealtime(user?.id);
@@ -96,6 +103,15 @@ const EnhancedAppContent = () => {
 
   return (
     <ABTestProvider userId={user?.id || ''} userSegment={userSegment || undefined}>
+      {/* Promo Banner - Affiché en haut pour maximum de visibilité */}
+      {showPromoBanner && (
+        <PromoBanner 
+          variant="top" 
+          onClose={dismissPromoBanner}
+          user={user}
+        />
+      )}
+      
       <AppRoutes />
       <Toaster />
       <PWAInstallPrompt 

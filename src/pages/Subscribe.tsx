@@ -6,12 +6,20 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { PromoHeaderBanner } from '@/components/PromoHeaderBanner';
+import { usePromoBanner } from '@/hooks/usePromoBanner';
 
 export default function Subscribe() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  // Hook pour la bannière promo
+  const { isVisible: isPromoBannerVisible, dismiss: dismissPromoBanner } = usePromoBanner({
+    user,
+    showForNewUsers: true
+  });
 
   // Callback pour lancer le paiement Stripe
   const handleSubscribe = async (planId: string, isYearly: boolean) => {
@@ -45,7 +53,18 @@ export default function Subscribe() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30">
+    <>
+      {/* Promo Header Banner fixe en haut de page pour médecins */}
+      {user?.user_metadata?.user_type === 'doctor' && isPromoBannerVisible && (
+        <PromoHeaderBanner 
+          onClose={dismissPromoBanner}
+          user={user}
+        />
+      )}
+      
+      <div className={`min-h-screen flex flex-col bg-gradient-to-br from-medical-blue-light/30 via-white to-medical-green-light/30 ${
+        user?.user_metadata?.user_type === 'doctor' && isPromoBannerVisible ? 'pt-20' : ''
+      }`}>
       <Header />
       <header className="py-12 px-4 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-medical-blue to-medical-green mb-4 drop-shadow-sm tracking-tight">
@@ -61,6 +80,7 @@ export default function Subscribe() {
         </div>
       </main>
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }
