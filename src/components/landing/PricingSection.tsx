@@ -166,6 +166,14 @@ function PricingCard({ plan, isYearly, isLoading, onSubscribe }) {
               Soit €{plan.yearlyPrice} facturé annuellement
             </p>
           )}
+          
+          {/* Badge 1er mois gratuit */}
+          <div className="mt-3">
+            <div className="inline-flex items-center bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 rounded-full shadow-lg">
+              <span className="mr-1.5">🎁</span>
+              1er mois gratuit avec WELCOME100
+            </div>
+          </div>
         </div>
 
         {/* Liste des fonctionnalités - Mobile responsive */}
@@ -286,6 +294,49 @@ export default function PricingSection({ onSubscribe, loading }) {
             professionnels et développez votre activité médicale
           </p>
 
+          {/* Bannière Promo WELCOME100 */}
+          <div className="relative max-w-2xl mx-auto mb-8">
+            <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-2xl p-6 shadow-xl border border-blue-200 overflow-hidden">
+              {/* Motif de fond */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                  backgroundSize: '30px 30px'
+                }} />
+              </div>
+              
+              <div className="relative z-10 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="bg-yellow-400 text-blue-900 px-4 py-2 rounded-full font-bold text-sm shadow-lg">
+                    🎉 OFFRE DE BIENVENUE
+                  </div>
+                </div>
+                
+                <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  Premier mois <span className="text-yellow-300">100% GRATUIT</span>
+                </h3>
+                
+                <p className="text-blue-100 text-lg mb-4">
+                  Utilisez le code promo lors de votre inscription
+                </p>
+                
+                <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-xl px-6 py-3 border border-white/30">
+                  <span className="text-yellow-300 font-mono text-xl font-bold mr-3">
+                    WELCOME100
+                  </span>
+                  <div className="w-px h-6 bg-white/30 mr-3"></div>
+                  <span className="text-white text-sm font-medium">
+                    Code à copier-coller
+                  </span>
+                </div>
+                
+                <p className="text-xs text-blue-200 mt-3">
+                  * Valable pour tous les nouveaux abonnements • Sans engagement
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Toggle Mensuel/Annuel */}
           <div className="flex items-center justify-center gap-4 mb-2">
             <span
@@ -369,7 +420,7 @@ export default function PricingSection({ onSubscribe, loading }) {
             </Link>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl mx-auto">
-            🔒 Paiement sécurisé • ✨ Essai gratuit 14 jours • 🚀 Annulation à
+            🔒 Paiement sécurisé • ✨ Essai gratuit 30 jours • 🚀 Annulation à
             tout moment
           </p>
         </footer>

@@ -66,14 +66,6 @@ export default function Subscribe() {
         user?.user_metadata?.user_type === 'doctor' && isPromoBannerVisible ? 'pt-20' : ''
       }`}>
       <Header />
-      <header className="py-12 px-4 text-center">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-medical-blue to-medical-green mb-4 drop-shadow-sm tracking-tight">
-          Souscrire à un abonnement
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-          Choisissez l'offre qui correspond à vos besoins professionnels et accédez à toutes les fonctionnalités de la plateforme.
-        </p>
-      </header>
       <main className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full">
           <PricingSection onSubscribe={handleSubscribe} loading={loading} />

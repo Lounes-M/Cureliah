@@ -367,7 +367,7 @@ export default function PricingSection({ onSubscribe, loading }) {
             </Link>
           </div>
           <p className="text-sm text-gray-500 max-w-2xl mx-auto">
-            🔒 Paiement sécurisé • ✨ Essai gratuit 14 jours • 🚀 Annulation à
+            🔒 Paiement sécurisé • ✨ Essai gratuit 30 jours • 🚀 Annulation à
             tout moment
           </p>
         </footer>

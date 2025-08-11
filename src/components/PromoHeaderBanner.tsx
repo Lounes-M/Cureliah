@@ -31,7 +31,7 @@ export const PromoHeaderBanner: React.FC<PromoHeaderBannerProps> = ({
   const getMessages = () => {
     if (!user) {
       return {
-        title: "🎉 Offre de Bienvenue Médecins !",
+        title: "Offre de Bienvenue Médecins !",
         subtitle: "Premier mois gratuit"
       };
     } else if (user.user_metadata?.user_type === 'doctor') {
@@ -42,7 +42,7 @@ export const PromoHeaderBanner: React.FC<PromoHeaderBannerProps> = ({
     }
     
     return {
-      title: "🎉 Offre de Bienvenue !",
+      title: "Offre de Bienvenue !",
       subtitle: "Premier mois gratuit"
     };
   };
