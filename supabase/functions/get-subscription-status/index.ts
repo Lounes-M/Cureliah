@@ -46,9 +46,9 @@ serve(async (req) => {
   // Créer un client Supabase avec le service role
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // Lire la table subscriptions
+  // Lire la table user_subscriptions
   const { data, error } = await supabase
-    .from("subscriptions")
+    .from("user_subscriptions")
     .select("status, current_period_end, stripe_customer_id, stripe_subscription_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })

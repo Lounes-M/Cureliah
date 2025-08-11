@@ -1,4 +1,7 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import { ViewTrackingService } from '@/services/viewTrackingService';
+
+// Types pour les analytics
 
 export interface RealAnalyticsData {
   // Métriques utilisateur
@@ -239,11 +242,26 @@ export class RealAnalyticsService {
       
       const { data: applications } = await applicationsQuery;
       
+      // Obtenir les vraies données de vues et matches
+      const views = await ViewTrackingService.getViewStats(
+        undefined,
+        'vacation',
+        `${dateStr}T00:00:00`,
+        `${dateStr}T23:59:59`
+      );
+      
+      const matches = await ViewTrackingService.getMatchStats(
+        undefined,
+        'application',
+        `${dateStr}T00:00:00`,
+        `${dateStr}T23:59:59`
+      );
+      
       timeSeries.unshift({
         date: dateStr,
         applications: applications?.length || 0,
-        views: Math.floor(Math.random() * 20), // TODO: Implement real views tracking
-        matches: Math.floor(Math.random() * 5)  // TODO: Implement real matches tracking
+        views: views,
+        matches: matches
       });
     }
     

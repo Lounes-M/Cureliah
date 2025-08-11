@@ -430,7 +430,7 @@ const Header = () => {
                 </div>
 
                 {/* Notifications Urgentes (Médecins Premium uniquement) */}
-                {profile?.user_type === 'doctor' && (
+                {profile?.user_type === 'doctor' && subscriptionPlan === 'premium' && (
                   <UrgentNotificationBell 
                     userId={user.id} 
                     userType="doctor"

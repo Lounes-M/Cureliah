@@ -642,9 +642,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user?.user_type !== 'doctor') return true;
     if (subscriptionPlan === 'premium') return true;
     if (subscriptionPlan === 'pro') {
-      // Features Pro
+      // Features Pro (sans les demandes urgentes qui sont uniquement Premium)
       const proFeatures = [
         'priorite', 'analytics', 'facturation', 'calendar', 'support-prioritaire',
+        'invoices', 'premium_support', 'premium_api', 'premium_features'
       ];
       return proFeatures.includes(feature) || feature === 'essentiel';
     }

@@ -1,10 +1,15 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 import Stripe from "https://esm.sh/stripe@12.18.0?target=deno";
 
 console.log("[stripe-webhook] Function started");
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { apiVersion: "2023-10-16" });
 const endpointSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")!;
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+);
 
 // Aucune vérification d'Authorization header ici !
 serve(async (req) => {
@@ -20,12 +25,6 @@ serve(async (req) => {
     console.error("[stripe-webhook] Webhook Error:", err.message);
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
-
-  // Connexion Supabase
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.39.7");
-  const supabase = createClient(supabaseUrl, supabaseKey);
 
   // Gestion des événements pertinents
   if (
@@ -133,8 +132,21 @@ serve(async (req) => {
     }
 
     if (userId && subscription_id) {
+      // Récupérer le type d'utilisateur pour choisir la bonne table
+      const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+      
+      if (userError) {
+        console.error("[stripe-webhook] Error fetching user:", userError.message);
+        return new Response("User fetch error", { status: 500 });
+      }
+
+      const userType = userData?.user?.user_metadata?.user_type || 'doctor';
+      const tableName = userType === 'doctor' ? 'user_subscriptions' : 'establishment_subscriptions';
+      
+      console.log(`[stripe-webhook] Using table: ${tableName} for user type: ${userType}`);
+      
       const { error } = await supabase
-        .from("subscriptions")
+        .from(tableName)
         .upsert({
           user_id: userId,
           stripe_customer_id: customer,

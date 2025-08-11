@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLogger } from '@/utils/logger';
 import Logger from '@/utils/logger';
+import { translateSpeciality } from '@/utils/specialities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,38 +45,6 @@ import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
 import React, { lazy } from "react";
 import { Bar } from 'react-chartjs-2';
-
-// Mapping des spécialités anglais -> français
-const specialityMapping: Record<string, string> = {
-  'orthopedics': 'Orthopédie',
-  'cardiology': 'Cardiologie',
-  'dermatology': 'Dermatologie',
-  'pediatrics': 'Pédiatrie',
-  'psychiatry': 'Psychiatrie',
-  'radiology': 'Radiologie',
-  'anesthesiology': 'Anesthésie-Réanimation',
-  'general_surgery': 'Chirurgie générale',
-  'surgery': 'Chirurgie', // Ajout pour "surgery"
-  'gynecology': 'Gynécologie-Obstétrique',
-  'ophthalmology': 'Ophtalmologie',
-  'otolaryngology': 'ORL',
-  'neurology': 'Neurologie',
-  'pulmonology': 'Pneumologie',
-  'gastroenterology': 'Gastro-entérologie',
-  'endocrinology': 'Endocrinologie',
-  'rheumatology': 'Rhumatologie',
-  'urology': 'Urologie',
-  'general_medicine': 'Médecine générale'
-};
-
-// Fonction pour traduire les spécialités
-const translateSpeciality = (speciality: string): string => {
-  const logger = Logger.getInstance();
-  logger.debug("translateSpeciality appelée", { speciality }, 'DoctorDashboard', 'translate_speciality');
-  const result = specialityMapping[speciality] || speciality.charAt(0).toUpperCase() + speciality.slice(1);
-  logger.debug("translateSpeciality retourne", { result }, 'DoctorDashboard', 'translate_speciality');
-  return result;
-};
 
 interface DashboardStats {
   totalVacations: number;
@@ -168,7 +137,7 @@ const DoctorDashboard = () => {
     }
     
     const translated = translateSpeciality(specialty);
-    logger.debug("Spécialité traduite", { translated, specialityMapping }, 'DoctorDashboard', 'translated_speciality');
+    logger.debug("Spécialité traduite", { translated }, 'DoctorDashboard', 'translated_speciality');
     
     return translated;
   };
@@ -572,6 +541,14 @@ const DoctorDashboard = () => {
       color: "bg-gradient-to-r from-orange-500 to-orange-600",
       action: () => setActiveTab("messages"),
     },
+    {
+      title: "Demandes urgentes",
+      description: "Consulter les missions urgentes premium",
+      icon: AlertCircle,
+      color: "bg-gradient-to-r from-red-500 to-red-600",
+      action: () => setActiveTab("premium_missions"),
+      premium: true,
+    },
   ];
 
   // Actions premium (affichées seulement pour les utilisateurs premium)
@@ -707,45 +684,45 @@ const DoctorDashboard = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-7 bg-white/50 backdrop-blur-sm border shadow-sm">
+          <TabsList className="flex w-full bg-white/50 backdrop-blur-sm border shadow-sm rounded-lg">
             <TabsTrigger
               value="overview"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Vue d'ensemble</span>
             </TabsTrigger>
             <TabsTrigger
               value="messages"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <Star className="w-4 h-4" />
               <span className="hidden sm:inline">Avis</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
             <TabsTrigger
               value="subscription"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <CreditCard className="w-4 h-4" />
               <span className="hidden sm:inline">Abonnement</span>
@@ -753,7 +730,7 @@ const DoctorDashboard = () => {
             {hasFeature('analytics') && (
               <TabsTrigger
                 value="analytics"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Statistiques avancées</span>
@@ -762,7 +739,7 @@ const DoctorDashboard = () => {
             {hasFeature('invoices') && (
               <TabsTrigger
                 value="invoices"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 <FileText className="w-4 h-4" />
                 <span className="hidden sm:inline">Factures & Rapports</span>
@@ -771,7 +748,7 @@ const DoctorDashboard = () => {
             {hasFeature('premium_support') && (
               <TabsTrigger
                 value="support"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 <Star className="w-4 h-4" />
                 <span className="hidden sm:inline">Support Premium</span>
@@ -780,16 +757,16 @@ const DoctorDashboard = () => {
             {hasFeature('premium_api') && (
               <TabsTrigger
                 value="api"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 <Activity className="w-4 h-4" />
                 <span className="hidden sm:inline">API & Webhooks</span>
               </TabsTrigger>
             )}
-            {hasFeature('premium_missions') && (
+            {hasFeature('premium_missions') && subscriptionPlan === 'premium' && (
               <TabsTrigger
                 value="premium_missions"
-                className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
               >
                 <Star className="w-4 h-4" />
                 <span className="hidden sm:inline">Missions Premium</span>
@@ -904,26 +881,33 @@ const DoctorDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {quickActions.map((action, index) => (
-                        <Button
-                          key={index}
-                          variant="outline"
-                          className="h-auto p-4 flex flex-col items-center space-y-3 hover:shadow-md transition-all border-dashed hover:border-solid"
-                          onClick={action.action}
-                        >
-                          <div className={`p-3 rounded-xl ${action.color}`}>
-                            <action.icon className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="text-center">
-                            <div className="font-medium text-sm">
-                              {action.title}
+                      {quickActions
+                        .filter(action => !action.premium || (hasFeature('premium_missions') && subscriptionPlan === 'premium'))
+                        .map((action, index) => (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            className={`h-auto p-4 flex flex-col items-center space-y-3 hover:shadow-md transition-all border-dashed hover:border-solid ${
+                              action.premium ? 'border-red-300 hover:border-red-400' : ''
+                            }`}
+                            onClick={action.action}
+                          >
+                            <div className={`p-3 rounded-xl ${action.color}`}>
+                              <action.icon className="w-6 h-6 text-white" />
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {action.description}
+                            <div className="text-center">
+                              <div className="font-medium text-sm flex items-center justify-center gap-1">
+                                {action.title}
+                                {action.premium && (
+                                  <Badge className="bg-red-600 text-white text-xs">URGENT</Badge>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1 flex justify-center">
+                                {action.description}
+                              </div>
                             </div>
-                          </div>
-                        </Button>
-                      ))}
+                          </Button>
+                        ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -951,10 +935,10 @@ const DoctorDashboard = () => {
                               <action.icon className="w-6 h-6 text-white" />
                             </div>
                             <div className="text-center">
-                              <div className="font-medium text-sm">
+                              <div className="font-medium text-sm flex justify-center">
                                 {action.title}
                               </div>
-                              <div className="text-xs text-gray-600 mt-1">
+                              <div className="text-xs text-gray-600 mt-1 flex justify-center">
                                 {action.description}
                               </div>
                             </div>
@@ -1094,6 +1078,44 @@ const DoctorDashboard = () => {
                   </Card>
                 </div>
 
+                {/* Demandes urgentes Premium */}
+                {hasFeature('premium_missions') && subscriptionPlan === 'premium' && (
+                  <Card className="shadow-sm border-2 border-red-200 bg-gradient-to-r from-red-50 to-pink-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="w-5 h-5 text-red-600" />
+                          <span className="text-red-900">Demandes Urgentes</span>
+                          <Badge className="bg-red-600 text-white animate-pulse">NOUVEAU</Badge>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setActiveTab("premium_missions")}
+                          className="border-red-300 text-red-700 hover:bg-red-100"
+                        >
+                          Voir tout
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-4">
+                        <div className="text-red-600 text-2xl mb-2">🚨</div>
+                        <p className="text-sm text-red-800 mb-3">
+                          Consultez les demandes urgentes des établissements et répondez rapidement pour maximiser vos revenus.
+                        </p>
+                        <Button
+                          onClick={() => setActiveTab("premium_missions")}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <AlertCircle className="w-4 h-4 mr-2" />
+                          Consulter les demandes
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Vacations récentes */}
                 <RecentVacations
                   vacations={vacations}
@@ -1202,7 +1224,7 @@ const DoctorDashboard = () => {
             </TabsContent>
           )}
 
-          {hasFeature('premium_missions') && (
+          {hasFeature('premium_missions') && subscriptionPlan === 'premium' && (
             <TabsContent value="premium_missions" className="space-y-6">
               {/* Page Missions Premium (Premium uniquement) */}
               <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>

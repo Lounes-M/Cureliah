@@ -29,9 +29,9 @@ export const SPECIALITIES = {
     description: 'Spécialité médicale utilisant l\'imagerie médicale',
     color: 'bg-gray-100 text-gray-800'
   },
-  surgery: {
-    label: 'Chirurgie',
-    description: 'Spécialité médicale pratiquant les interventions chirurgicales',
+  general_surgery: {
+    label: 'Chirurgie générale',
+    description: 'Spécialité chirurgicale générale',
     color: 'bg-green-100 text-green-800'
   },
   general_medicine: {
@@ -45,11 +45,56 @@ export const SPECIALITIES = {
     color: 'bg-orange-100 text-orange-800'
   },
   gynecology: {
-    label: 'Gynécologie',
+    label: 'Gynécologie-Obstétrique',
     description: 'Spécialité médicale de l\'appareil génital féminin',
     color: 'bg-rose-100 text-rose-800'
+  },
+  anesthesiology: {
+    label: 'Anesthésie-Réanimation',
+    description: 'Spécialité médicale de l\'anesthésie et réanimation',
+    color: 'bg-teal-100 text-teal-800'
+  },
+  ophthalmology: {
+    label: 'Ophtalmologie',
+    description: 'Spécialité médicale des yeux',
+    color: 'bg-cyan-100 text-cyan-800'
+  },
+  otolaryngology: {
+    label: 'ORL',
+    description: 'Oto-rhino-laryngologie',
+    color: 'bg-lime-100 text-lime-800'
+  },
+  pulmonology: {
+    label: 'Pneumologie',
+    description: 'Spécialité médicale des poumons',
+    color: 'bg-sky-100 text-sky-800'
+  },
+  gastroenterology: {
+    label: 'Gastro-entérologie',
+    description: 'Spécialité médicale du système digestif',
+    color: 'bg-amber-100 text-amber-800'
+  },
+  endocrinology: {
+    label: 'Endocrinologie',
+    description: 'Spécialité médicale des hormones',
+    color: 'bg-violet-100 text-violet-800'
+  },
+  rheumatology: {
+    label: 'Rhumatologie',
+    description: 'Spécialité médicale des articulations',
+    color: 'bg-slate-100 text-slate-800'
   }
-} as const;
+};
+
+// Mapping simple pour compatibilité avec l'existant
+export const SPECIALITY_MAPPING: Record<string, string> = Object.fromEntries(
+  Object.entries(SPECIALITIES).map(([key, value]) => [key, value.label])
+);
+
+// Fonction utilitaire pour traduire une spécialité
+export const translateSpeciality = (speciality: string): string => {
+  return SPECIALITY_MAPPING[speciality] || speciality;
+};
 
 export const ESTABLISHMENT_TYPES = {
   hospital: {

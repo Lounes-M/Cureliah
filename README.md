@@ -1,97 +1,34 @@
 # Cureliah
 
-Une plateforme de mise en relation entre médecins et établissements de santé pour la gestion des vacations médicales.
+Plateforme professionnelle de mise en relation entre médecins et établissements de santé pour la gestion des vacations médicales.
 
-*Dernière mise à jour : 5 août 2025 - Configuration email Git mise à jour*
+## 🏥 À propos
 
-## 🚀 Fonctionnalités
+Cureliah simplifie la gestion des vacations médicales en connectant directement les professionnels de santé avec les établissements. Notre plateforme offre une solution complète pour l'organisation, la réservation et le suivi des missions médicales.
 
-- **Planning Médical** : Interface de gestion des créneaux horaires avec FullCalendar
-- **Gestion des Vacations** : Création, modification et suppression des vacations
-- **Recherche Avancée** : Filtrage par spécialité, localisation, tarifs
-- **Système de Réservation** : Réservation et gestion des rendez-vous
-- **Profils** : Gestion des profils médecins et établissements
-- **Administration** : Interface d'administration complète
-- **Notifications** : Système de notifications en temps réel
-- **Messagerie** : Communication entre médecins et établissements
+## ✨ Fonctionnalités
 
-## 🛠️ Technologies
+- **Gestion des vacations** : Planning intelligent et gestion des créneaux
+- **Recherche avancée** : Filtres par spécialité, lieu et disponibilité  
+- **Paiements sécurisés** : Intégration Stripe pour les transactions
+- **Messagerie intégrée** : Communication directe entre professionnels
+- **Tableau de bord** : Analytics et suivi des performances
+- **Documents** : Gestion des contrats et pièces justificatives
 
-- **Frontend** : React, TypeScript, TailwindCSS
-- **Backend** : Supabase
-- **Base de données** : PostgreSQL
-- **Authentification** : Supabase Auth
-- **Stockage** : Supabase Storage
-- **Paiements** : Stripe
-- **Calendrier** : FullCalendar
+## 🔐 Sécurité
 
-## 📋 Prérequis
+- Authentification sécurisée avec Supabase
+- Chiffrement des données sensibles
+- Conformité aux normes de sécurité médicales
+- Sauvegarde automatique des données
 
-- Node.js (v18 ou supérieur)
-- npm ou yarn
-- Compte Supabase
-- Compte Stripe (pour les paiements)
+## 📞 Contact
 
-## 🚀 Installation
+Pour toute question ou demande de démo : [contact@cureliah.com](mailto:contact@cureliah.com)
 
-1. Clonez le repository :
-```bash
-git clone https://github.com/Lounes-M/cureliah.git
-cd cureliah
-```
+---
 
-2. Installez les dépendances :
-```bash
-npm install
-# ou
-yarn install
-```
-
-3. Configurez les variables d'environnement :
-```bash
-cp .env.example .env
-```
-Remplissez les variables dans le fichier `.env` avec vos propres valeurs.
-
-4. Lancez le serveur de développement :
-```bash
-npm run dev
-# ou
-yarn dev
-```
-
-## 📁 Structure du Projet
-
-```
-src/
-├── components/         # Composants React
-│   ├── admin/         # Composants d'administration
-│   ├── establishment/ # Composants établissement
-│   ├── vacation/      # Composants vacation
-│   └── ui/           # Composants UI réutilisables
-├── hooks/            # Custom hooks
-├── integrations/     # Intégrations externes
-├── pages/           # Pages de l'application
-├── services/        # Services et API
-├── styles/          # Styles globaux
-└── types/           # Types TypeScript
-```
-
-## 🔧 Configuration
-
-### Variables d'Environnement
-
-```env
-VITE_SUPABASE_URL=votre_url_supabase
-VITE_SUPABASE_ANON_KEY=votre_clé_anon_supabase
-VITE_STRIPE_PUBLIC_KEY=votre_clé_publique_stripe
-```
-
-### Base de Données
-
-Les migrations Supabase sont disponibles dans le dossier `supabase/migrations/`.
-
-## 🤝 Contribution
+© 2025 Cureliah. Tous droits réservés.
 
 1. Fork le projet
 2. Créez votre branche de fonctionnalité (`git checkout -b feature/AmazingFeature`)

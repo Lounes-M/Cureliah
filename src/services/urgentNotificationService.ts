@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client.browser';
 import { UrgentRequestNotification } from '@/types/premium';
+import { logger } from '@/services/logger';
 
 export class UrgentNotificationService {
   private static subscribers: Map<string, (notification: UrgentRequestNotification) => void> = new Map();
@@ -115,7 +116,7 @@ export class UrgentNotificationService {
       .limit(50);
 
     if (error) {
-      console.error('Erreur lors de la récupération des notifications:', error);
+      logger.error('Erreur lors de la récupération des notifications', error, { userId });
       return [];
     }
 
@@ -151,7 +152,7 @@ export class UrgentNotificationService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Erreur lors de la récupération des notifications:', error);
+      logger.error('Erreur lors de la récupération des notifications:', error);
       return [];
     }
 
@@ -166,7 +167,7 @@ export class UrgentNotificationService {
       .eq('id', notificationId);
 
     if (error) {
-      console.error('Erreur lors du marquage comme lue:', error);
+            logger.error('Erreur lors du marquage comme lue', error, { notificationId });
       throw error;
     }
   }
@@ -184,7 +185,7 @@ export class UrgentNotificationService {
       .eq('read', false);
 
     if (error) {
-      console.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
+      logger.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
       throw error;
     }
   }
@@ -197,7 +198,7 @@ export class UrgentNotificationService {
       .eq('id', notificationId);
 
     if (error) {
-      console.error('Erreur lors de la suppression de la notification:', error);
+      logger.error('Erreur lors de la suppression de la notification:', error);
       throw error;
     }
   }
@@ -212,7 +213,7 @@ export class UrgentNotificationService {
       });
 
     if (error) {
-      console.error('Erreur lors de la création de la notification:', error);
+      logger.error('Erreur lors de la création de la notification:', error);
       throw error;
     }
   }
@@ -226,7 +227,7 @@ export class UrgentNotificationService {
       .lt('expires_at', new Date().toISOString());
 
     if (error) {
-      console.error('Erreur lors du nettoyage des notifications expirées:', error);
+      logger.error('Erreur lors du nettoyage des notifications expirées:', error);
     }
   }
 
@@ -243,7 +244,7 @@ export class UrgentNotificationService {
       .eq('read', false);
 
     if (error) {
-      console.error('Erreur lors du comptage des notifications non lues:', error);
+      logger.error('Erreur lors du comptage des notifications non lues:', error);
       return 0;
     }
 

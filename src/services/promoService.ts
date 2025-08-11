@@ -1,4 +1,6 @@
 // Service pour gérer les promotions et codes promo Stripe
+import { logger } from '@/services/logger';
+
 export interface PromoCode {
   id: string;
   code: string;
@@ -114,10 +116,16 @@ export class PromoService {
         });
       }
 
-      // Console log pour debug
-      console.log(`Promo code ${code} used in context: ${context}`);
+      // Log pour tracking des codes promo
+      logger.info(`Promo code ${code} used in context: ${context}`, {
+        code,
+        context
+      });
     } catch (error) {
-      console.error('Erreur lors du tracking du code promo:', error);
+      logger.error('Erreur lors du tracking du code promo', error, {
+        code,
+        context
+      });
     }
   }
 }

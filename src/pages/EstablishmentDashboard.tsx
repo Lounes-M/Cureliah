@@ -1108,52 +1108,52 @@ const EstablishmentDashboard = () => {
           onValueChange={handleTabChange}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-7 bg-white/50 backdrop-blur-sm border shadow-sm">
+          <TabsList className="flex w-full bg-white/50 backdrop-blur-sm border shadow-sm rounded-lg">
             <TabsTrigger
               value="overview"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Vue d'ensemble</span>
             </TabsTrigger>
             <TabsTrigger
               value="doctors"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <UserCheck className="w-4 h-4" />
               <span className="hidden sm:inline">Médecins</span>
             </TabsTrigger>
             <TabsTrigger
               value="messages"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Messages</span>
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <Star className="w-4 h-4" />
               <span className="hidden sm:inline">Avis</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <Bell className="w-4 h-4" />
               <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
             <TabsTrigger
               value="urgent-requests"
-              className="flex items-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
               <AlertCircle className="w-4 h-4" />
               <span className="hidden sm:inline">Demandes Urgentes</span>
@@ -1277,10 +1277,10 @@ const EstablishmentDashboard = () => {
                             <action.icon className="w-6 h-6 text-white" />
                           </div>
                           <div className="text-center">
-                            <div className="font-medium text-sm">
+                            <div className="font-medium text-sm flex justify-center">
                               {action.title}
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-gray-500 mt-1 flex justify-center">
                               {action.description}
                             </div>
                           </div>

@@ -454,21 +454,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Redirection de l'ancienne route */}
       <Route
         path="/vacation-search"
-        element={
-          <ProtectedRoute>
-            <VacationSearch />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/bookings"
-        element={
-          <ProtectedRoute>
-            <MyBookings />
-          </ProtectedRoute>
-        }
+        element={<Navigate to="/search" replace />}
       />
       <Route
         path="/my-bookings"
@@ -477,6 +466,11 @@ export default function AppRoutes() {
             <MyBookings />
           </ProtectedRoute>
         }
+      />
+      {/* Redirection de l'ancienne route */}
+      <Route
+        path="/bookings"
+        element={<Navigate to="/my-bookings" replace />}
       />
 
       {/* NOUVELLES ROUTES AJOUTÉES - Détails de vacation accessibles à tous */}

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client.browser';
 import { PremiumMission, PremiumMissionFilter, PremiumMissionApplication } from '@/types/premium';
+import { logger } from '@/services/logger';
 
 export class PremiumMissionService {
   
@@ -171,14 +172,12 @@ export class PremiumMissionService {
 
   // Notifier l'établissement d'une nouvelle candidature
   private static async notifyEstablishment(missionId: string, userId: string): Promise<void> {
-    // Implémentation des notifications
-    console.log(`Nouvelle candidature Premium pour mission ${missionId} par utilisateur ${userId}`);
+    logger.info('Nouvelle candidature Premium pour mission', { missionId, userId });
   }
 
   // Notifier le candidat du statut de sa candidature
   private static async notifyCandidate(applicationId: string, status: string): Promise<void> {
-    // Implémentation des notifications
-    console.log(`Candidature ${applicationId} mise à jour: ${status}`);
+    logger.info('Candidature mise à jour', { applicationId, status });
   }
 
   // Statistiques missions Premium pour dashboard
