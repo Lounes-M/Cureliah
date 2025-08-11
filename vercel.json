@@ -5,8 +5,16 @@
   "installCommand": "npm ci --include=dev",
   "build": {
     "env": {
-      "NODE_VERSION": "22"
+      "NODE_VERSION": "22",
+      "VITE_APP_BASE_URL": "https://cureliah.com",
+      "APP_BASE_URL": "https://cureliah.com",
+      "NODE_ENV": "production"
     }
+  },
+  "env": {
+    "VITE_APP_BASE_URL": "https://cureliah.com",
+    "APP_BASE_URL": "https://cureliah.com",
+    "NODE_ENV": "production"
   },
   "rewrites": [
     {

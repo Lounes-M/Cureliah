@@ -42,6 +42,7 @@ serve(async (req: Request): Promise<Response> => {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
+      allow_promotion_codes: true, // Permet d'ajouter des codes promo
       line_items: [
         {
           price: stripePriceId, // L'ID du prix Stripe (ex: "price_123")
@@ -56,8 +57,8 @@ serve(async (req: Request): Promise<Response> => {
           userId,
         },
       },
-      success_url: "https://cureliah.vercel.app/payment-success",
-      cancel_url: "https://cureliah.vercel.app/payment-failure",
+      success_url: `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/payment-success`,
+      cancel_url: `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/payment-failure`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

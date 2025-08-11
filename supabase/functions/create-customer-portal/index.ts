@@ -29,7 +29,7 @@ serve(async (req) => {
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
-  const STRIPE_PORTAL_RETURN_URL = Deno.env.get("STRIPE_PORTAL_RETURN_URL") || "https://cureliah.com/dashboard";
+  const STRIPE_PORTAL_RETURN_URL = Deno.env.get("STRIPE_PORTAL_RETURN_URL") || `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/dashboard`;
   console.log("[create-customer-portal] Env SUPABASE_URL:", SUPABASE_URL);
   console.log("[create-customer-portal] Env SUPABASE_SERVICE_ROLE_KEY:", SUPABASE_SERVICE_ROLE_KEY ? "OK" : "MISSING");
   console.log("[create-customer-portal] Env STRIPE_SECRET_KEY:", STRIPE_SECRET_KEY ? "OK" : "MISSING");
