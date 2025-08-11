@@ -257,7 +257,11 @@ window.addEventListener('error', (event) => {
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  ErrorHandler.handleUnexpectedError(new Error(event.reason), {
+  const error = event.reason instanceof Error
+    ? event.reason
+    : new Error(String(event.reason));
+
+  ErrorHandler.handleUnexpectedError(error, {
     type: 'unhandledrejection',
     reason: event.reason,
   });
