@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Content Security Policy - Protection XSS -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://cs.iubenda.com https://cdn.iubenda.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://*.supabase.com wss://*.supabase.co wss://*.supabase.com https://api.stripe.com https://www.google-analytics.com; frame-src 'self' https://checkout.stripe.com https://js.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; frame-ancestors 'none'; upgrade-insecure-requests;" />
+    
+    <!-- Permissions Policy - Contrôle des APIs -->
+    <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(self 'https://checkout.stripe.com')" />
+    
     <title>Cureliah - Plateforme de Vacations Médicales</title>
     <meta name="description" content="Plateforme inversée où les médecins vacataires publient leurs disponibilités pour que les établissements de santé puissent les réserver en ligne." />
     <meta name="author" content="Cureliah" />
@@ -16,7 +23,7 @@
     <link rel="manifest" href="/manifest.json" />
     
     <!-- PWA Theme and Mobile Optimization -->
-    <meta name="theme-color" content="#3b82f6" />
+    <meta name="theme-color" content="#2563eb" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -34,7 +41,13 @@
     
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
-    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content="Cureliah - Plateforme de Vacations Médicales" />
@@ -52,7 +65,7 @@
     <meta name="twitter:description" content="Plateforme inversée où les médecins vacataires publient leurs disponibilités pour que les établissements de santé puissent les réserver en ligne." />
     <meta name="twitter:image" content="/Miniature.png" />
 
-    <!-- iubenda Cookie Consent Management Platform -->
+    <!-- iubenda Cookie Consent Management Platform avec SRI -->
     <script type="text/javascript">
       var _iub = _iub || [];
       _iub.csConfiguration = {
@@ -64,17 +77,33 @@
         }
       };
     </script>
-    <script type="text/javascript" src="https://cs.iubenda.com/autoblocking/4198636.js"></script>
-    <script type="text/javascript" src="//cdn.iubenda.com/cs/gpp/stub.js"></script>
-    <script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
+    <script type="text/javascript" 
+            src="https://cs.iubenda.com/autoblocking/4198636.js"
+            defer
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" 
+            src="//cdn.iubenda.com/cs/gpp/stub.js"
+            defer
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" 
+            src="//cdn.iubenda.com/cs/iubenda_cs.js" 
+            charset="UTF-8" 
+            defer
+            crossorigin="anonymous"></script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HZRNDP777Z"></script>
-    <script>
+    <!-- Google tag (gtag.js) avec defer -->
+    <script defer 
+            src="https://www.googletagmanager.com/gtag/js?id=G-HZRNDP777Z"
+            crossorigin="anonymous"></script>
+    <script defer>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-HZRNDP777Z');
+      gtag('config', 'G-HZRNDP777Z', {
+        // Configuration sécurisée pour GDPR
+        'anonymize_ip': true,
+        'cookie_flags': 'SameSite=Strict;Secure'
+      });
     </script>
   </head>
 

@@ -63,7 +63,7 @@ export function useMonitoringNotifications() {
           )
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-              console.log('📡 Monitoring: Error reports subscription active');
+              // TODO: Replace with logger.info('📡 Monitoring: Error reports subscription active');
             }
           });
 
@@ -102,14 +102,14 @@ export function useMonitoringNotifications() {
           )
           .subscribe((status) => {
             if (status === 'SUBSCRIBED') {
-              console.log('📡 Monitoring: Performance alerts subscription active');
+              // TODO: Replace with logger.info('📡 Monitoring: Performance alerts subscription active');
             }
           });
 
         setIsConnected(true);
 
       } catch (error) {
-        console.error('Failed to setup monitoring notifications:', error);
+        // TODO: Replace with logger.error('Failed to setup monitoring notifications:', error);
         setIsConnected(false);
       }
     };
@@ -186,7 +186,7 @@ export function useMonitoringNotifications() {
       setNotifications(recentNotifications.slice(0, 20));
 
     } catch (error) {
-      console.error('Failed to load recent notifications:', error);
+      // TODO: Replace with logger.error('Failed to load recent notifications:', error);
     }
   };
 

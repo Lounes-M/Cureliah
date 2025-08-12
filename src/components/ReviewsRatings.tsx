@@ -98,7 +98,7 @@ const ReviewsRatings = ({
       if (error) throw error;
       setReviews(data || []);
     } catch (error: any) {
-      console.error('Error fetching reviews:', error);
+      // TODO: Replace with logger.error('Error fetching reviews:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les avis",
@@ -139,7 +139,7 @@ const ReviewsRatings = ({
       setNewRating(5);
       fetchReviews();
     } catch (error: any) {
-      console.error('Error submitting review:', error);
+      // TODO: Replace with logger.error('Error submitting review:', error);
       toast({
         title: "Erreur",
         description: "Impossible de publier l'avis",
@@ -173,7 +173,7 @@ const ReviewsRatings = ({
 
       fetchReviews();
     } catch (error: any) {
-      console.error('Error moderating review:', error);
+      // TODO: Replace with logger.error('Error moderating review:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modérer l'avis",
@@ -412,7 +412,7 @@ const ReviewsRatings = ({
                     <Button 
                       size="sm" 
                       onClick={() => moderateReview(review.id, 'approved')}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-medical-green hover:bg-medical-green-dark"
                     >
                       Approuver
                     </Button>

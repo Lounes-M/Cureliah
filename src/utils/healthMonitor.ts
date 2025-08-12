@@ -287,26 +287,26 @@ export class HealthMonitor {
         
         // Log critical issues
         if (health.overall === 'unhealthy') {
-          console.error('🚨 System health critical:', health);
+          // TODO: Replace with logger.error('🚨 System health critical:', health);
         } else if (health.overall === 'degraded') {
-          console.warn('⚠️ System health degraded:', health);
+          // TODO: Replace with logger.warn('⚠️ System health degraded:', health);
         }
 
         // Emit health check event
         window.dispatchEvent(new CustomEvent('healthCheck', { detail: health }));
       } catch (error) {
-        console.error('Health check failed:', error);
+        // TODO: Replace with logger.error('Health check failed:', error);
       }
     }, intervalMs);
 
-    console.log('🔍 Health monitoring started');
+    // TODO: Replace with logger.info('🔍 Health monitoring started');
   }
 
   stopMonitoring() {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      console.log('🔍 Health monitoring stopped');
+      // TODO: Replace with logger.info('🔍 Health monitoring stopped');
     }
   }
 

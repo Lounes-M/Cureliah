@@ -1,44 +1,44 @@
 import { supabase } from '@/integrations/supabase/client.browser';
 
 export const createTablesDirectly = async () => {
-  console.log('🚀 Tentative de création directe des tables...');
+  // TODO: Replace with logger.info('🚀 Tentative de création directe des tables...');
   
   // Comme exec_sql ne fonctionne pas, nous allons utiliser une approche différente
   // Nous allons créer les tables via l'API REST en utilisant des fonctions PostgreSQL
   
   try {
     // Test 1: Essayer de créer via rpc si la fonction existe
-    console.log('Test 1: Vérification fonction exec_sql...');
+    // TODO: Replace with logger.info('Test 1: Vérification fonction exec_sql...');
     const { error: testError } = await supabase.rpc('exec_sql', { 
       sql: 'SELECT 1 as test' 
     });
     
     if (!testError) {
-      console.log('✅ Fonction exec_sql disponible !');
+      // TODO: Replace with logger.info('✅ Fonction exec_sql disponible !');
       // Si exec_sql fonctionne, utilisons notre méthode originale
       return await createUrgentRequestsTables();
     }
     
-    console.log('❌ Fonction exec_sql non disponible:', testError.message);
+    // TODO: Replace with logger.info('❌ Fonction exec_sql non disponible:', testError.message);
     
     // Test 2: Créer les tables via l'API REST directement
-    console.log('Test 2: Tentative via API REST...');
+    // TODO: Replace with logger.info('Test 2: Tentative via API REST...');
     
     // Pour contourner le problème, nous allons créer un service mock temporaire
     // qui simule l'existence des tables
-    console.log('⚠️ Création d\'un service mock temporaire...');
+    // TODO: Replace with logger.info('⚠️ Création d\'un service mock temporaire...');
     
     // Retourner false pour indiquer qu'il faut utiliser le SQL manuel
     return false;
     
   } catch (error) {
-    console.error('💥 Erreur lors de la création:', error);
+    // TODO: Replace with logger.error('💥 Erreur lors de la création:', error);
     return false;
   }
 };
 
 export const createUrgentRequestsTables = async () => {
-  console.log('🚀 Création des tables de demandes urgentes...');
+  // TODO: Replace with logger.info('🚀 Création des tables de demandes urgentes...');
   
   try {
     // Créer la fonction exec_sql si elle n'existe pas
@@ -61,7 +61,7 @@ export const createUrgentRequestsTables = async () => {
     });
 
     if (funcError) {
-      console.log('⚠️ Fonction exec_sql existe déjà ou erreur:', funcError.message);
+      // TODO: Replace with logger.info('⚠️ Fonction exec_sql existe déjà ou erreur:', funcError.message);
     }
 
     // Créer les tables une par une
@@ -163,12 +163,12 @@ export const createUrgentRequestsTables = async () => {
         const { data, error } = await supabase.rpc('exec_sql', { sql: table.sql });
         
         if (error) {
-          console.error(`❌ Erreur création ${table.name}:`, error);
+          // TODO: Replace with logger.error(`❌ Erreur création ${table.name}:`, error);
         } else {
-          console.log(`✅ Table ${table.name} créée: ${data}`);
+          // TODO: Replace with logger.info(`✅ Table ${table.name} créée: ${data}`);
         }
       } catch (err) {
-        console.error(`❌ Exception création ${table.name}:`, err);
+        // TODO: Replace with logger.error(`❌ Exception création ${table.name}:`, err);
       }
     }
 
@@ -181,32 +181,32 @@ export const createUrgentRequestsTables = async () => {
     
     const { error: rlsError } = await supabase.rpc('exec_sql', { sql: rlsSql });
     if (rlsError) {
-      console.error('❌ Erreur RLS:', rlsError);
+      // TODO: Replace with logger.error('❌ Erreur RLS:', rlsError);
     } else {
-      console.log('✅ RLS activé');
+      // TODO: Replace with logger.info('✅ RLS activé');
     }
 
-    console.log('🎉 Initialisation terminée !');
+    // TODO: Replace with logger.info('🎉 Initialisation terminée !');
     return true;
   } catch (error) {
-    console.error('💥 Erreur fatale:', error);
+    // TODO: Replace with logger.error('💥 Erreur fatale:', error);
     return false;
   }
 };
 
 export const checkTablesExist = async () => {
   try {
-    console.log('🔍 Vérification de l\'existence des tables...');
+    // TODO: Replace with logger.info('🔍 Vérification de l\'existence des tables...');
     
     // Test simple pour voir si les tables existent
     const { error } = await supabase.from('urgent_requests').select('*', { count: 'exact', head: true });
     
-    console.log('✅ Test table urgent_requests:', error ? 'ÉCHEC' : 'SUCCÈS');
-    console.log('Détails erreur:', error);
+    // TODO: Replace with logger.info('✅ Test table urgent_requests:', error ? 'ÉCHEC' : 'SUCCÈS');
+    // TODO: Replace with logger.info('Détails erreur:', error);
     
     return !error;
   } catch (err) {
-    console.log('❌ Exception lors du test:', err);
+    // TODO: Replace with logger.info('❌ Exception lors du test:', err);
     return false;
   }
 };

@@ -129,7 +129,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
         fetchTimeSlots()
       ]);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      // TODO: Replace with logger.error('Error fetching data:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du calendrier",
@@ -312,7 +312,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
         availabilityGaps: availabilityGaps
       });
     } catch (error) {
-      console.error('Error generating smart suggestions:', error);
+      // TODO: Replace with logger.error('Error generating smart suggestions:', error);
     }
   };
 
@@ -374,7 +374,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
       });
       fetchData();
     } catch (error: any) {
-      console.error('Error creating event:', error);
+      // TODO: Replace with logger.error('Error creating event:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer l'événement",
@@ -399,7 +399,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
 
       fetchData();
     } catch (error: any) {
-      console.error('Error deleting event:', error);
+      // TODO: Replace with logger.error('Error deleting event:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de supprimer l'événement",

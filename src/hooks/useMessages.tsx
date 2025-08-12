@@ -89,7 +89,7 @@ export function useMessages(bookingId?: string) {
     if (!bookingId) return;
 
     try {
-      console.log('🔍 Fetching messages for booking:', bookingId);
+      // TODO: Replace with logger.info('🔍 Fetching messages for booking:', bookingId);
       
       // Requête simple sans jointures problématiques
       const { data: messagesData, error } = await supabase
@@ -99,11 +99,11 @@ export function useMessages(bookingId?: string) {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('❌ Error fetching messages:', error);
+        // TODO: Replace with logger.error('❌ Error fetching messages:', error);
         throw error;
       }
 
-      console.log('📨 Raw messages found:', messagesData?.length || 0);
+      // TODO: Replace with logger.info('📨 Raw messages found:', messagesData?.length || 0);
 
       // Si on a des messages, récupérer les profils séparément
       let messagesWithProfiles: MessageWithSender[] = [];
@@ -111,7 +111,7 @@ export function useMessages(bookingId?: string) {
       if (messagesData && messagesData.length > 0) {
         // Récupérer les IDs uniques des expéditeurs
         const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
-        console.log('👤 Fetching profiles for sender IDs:', senderIds);
+        // TODO: Replace with logger.info('👤 Fetching profiles for sender IDs:', senderIds);
         
         // Récupérer les profils des expéditeurs
         const { data: profiles, error: profilesError } = await supabase
@@ -120,10 +120,10 @@ export function useMessages(bookingId?: string) {
           .in('id', senderIds);
 
         if (profilesError) {
-          console.warn('⚠️ Error fetching profiles (continuing anyway):', profilesError);
+          // TODO: Replace with logger.warn('⚠️ Error fetching profiles (continuing anyway);:', profilesError);
         }
 
-        console.log('👥 Sender profiles found:', profiles?.length || 0);
+        // TODO: Replace with logger.info('👥 Sender profiles found:', profiles?.length || 0);
 
         // Combiner les messages avec les profils
         messagesWithProfiles = messagesData.map(message => {
@@ -141,7 +141,7 @@ export function useMessages(bookingId?: string) {
 
       setMessages(messagesWithProfiles);
     } catch (error: unknown) {
-      console.error('Error fetching messages:', error);
+      // TODO: Replace with logger.error('Error fetching messages:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les messages",
@@ -161,10 +161,10 @@ export function useMessages(bookingId?: string) {
     if (!bookingId || !user || !content.trim()) return false;
 
     try {
-      console.log('📤 Sending message...');
-      console.log('📋 Booking ID:', bookingId);
-      console.log('👤 Receiver ID:', receiverId);
-      console.log('✉️ Content:', content);
+      // TODO: Replace with logger.info('📤 Sending message...');
+      // TODO: Replace with logger.info('📋 Booking ID:', bookingId);
+      // TODO: Replace with logger.info('👤 Receiver ID:', receiverId);
+      // TODO: Replace with logger.info('✉️ Content:', content);
       
       // Vérifier d'abord que la réservation existe
       const { data: bookingExists, error: bookingError } = await supabase
@@ -174,7 +174,7 @@ export function useMessages(bookingId?: string) {
         .single();
 
       if (bookingError || !bookingExists) {
-        console.error('❌ Booking not found:', bookingId, bookingError);
+        // TODO: Replace with logger.error('❌ Booking not found:', bookingId, bookingError);
         toast({
           title: "Erreur",
           description: `La réservation ${bookingId} n'existe pas dans la base de données`,
@@ -183,7 +183,7 @@ export function useMessages(bookingId?: string) {
         return false;
       }
 
-      console.log('✅ Booking exists, proceeding with message insertion...');
+      // TODO: Replace with logger.info('✅ Booking exists, proceeding with message insertion...');
 
       const messageData: any = {
         booking_id: bookingId,
@@ -207,11 +207,11 @@ export function useMessages(bookingId?: string) {
         .single();
 
       if (error) {
-        console.error('❌ Error inserting message:', error);
+        // TODO: Replace with logger.error('❌ Error inserting message:', error);
         throw error;
       }
 
-      console.log('✅ Message inserted successfully:', data);
+      // TODO: Replace with logger.info('✅ Message inserted successfully:', data);
 
       // Récupérer le profil de l'expéditeur pour l'affichage immédiat
       const { data: senderProfile } = await supabase
@@ -232,10 +232,10 @@ export function useMessages(bookingId?: string) {
 
       setMessages(prev => [...prev, messageWithProfile]);
       
-      console.log('✅ Message sent and added to local state');
+      // TODO: Replace with logger.info('✅ Message sent and added to local state');
       return true;
     } catch (error: unknown) {
-      console.error('💥 Error sending message:', error);
+      // TODO: Replace with logger.error('💥 Error sending message:', error);
       let errorMessage = "Impossible d'envoyer le message";
       if (typeof error === 'object' && error !== null) {
         if ('code' in error && error.code === '23503') {
@@ -263,7 +263,7 @@ export function useMessages(bookingId?: string) {
         .eq('id', messageId);
 
       if (error) {
-        console.warn('⚠️ Error marking message as read:', error);
+        // TODO: Replace with logger.warn('⚠️ Error marking message as read:', error);
         return;
       }
 
@@ -276,7 +276,7 @@ export function useMessages(bookingId?: string) {
         )
       );
     } catch (error: unknown) {
-      console.warn('Error marking message as read:', error);
+      // TODO: Replace with logger.warn('Error marking message as read:', error);
     }
   };
 

@@ -127,7 +127,7 @@ export default function EstablishmentProfileForm({
         description: "Votre logo a été mis à jour avec succès",
       });
     } catch (error: any) {
-      console.error("Error uploading image:", error);
+      // TODO: Replace with logger.error("Error uploading image:", error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible de télécharger l'image. Veuillez réessayer.",
@@ -315,7 +315,7 @@ export default function EstablishmentProfileForm({
 
       onSuccess();
     } catch (error: any) {
-      console.error("Error saving establishment profile:", error);
+      // TODO: Replace with logger.error("Error saving establishment profile:", error);
       toast({
         title: "Erreur de sauvegarde",
         description:
@@ -866,7 +866,7 @@ export default function EstablishmentProfileForm({
                             emergency_services: e.target.checked,
                           }))
                         }
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-medical-blue rounded focus:ring-blue-500"
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -889,11 +889,11 @@ export default function EstablishmentProfileForm({
                             parking_available: e.target.checked,
                           }))
                         }
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-medical-blue rounded focus:ring-blue-500"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <Car className="w-5 h-5 text-blue-500" />
+                      <Car className="w-5 h-5 text-medical-blue-light" />
                       <Label htmlFor="parking_available" className="text-sm font-medium cursor-pointer">
                         Parking disponible
                       </Label>
@@ -912,11 +912,11 @@ export default function EstablishmentProfileForm({
                             wheelchair_accessible: e.target.checked,
                           }))
                         }
-                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-medical-blue rounded focus:ring-blue-500"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <Accessibility className="w-5 h-5 text-green-500" />
+                      <Accessibility className="w-5 h-5 text-medical-green-light" />
                       <Label htmlFor="wheelchair_accessible" className="text-sm font-medium cursor-pointer">
                         Accessible PMR
                       </Label>

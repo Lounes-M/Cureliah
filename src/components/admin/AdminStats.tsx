@@ -108,7 +108,7 @@ export default function AdminStats() {
         revenueGrowth
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      // TODO: Replace with logger.error('Error fetching stats:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",
@@ -194,11 +194,11 @@ export default function AdminStats() {
             {stat.growth !== undefined && (
               <div className="flex items-center text-xs">
                 {stat.growth >= 0 ? (
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  <TrendingUp className="h-4 w-4 text-medical-green-light mr-1" />
                 ) : (
                   <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
                 )}
-                <span className={stat.growth >= 0 ? "text-green-500" : "text-red-500"}>
+                <span className={stat.growth >= 0 ? "text-medical-green-light" : "text-red-500"}>
                   {Math.abs(stat.growth).toFixed(1)}%
                 </span>
                 <span className="text-muted-foreground ml-1">vs mois dernier</span>

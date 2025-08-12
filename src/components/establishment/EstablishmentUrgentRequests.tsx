@@ -82,7 +82,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
       // Vérifier si les tables existent, sinon les créer
       const tablesExist = await checkTablesExist();
       if (!tablesExist) {
-        console.log('🔧 Tables manquantes, initialisation...');
+        // TODO: Replace with logger.info('🔧 Tables manquantes, initialisation...');
         toast({
           title: "Initialisation",
           description: "Mise en place du système de demandes urgentes...",
@@ -109,7 +109,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
       setRequests(requestsData);
       setStats(statsData);
     } catch (error) {
-      console.error('Erreur lors du chargement des demandes:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des demandes:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les demandes urgentes",
@@ -250,7 +250,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Ouvertes</p>
-                <p className="text-2xl font-bold text-green-600">{stats.open_requests}</p>
+                <p className="text-2xl font-bold text-medical-green">{stats.open_requests}</p>
               </div>
               <Clock className="w-8 h-8 text-green-400" />
             </div>
@@ -262,7 +262,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Récentes (24h)</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.recent_requests}</p>
+                <p className="text-2xl font-bold text-medical-blue">{stats.recent_requests}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-blue-400" />
             </div>
@@ -347,7 +347,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold text-green-600">
+                    <div className="text-xl font-bold text-medical-green">
                       {request.hourly_rate}€/h
                     </div>
                     <div className="text-xs text-red-600 font-medium">
@@ -396,7 +396,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                     onClick={() => setSelectedRequest(request)}
                     size="sm"
                     variant={request.responses.length > 0 ? "default" : "outline"}
-                    className={request.responses.length > 0 ? "bg-blue-600 hover:bg-blue-700" : ""}
+                    className={request.responses.length > 0 ? "bg-medical-blue hover:bg-medical-blue-dark" : ""}
                   >
                     {request.responses.length > 0 ? (
                       <>
@@ -555,7 +555,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                                   </Button>
                                   <Button
                                     size="sm"
-                                    className="bg-green-600 hover:bg-green-700"
+                                    className="bg-medical-green hover:bg-medical-green-dark"
                                     onClick={() => handleResponseAction(response.id, 'accepted')}
                                     disabled={processingAction}
                                   >

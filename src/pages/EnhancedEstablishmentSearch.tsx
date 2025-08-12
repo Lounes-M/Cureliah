@@ -270,7 +270,7 @@ export default function EnhancedEstablishmentSearch() {
         hasMore: filteredData.length === pageSize
       };
     } catch (error) {
-      console.error('Error fetching vacations:', error);
+      // TODO: Replace with logger.error('Error fetching vacations:', error);
       throw error;
     }
   };
@@ -418,13 +418,13 @@ export default function EnhancedEstablishmentSearch() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             <Card className="bg-white/80 backdrop-blur border-0 shadow-sm">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{stats.totalVacations}</div>
+                <div className="text-2xl font-bold text-medical-blue">{stats.totalVacations}</div>
                 <div className="text-sm text-gray-600">Vacations</div>
               </CardContent>
             </Card>
             <Card className="bg-white/80 backdrop-blur border-0 shadow-sm">
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{Math.round(stats.avgPrice)}€</div>
+                <div className="text-2xl font-bold text-medical-green">{Math.round(stats.avgPrice)}€</div>
                 <div className="text-sm text-gray-600">Prix moyen/h</div>
               </CardContent>
             </Card>

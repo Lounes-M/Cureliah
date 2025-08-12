@@ -223,7 +223,7 @@ const StatsSection = () => {
     const colors = {
       blue: {
         bg: "bg-blue-50",
-        text: "text-blue-600",
+        text: "text-medical-blue",
         gradient: "from-blue-500 to-blue-600",
         border: "border-blue-200",
         ring: "ring-blue-500/20",
@@ -264,7 +264,7 @@ const StatsSection = () => {
       if (trend.startsWith("-") && !stat.description.includes("Réduction"))
         return "text-red-600";
       if (trend.startsWith("-")) return "text-emerald-600"; // Réduction positive
-      return "text-blue-600";
+      return "text-medical-blue";
     };
 
     return (

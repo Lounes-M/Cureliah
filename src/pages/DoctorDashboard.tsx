@@ -486,11 +486,11 @@ const DoctorDashboard = () => {
   const getActivityColor = (type: string) => {
     switch (type) {
       case "booking":
-        return "text-blue-600";
+        return "text-medical-blue";
       case "review":
         return "text-yellow-600";
       case "vacation_created":
-        return "text-green-600";
+        return "text-medical-green";
       case "vacation_updated":
         return "text-purple-600";
       default:
@@ -633,7 +633,7 @@ const DoctorDashboard = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate("/profile/complete")}
-                        className="h-auto p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-normal text-sm"
+                        className="h-auto p-1 text-medical-blue hover:text-blue-800 hover:bg-blue-50 font-normal text-sm"
                       >
                         <span className="flex items-center gap-1">
                           Spécialité pas encore ajoutée
@@ -787,7 +787,7 @@ const DoctorDashboard = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-blue-600 text-sm font-medium mb-1">
+                          <p className="text-medical-blue text-sm font-medium mb-1">
                             Vacations actives
                           </p>
                           <p className="text-2xl font-bold text-blue-900">
@@ -797,7 +797,7 @@ const DoctorDashboard = () => {
                             sur {dashboardStats?.totalVacations || 0} total
                           </p>
                         </div>
-                        <div className="bg-blue-600 p-3 rounded-xl">
+                        <div className="bg-medical-blue p-3 rounded-xl">
                           <Calendar className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -808,7 +808,7 @@ const DoctorDashboard = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-green-600 text-sm font-medium mb-1">
+                          <p className="text-medical-green text-sm font-medium mb-1">
                             Revenus du mois
                           </p>
                           <p className="text-2xl font-bold text-green-900">
@@ -819,7 +819,7 @@ const DoctorDashboard = () => {
                             {dashboardStats?.weeklyRevenue?.toFixed(0) || 0}€
                           </p>
                         </div>
-                        <div className="bg-green-600 p-3 rounded-xl">
+                        <div className="bg-medical-green p-3 rounded-xl">
                           <DollarSign className="w-6 h-6 text-white" />
                         </div>
                       </div>

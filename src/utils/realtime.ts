@@ -147,10 +147,10 @@ class RealtimeService {
       this.connectionState = 'connected';
       this.reconnectAttempts = 0;
       
-      console.log('Realtime service initialized successfully');
+      // TODO: Replace with logger.info('Realtime service initialized successfully');
       
     } catch (error) {
-      console.error('Failed to initialize realtime service:', error);
+      // TODO: Replace with logger.error('Failed to initialize realtime service:', error);
       this.connectionState = 'error';
       this.scheduleReconnect();
     }
@@ -293,7 +293,7 @@ class RealtimeService {
       try {
         callback(event);
       } catch (error) {
-        console.error('Error in realtime event callback:', error);
+        // TODO: Replace with logger.error('Error in realtime event callback:', error);
       }
     });
 
@@ -303,7 +303,7 @@ class RealtimeService {
         try {
           subscription.callback(event);
         } catch (error) {
-          console.error('Error in subscription callback:', error);
+          // TODO: Replace with logger.error('Error in subscription callback:', error);
         }
       }
     });
@@ -375,7 +375,7 @@ class RealtimeService {
         payload
       });
     } catch (error) {
-      console.error('Failed to send realtime message:', error);
+      // TODO: Replace with logger.error('Failed to send realtime message:', error);
     }
   }
 
@@ -393,7 +393,7 @@ class RealtimeService {
       // Simple ping to keep connection alive
       await this.sendMessage('heartbeat', 'ping', { timestamp: Date.now() });
     } catch (error) {
-      console.warn('Heartbeat failed:', error);
+      // TODO: Replace with logger.warn('Heartbeat failed:', error);
       this.connectionState = 'error';
       this.scheduleReconnect();
     }
@@ -401,7 +401,7 @@ class RealtimeService {
 
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('Max reconnection attempts reached');
+      // TODO: Replace with logger.error('Max reconnection attempts reached');
       return;
     }
 
@@ -409,7 +409,7 @@ class RealtimeService {
     
     setTimeout(() => {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+      // TODO: Replace with logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts});`);
       this.initialize();
     }, delay);
   }

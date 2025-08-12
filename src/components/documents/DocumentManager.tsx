@@ -70,7 +70,7 @@ const DocumentManager: React.FC = () => {
       if (error) throw error;
       setDocuments(data || []);
     } catch (error: any) {
-      console.error('Error fetching documents:', error);
+      // TODO: Replace with logger.error('Error fetching documents:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de charger les documents",
@@ -164,7 +164,7 @@ const DocumentManager: React.FC = () => {
       setSelectedFile(null);
       setUploadCategory('other');
     } catch (error: any) {
-      console.error('Error uploading document:', error);
+      // TODO: Replace with logger.error('Error uploading document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors du téléversement du document",
@@ -204,7 +204,7 @@ const DocumentManager: React.FC = () => {
 
       fetchDocuments();
     } catch (error: any) {
-      console.error('Error deleting document:', error);
+      // TODO: Replace with logger.error('Error deleting document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors de la suppression du document",
@@ -233,7 +233,7 @@ const DocumentManager: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      console.error('Error downloading document:', error);
+      // TODO: Replace with logger.error('Error downloading document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors du téléchargement du document",

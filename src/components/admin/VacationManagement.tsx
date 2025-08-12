@@ -84,7 +84,7 @@ export default function VacationManagement() {
 
       setVacations(data || []);
     } catch (error) {
-      console.error('Error fetching vacations:', error);
+      // TODO: Replace with logger.error('Error fetching vacations:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les vacations",
@@ -110,7 +110,7 @@ export default function VacationManagement() {
         name: `${doctor.first_name} ${doctor.last_name}`
       })));
     } catch (error) {
-      console.error('Error fetching doctors:', error);
+      // TODO: Replace with logger.error('Error fetching doctors:', error);
     }
   };
 
@@ -129,7 +129,7 @@ export default function VacationManagement() {
         name: establishment.name
       })));
     } catch (error) {
-      console.error('Error fetching establishments:', error);
+      // TODO: Replace with logger.error('Error fetching establishments:', error);
     }
   };
 
@@ -151,7 +151,7 @@ export default function VacationManagement() {
         description: "Statut de la vacation mis à jour",
       });
     } catch (error) {
-      console.error('Error updating vacation status:', error);
+      // TODO: Replace with logger.error('Error updating vacation status:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
@@ -194,7 +194,7 @@ export default function VacationManagement() {
         description: "Vacation ajoutée avec succès",
       });
     } catch (error) {
-      console.error('Error adding vacation:', error);
+      // TODO: Replace with logger.error('Error adding vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter la vacation",

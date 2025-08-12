@@ -57,8 +57,8 @@ const BookingTimeline = ({ currentStatus, createdAt, updatedAt, userType }: Book
 
   const getStepColor = (status: 'completed' | 'current' | 'pending' | 'cancelled') => {
     switch (status) {
-      case 'completed': return 'bg-green-500';
-      case 'current': return 'bg-blue-500';
+      case 'completed': return 'bg-medical-green-light';
+      case 'current': return 'bg-medical-blue-light';
       case 'cancelled': return 'bg-red-500';
       default: return 'bg-gray-300';
     }

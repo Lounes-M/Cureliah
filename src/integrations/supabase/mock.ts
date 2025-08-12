@@ -1,7 +1,7 @@
 // Mock Supabase service for development when no real Supabase instance is available
 export const mockSupabaseAuth = {
   signInWithPassword: async (credentials: any) => {
-    console.log('🎭 Mock sign in:', credentials.email);
+    // TODO: Replace with logger.info('🎭 Mock sign in:', credentials.email);
     return {
       data: {
         user: {
@@ -20,7 +20,7 @@ export const mockSupabaseAuth = {
   },
 
   signUp: async (credentials: any) => {
-    console.log('🎭 Mock sign up:', credentials.email);
+    // TODO: Replace with logger.info('🎭 Mock sign up:', credentials.email);
     return {
       data: {
         user: {
@@ -35,17 +35,17 @@ export const mockSupabaseAuth = {
   },
 
   signOut: async () => {
-    console.log('🎭 Mock sign out');
+    // TODO: Replace with logger.info('🎭 Mock sign out');
     return { error: null };
   },
 
   resetPasswordForEmail: async (email: string) => {
-    console.log('🎭 Mock password reset for:', email);
+    // TODO: Replace with logger.info('🎭 Mock password reset for:', email);
     return { error: null };
   },
 
   signInWithOAuth: async (options: any) => {
-    console.log('🎭 Mock OAuth sign in:', options.provider);
+    // TODO: Replace with logger.info('🎭 Mock OAuth sign in:', options.provider);
     // Simulate OAuth redirect
     setTimeout(() => {
       window.location.href = options.options?.redirectTo || '/auth/callback';
@@ -63,7 +63,7 @@ export const mockSupabaseAuth = {
     return {
       data: {
         subscription: {
-          unsubscribe: () => console.log('🎭 Mock auth state unsubscribed')
+          unsubscribe: () => // TODO: Replace with logger.info('🎭 Mock auth state unsubscribed');
         }
       }
     };
@@ -86,7 +86,7 @@ export const mockSupabaseFrom = (table: string) => ({
   insert: (data: any) => ({
     select: () => Promise.resolve({ data: [data], error: null }),
     then: (resolve: any) => {
-      console.log(`🎭 Mock insert into ${table}:`, data);
+      // TODO: Replace with logger.info(`🎭 Mock insert into ${table}:`, data);
       resolve({ data: [{ ...data, id: 'mock-id' }], error: null });
     }
   }),
@@ -94,7 +94,7 @@ export const mockSupabaseFrom = (table: string) => ({
     eq: (column: string, value: any) => ({
       select: () => Promise.resolve({ data: [data], error: null }),
       then: (resolve: any) => {
-        console.log(`🎭 Mock update ${table}:`, data);
+        // TODO: Replace with logger.info(`🎭 Mock update ${table}:`, data);
         resolve({ data: [data], error: null });
       }
     })
@@ -109,7 +109,7 @@ export const createMockSupabase = () => ({
   from: mockSupabaseFrom,
   functions: {
     invoke: async (name: string, options?: any) => {
-      console.log(`🎭 Mock function call: ${name}`, options);
+      // TODO: Replace with logger.info(`🎭 Mock function call: ${name}`, options);
       return { data: { status: 'success' }, error: null };
     }
   }

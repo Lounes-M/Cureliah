@@ -88,7 +88,7 @@ export default function DocumentManagement() {
       if (error) throw error;
       setDocuments(data || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      // TODO: Replace with logger.error('Error fetching documents:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les documents",
@@ -114,7 +114,7 @@ export default function DocumentManagement() {
         type: user.user_type
       })));
     } catch (error) {
-      console.error('Error fetching users:', error);
+      // TODO: Replace with logger.error('Error fetching users:', error);
     }
   };
 
@@ -167,7 +167,7 @@ export default function DocumentManagement() {
         description: "Document ajouté avec succès",
       });
     } catch (error) {
-      console.error('Error uploading document:', error);
+      // TODO: Replace with logger.error('Error uploading document:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le document",
@@ -193,7 +193,7 @@ export default function DocumentManagement() {
       window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading document:', error);
+      // TODO: Replace with logger.error('Error downloading document:', error);
       toast({
         title: "Erreur",
         description: "Impossible de télécharger le document",
@@ -225,7 +225,7 @@ export default function DocumentManagement() {
         description: "Document supprimé avec succès",
       });
     } catch (error) {
-      console.error('Error deleting document:', error);
+      // TODO: Replace with logger.error('Error deleting document:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le document",

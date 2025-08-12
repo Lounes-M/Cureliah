@@ -8,7 +8,7 @@ interface LoadingFallbackProps {
 const LoadingFallback = ({ message = "Chargement..." }: LoadingFallbackProps) => (
   <div className="flex items-center justify-center min-h-[400px] w-full">
     <div className="flex flex-col items-center space-y-4">
-      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <Loader2 className="h-8 w-8 animate-spin text-medical-blue" />
       <p className="text-sm text-gray-600">{message}</p>
     </div>
   </div>

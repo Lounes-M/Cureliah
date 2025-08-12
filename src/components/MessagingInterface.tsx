@@ -121,7 +121,7 @@ const MessagingInterface = ({
         });
       }
     } catch (error: any) {
-      console.error('File upload error:', error);
+      // TODO: Replace with logger.error('File upload error:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer le fichier",
@@ -147,7 +147,7 @@ const MessagingInterface = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-medical-blue"></div>
         <span className="ml-2">Chargement des messages...</span>
       </div>
     );
@@ -158,9 +158,9 @@ const MessagingInterface = ({
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center space-x-2 text-lg">
           {receiverType === 'doctor' ? (
-            <User className="w-5 h-5 text-blue-600" />
+            <User className="w-5 h-5 text-medical-blue" />
           ) : (
-            <Building2 className="w-5 h-5 text-green-600" />
+            <Building2 className="w-5 h-5 text-medical-green" />
           )}
           <span>Conversation avec {receiverName}</span>
           <Badge variant="outline">
@@ -189,7 +189,7 @@ const MessagingInterface = ({
                 <div
                   className={`max-w-[70%] rounded-lg p-3 ${
                     message.sender_id === user?.id
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-medical-blue text-white'
                       : 'bg-gray-100 text-gray-900'
                   }`}
                 >
@@ -219,7 +219,7 @@ const MessagingInterface = ({
                           rel="noopener noreferrer"
                           className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg ${
                             message.sender_id === user?.id
-                              ? 'bg-blue-500 hover:bg-blue-400'
+                              ? 'bg-medical-blue-light hover:bg-blue-400'
                               : 'bg-gray-200 hover:bg-gray-300'
                           }`}
                         >

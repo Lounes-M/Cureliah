@@ -163,7 +163,7 @@ const UrgencySection = () => {
   }, [isVisible]);
 
   const handleDoctorSignup = () => {
-    console.log("Navigation vers inscription médecin avec offre spéciale");
+    // TODO: Replace with logger.info("Navigation vers inscription médecin avec offre spéciale");
     // Simulation de navigation avec paramètres d'offre
     window.location.href = "/auth?type=doctor&offer=early-bird";
   };
@@ -422,7 +422,7 @@ const UrgencySection = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-emerald-400 rounded-3xl blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
             <button
               onClick={handleEstablishmentSignup}
-              className="relative bg-white text-blue-600 px-12 py-6 rounded-3xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 group"
+              className="relative bg-white text-medical-blue px-12 py-6 rounded-3xl font-bold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-2 transition-all duration-300 group"
             >
               <div className="flex items-center gap-4">
                 <Building2 className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -430,13 +430,13 @@ const UrgencySection = () => {
                   <div className="text-xl font-bold">
                     Je suis un établissement
                   </div>
-                  <div className="text-sm text-blue-500">Accès privilégié</div>
+                  <div className="text-sm text-medical-blue-light">Accès privilégié</div>
                 </div>
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
               </div>
 
               {/* Badge de réduction */}
-              <div className="absolute -top-3 -right-3 bg-blue-500 text-white rounded-full px-3 py-1 text-xs font-bold animate-pulse">
+              <div className="absolute -top-3 -right-3 bg-medical-blue-light text-white rounded-full px-3 py-1 text-xs font-bold animate-pulse">
                 -30%
               </div>
             </button>

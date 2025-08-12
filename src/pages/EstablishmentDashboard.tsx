@@ -944,9 +944,9 @@ const EstablishmentDashboard = () => {
   const getActivityColor = (type: string) => {
     switch (type) {
       case "booking_created":
-        return "text-blue-600";
+        return "text-medical-blue";
       case "booking_confirmed":
-        return "text-green-600";
+        return "text-medical-green";
       case "booking_completed":
         return "text-purple-600";
       case "review_given":
@@ -1173,7 +1173,7 @@ const EstablishmentDashboard = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-blue-600 text-sm font-medium mb-1">
+                          <p className="text-medical-blue text-sm font-medium mb-1">
                             Réservations actives
                           </p>
                           <p className="text-2xl font-bold text-blue-900">
@@ -1183,7 +1183,7 @@ const EstablishmentDashboard = () => {
                             {establishmentStats?.upcomingBookings || 0} à venir
                           </p>
                         </div>
-                        <div className="bg-blue-600 p-3 rounded-xl">
+                        <div className="bg-medical-blue p-3 rounded-xl">
                           <Calendar className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -1194,7 +1194,7 @@ const EstablishmentDashboard = () => {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-green-600 text-sm font-medium mb-1">
+                          <p className="text-medical-green text-sm font-medium mb-1">
                             Dépenses du mois
                           </p>
                           <p className="text-2xl font-bold text-green-900">
@@ -1205,7 +1205,7 @@ const EstablishmentDashboard = () => {
                             {establishmentStats?.totalSpent?.toFixed(0) || 0}€
                           </p>
                         </div>
-                        <div className="bg-green-600 p-3 rounded-xl">
+                        <div className="bg-medical-green p-3 rounded-xl">
                           <DollarSign className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -1499,7 +1499,7 @@ const EstablishmentDashboard = () => {
                               </div>
                             </div>
                             {doctor.hourly_rate && (
-                              <div className="mt-2 text-sm font-medium text-green-600">
+                              <div className="mt-2 text-sm font-medium text-medical-green">
                                 {doctor.hourly_rate}€/h
                               </div>
                             )}
@@ -1609,7 +1609,7 @@ const EstablishmentDashboard = () => {
                                   <span className="text-sm text-gray-600">
                                     Tarif horaire :
                                   </span>
-                                  <span className="font-medium text-green-600">
+                                  <span className="font-medium text-medical-green">
                                     {doctor.hourly_rate}€/h
                                   </span>
                                 </div>
@@ -1789,14 +1789,14 @@ const EstablishmentDashboard = () => {
                         
                         {vacation.vacation_posts.doctor_profiles.license_number && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <FileText className="w-4 h-4 text-blue-500" />
+                            <FileText className="w-4 h-4 text-medical-blue-light" />
                             <span>N° licence: {vacation.vacation_posts.doctor_profiles.license_number}</span>
                           </div>
                         )}
                         
                         {vacation.vacation_posts.doctor_profiles.languages && vacation.vacation_posts.doctor_profiles.languages.length > 0 && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <MessageSquare className="w-4 h-4 text-green-500" />
+                            <MessageSquare className="w-4 h-4 text-medical-green-light" />
                             <span>Langues: {vacation.vacation_posts.doctor_profiles.languages.join(', ')}</span>
                           </div>
                         )}
@@ -1826,7 +1826,7 @@ const EstablishmentDashboard = () => {
                   <div className="space-y-4">
                     <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-3 mb-2">
-                        <Stethoscope className="w-5 h-5 text-blue-500" />
+                        <Stethoscope className="w-5 h-5 text-medical-blue-light" />
                         <span className="font-semibold text-gray-700">Spécialité</span>
                       </div>
                       <p className="text-gray-800 font-medium">
@@ -1869,7 +1869,7 @@ const EstablishmentDashboard = () => {
                     
                     <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-3 mb-2">
-                        <Clock className="w-5 h-5 text-blue-500" />
+                        <Clock className="w-5 h-5 text-medical-blue-light" />
                         <span className="font-semibold text-gray-700">Durée</span>
                       </div>
                       <p className="text-gray-800 font-medium">

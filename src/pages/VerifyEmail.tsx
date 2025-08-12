@@ -227,7 +227,7 @@ const VerifyEmail = () => {
       return (
         <div className="text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            <Loader2 className="w-8 h-8 text-medical-blue animate-spin" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Vérification en cours...
@@ -244,7 +244,7 @@ const VerifyEmail = () => {
       return (
         <div className="text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-600" />
+            <CheckCircle className="w-8 h-8 text-medical-green" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Email vérifié avec succès !
@@ -272,7 +272,7 @@ const VerifyEmail = () => {
       return (
         <div className="text-center">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-blue-600" />
+            <CheckCircle className="w-8 h-8 text-medical-blue" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Email déjà vérifié
@@ -358,7 +358,7 @@ const VerifyEmail = () => {
 
         <div className="bg-blue-50 rounded-xl p-4 mb-6">
           <div className="flex items-start">
-            <Mail className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+            <Mail className="w-5 h-5 text-medical-blue mt-0.5 mr-3 flex-shrink-0" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Vous ne trouvez pas l'email ?</p>
               <ul className="space-y-1 text-blue-700">
@@ -423,7 +423,7 @@ const VerifyEmail = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">C</span>
+                  <span className="text-medical-blue font-bold">C</span>
                 </div>
                 <span className="text-xl font-bold text-white">Cureliah</span>
               </div>

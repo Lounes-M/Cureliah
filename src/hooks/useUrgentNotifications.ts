@@ -78,7 +78,7 @@ export const useUrgentNotifications = (
       setUnreadCount(unreadCountData);
 
     } catch (error: any) {
-      console.error('Erreur lors du chargement des notifications:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des notifications:', error);
       setError(error.message || 'Erreur lors du chargement des notifications');
     } finally {
       setLoading(false);
@@ -133,7 +133,7 @@ export const useUrgentNotifications = (
       
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error: any) {
-      console.error('Erreur lors du marquage comme lue:', error);
+      // TODO: Replace with logger.error('Erreur lors du marquage comme lue:', error);
     }
   }, []);
 
@@ -148,7 +148,7 @@ export const useUrgentNotifications = (
       
       setUnreadCount(0);
     } catch (error: any) {
-      console.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
+      // TODO: Replace with logger.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
     }
   }, [userId, userType]);
 
@@ -165,7 +165,7 @@ export const useUrgentNotifications = (
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error: any) {
-      console.error('Erreur lors de la suppression de la notification:', error);
+      // TODO: Replace with logger.error('Erreur lors de la suppression de la notification:', error);
     }
   }, [notifications]);
 

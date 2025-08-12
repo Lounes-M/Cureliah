@@ -106,7 +106,7 @@ export default function Reports() {
         revenueGrowth
       });
     } catch (error: any) {
-      console.error('Error fetching report data:', error);
+      // TODO: Replace with logger.error('Error fetching report data:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du rapport",
@@ -123,7 +123,7 @@ export default function Reports() {
       value: reportData.totalUsers,
       growth: reportData.userGrowth,
       icon: Users,
-      color: "text-blue-500",
+      color: "text-medical-blue-light",
       bgColor: "bg-blue-100"
     },
     {
@@ -131,7 +131,7 @@ export default function Reports() {
       value: reportData.totalEstablishments,
       growth: reportData.establishmentGrowth,
       icon: Building2,
-      color: "text-green-500",
+      color: "text-medical-green-light",
       bgColor: "bg-green-100"
     },
     {
@@ -221,7 +221,7 @@ export default function Reports() {
                       <p className="text-2xl font-bold">{stat.value}</p>
                       {stat.growth && (
                         <span className={`ml-2 text-sm ${
-                          stat.growth > 0 ? 'text-green-500' : 'text-red-500'
+                          stat.growth > 0 ? 'text-medical-green-light' : 'text-red-500'
                         }`}>
                           {stat.growth > 0 ? '+' : ''}{stat.growth}%
                         </span>

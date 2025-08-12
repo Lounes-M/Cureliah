@@ -99,7 +99,7 @@ const EstablishmentProfile = () => {
         });
       }
     } catch (error: any) {
-      console.error('Error fetching establishment profile:', error);
+      // TODO: Replace with logger.error('Error fetching establishment profile:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger le profil",
@@ -133,7 +133,7 @@ const EstablishmentProfile = () => {
 
       setStats(stats);
     } catch (error: any) {
-      console.error('Error fetching stats:', error);
+      // TODO: Replace with logger.error('Error fetching stats:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -163,7 +163,7 @@ const EstablishmentProfile = () => {
 
       await fetchEstablishmentProfile();
     } catch (error: any) {
-      console.error('Error saving profile:', error);
+      // TODO: Replace with logger.error('Error saving profile:', error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder le profil",
@@ -239,7 +239,7 @@ const EstablishmentProfile = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  <TrendingUp className="w-5 h-5 text-medical-green" />
                   <div>
                     <p className="text-sm text-gray-600">Terminées</p>
                     <p className="text-2xl font-bold">{stats.completedBookings}</p>

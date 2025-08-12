@@ -413,7 +413,7 @@ export class UrgentRequestService {
   // Notifier les médecins qualifiés
   private static async notifyQualifiedDoctors(request: UrgentRequest): Promise<void> {
     // Logique de notification sera implémentée avec le système de notifications temps réel
-    console.log(`Notification envoyée pour la demande ${request.id}`);
+    // TODO: Replace with logger.info(`Notification envoyée pour la demande ${request.id}`);
   }
 
   // Notifier l'établissement d'une nouvelle réponse

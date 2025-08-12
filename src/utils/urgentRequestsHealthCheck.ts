@@ -68,7 +68,7 @@ const checkSystemHealth = async (): Promise<SystemHealthCheck> => {
     results.integration = results.services && results.components && results.hooks && results.types;
 
   } catch (error) {
-    console.error('❌ Erreur lors de la vérification du système:', error);
+    // TODO: Replace with logger.error('❌ Erreur lors de la vérification du système:', error);
   }
 
   return results;
@@ -106,30 +106,30 @@ export const testNotificationTypes = (): boolean => {
 
 // Fonction principale de vérification
 export const runSystemHealthCheck = async (): Promise<void> => {
-  console.log('🔍 VÉRIFICATION DU SYSTÈME DE DEMANDES URGENTES');
-  console.log('================================================');
+  // TODO: Replace with logger.info('🔍 VÉRIFICATION DU SYSTÈME DE DEMANDES URGENTES');
+  // TODO: Replace with logger.info('================================================');
   
   const health = await checkSystemHealth();
   
-  console.log('📊 Résultats de la vérification:');
-  console.log(`✅ Services: ${health.services ? 'OK' : '❌ ERREUR'}`);
-  console.log(`✅ Composants: ${health.components ? 'OK' : '❌ ERREUR'}`);
-  console.log(`✅ Hooks: ${health.hooks ? 'OK' : '❌ ERREUR'}`);
-  console.log(`✅ Types: ${health.types ? 'OK' : '❌ ERREUR'}`);
-  console.log(`✅ Intégration: ${health.integration ? 'OK' : '❌ ERREUR'}`);
+  // TODO: Replace with logger.info('📊 Résultats de la vérification:');
+  // TODO: Replace with logger.info(`✅ Services: ${health.services ? 'OK' : '❌ ERREUR'}`);
+  // TODO: Replace with logger.info(`✅ Composants: ${health.components ? 'OK' : '❌ ERREUR'}`);
+  // TODO: Replace with logger.info(`✅ Hooks: ${health.hooks ? 'OK' : '❌ ERREUR'}`);
+  // TODO: Replace with logger.info(`✅ Types: ${health.types ? 'OK' : '❌ ERREUR'}`);
+  // TODO: Replace with logger.info(`✅ Intégration: ${health.integration ? 'OK' : '❌ ERREUR'}`);
   
   const allOk = Object.values(health).every(Boolean);
   
   if (allOk) {
-    console.log('\n🎉 SYSTÈME ENTIÈREMENT FONCTIONNEL !');
-    console.log('✅ Tous les composants sont prêts pour le déploiement');
-    console.log('✅ Architecture complète implémentée');
-    console.log('✅ Notifications temps réel configurées');
-    console.log('✅ Interface utilisateur complète');
-    console.log('✅ Services backend intégrés');
+    // TODO: Replace with logger.info('\n🎉 SYSTÈME ENTIÈREMENT FONCTIONNEL !');
+    // TODO: Replace with logger.info('✅ Tous les composants sont prêts pour le déploiement');
+    // TODO: Replace with logger.info('✅ Architecture complète implémentée');
+    // TODO: Replace with logger.info('✅ Notifications temps réel configurées');
+    // TODO: Replace with logger.info('✅ Interface utilisateur complète');
+    // TODO: Replace with logger.info('✅ Services backend intégrés');
   } else {
-    console.log('\n⚠️ PROBLÈMES DÉTECTÉS');
-    console.log('Veuillez vérifier les erreurs ci-dessus');
+    // TODO: Replace with logger.info('\n⚠️ PROBLÈMES DÉTECTÉS');
+    // TODO: Replace with logger.info('Veuillez vérifier les erreurs ci-dessus');
   }
   
   return Promise.resolve();

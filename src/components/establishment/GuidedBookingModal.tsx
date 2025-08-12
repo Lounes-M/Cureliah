@@ -229,7 +229,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
       resetModal();
 
     } catch (error) {
-      console.error('Error submitting booking:', error);
+      // TODO: Replace with logger.error('Error submitting booking:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande. Veuillez réessayer.",
@@ -293,13 +293,13 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
               <div
                 key={step.id}
                 className={`flex flex-col items-center text-xs ${
-                  step.id <= currentStep ? 'text-blue-600' : 'text-gray-400'
+                  step.id <= currentStep ? 'text-medical-blue' : 'text-gray-400'
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${
                     step.id <= currentStep
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-medical-blue text-white'
                       : 'bg-gray-200 text-gray-400'
                   }`}
                 >
@@ -357,7 +357,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
                     </div>
 
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-green-600">
+                      <div className="text-3xl font-bold text-medical-green">
                         {vacation.hourly_rate}€/h
                       </div>
                     </div>
@@ -441,7 +441,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-semibold text-green-800">Estimation du coût</h4>
-                      <p className="text-sm text-green-600">
+                      <p className="text-sm text-medical-green">
                         {vacation.hourly_rate}€/h × {bookingData.duration_hours}h
                       </p>
                     </div>
@@ -544,7 +544,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="p-6">
                   <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    <CheckCircle2 className="w-5 h-5 text-medical-green" />
                     Récapitulatif de votre demande
                   </h3>
                   
@@ -577,7 +577,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
                     
                     <div>
                       <h4 className="font-semibold mb-2">Coût estimé</h4>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-medical-green">
                         {(vacation.hourly_rate * bookingData.duration_hours).toFixed(2)}€
                       </p>
                     </div>
@@ -626,7 +626,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
           {currentStep < STEPS.length ? (
             <Button
               onClick={nextStep}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              className="flex items-center gap-2 bg-medical-blue hover:bg-medical-blue-dark"
             >
               Suivant
               <ChevronRight className="w-4 h-4" />
@@ -635,7 +635,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
             <Button
               onClick={submitBooking}
               disabled={loading}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              className="flex items-center gap-2 bg-medical-green hover:bg-medical-green-dark"
             >
               {loading ? (
                 <>

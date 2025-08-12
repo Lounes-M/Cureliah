@@ -163,9 +163,9 @@ const HeroSection = () => {
 
     const variants = {
       default:
-        "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl focus:ring-blue-500",
+        "bg-medical-blue hover:bg-medical-blue-dark text-white shadow-lg hover:shadow-xl focus:ring-blue-500",
       outline:
-        "border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-600 hover:text-white shadow-lg hover:shadow-xl focus:ring-emerald-500",
+        "border-2 border-emerald-600 text-emerald-600 hover:bg-medical-green hover:text-white shadow-lg hover:shadow-xl focus:ring-emerald-500",
     };
 
     const sizes = {
@@ -244,7 +244,7 @@ const HeroSection = () => {
                 <span className="text-sm sm:text-base text-gray-700">Validation 24h</span>
               </div>
               <div className="flex items-center justify-center lg:justify-start">
-                <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600 mr-2 flex-shrink-0" />
+                <Shield className="w-4 sm:w-5 h-4 sm:h-5 text-medical-blue mr-2 flex-shrink-0" />
                 <span className="text-sm sm:text-base text-gray-700">100% sécurisé</span>
               </div>
               <div className="flex items-center justify-center lg:justify-start">
@@ -315,7 +315,7 @@ const HeroSection = () => {
             <div className="grid grid-cols-2 gap-3 sm:gap-6 pt-6 sm:pt-8 border-t border-gray-200">
               <div className="text-center lg:text-left group">
                 <div className="flex items-center justify-center lg:justify-start space-x-1 sm:space-x-2 mb-1 sm:mb-2">
-                  <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+                  <Calendar className="w-4 sm:w-5 h-4 sm:h-5 text-medical-blue group-hover:scale-110 transition-transform" />
                   <span className="text-lg sm:text-2xl font-bold text-gray-900 tabular-nums">
                     {currentStats.doctors}+
                   </span>
@@ -350,11 +350,11 @@ const HeroSection = () => {
                 {/* En-tête du calendrier - Mobile responsive */}
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm sm:text-lg font-semibold text-gray-900 flex items-center">
-                    <Calendar className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2 text-blue-600" />
+                    <Calendar className="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2 text-medical-blue" />
                     Disponibilités
                   </h3>
                   <div className="flex items-center">
-                    <span className="text-xs sm:text-sm text-blue-600 font-medium mr-2">
+                    <span className="text-xs sm:text-sm text-medical-blue font-medium mr-2">
                       Nov 2024
                     </span>
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -375,15 +375,24 @@ const HeroSection = () => {
                         item.isAvailable
                           ? `${
                               item.urgent
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-emerald-500 hover:bg-emerald-600"
-                            } text-white font-medium transform hover:scale-110 shadow-lg`
+                                ? "bg-red-500 hover:bg-red-600 focus:bg-red-600"
+                                : "bg-emerald-500 hover:bg-medical-green focus:bg-medical-green"
+                            } text-white font-medium transform hover:scale-110 focus:scale-110 shadow-lg focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent`
                           : item.day
-                          ? "text-gray-700 hover:bg-gray-100"
+                          ? "text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-300"
                           : ""
                       }`}
                       onMouseEnter={() => item.isAvailable && setHoveredDay(i)}
                       onMouseLeave={() => setHoveredDay(null)}
+                      onFocus={() => item.isAvailable && setHoveredDay(i)}
+                      onBlur={() => setHoveredDay(null)}
+                      onKeyDown={(e) => {
+                        if (item.isAvailable && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          // Simulate booking action or navigate to booking
+                          // TODO: Replace with actual booking navigation
+                        }
+                      }}
                       role={item.isAvailable ? "button" : undefined}
                       tabIndex={item.isAvailable ? 0 : -1}
                       aria-label={
@@ -434,7 +443,7 @@ const HeroSection = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-blue-600 font-bold text-xs sm:text-sm">
+                      <div className="text-medical-blue font-bold text-xs sm:text-sm">
                         120€/vacation
                       </div>
                       <div className="flex items-center text-xs text-gray-500">

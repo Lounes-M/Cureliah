@@ -287,7 +287,7 @@ const FAQSection = () => {
                       <Icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 text-sm leading-tight group-hover:text-blue-600 transition-colors">
+                      <p className="font-medium text-gray-900 text-sm leading-tight group-hover:text-medical-blue transition-colors">
                         {faq.question}
                       </p>
                     </div>
@@ -367,7 +367,7 @@ const FAQSection = () => {
               {categories.length > 4 && (
                 <button
                   onClick={() => setShowAllCategories(!showAllCategories)}
-                  className="flex items-center px-3 py-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                  className="flex items-center px-3 py-2 text-sm text-medical-blue hover:text-medical-blue-dark transition-colors"
                 >
                   {showAllCategories ? "Moins" : "Plus"}
                   <ChevronDown
@@ -514,7 +514,7 @@ const FAQSection = () => {
               </p>
               <button
                 onClick={clearSearch}
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="text-medical-blue hover:text-medical-blue-dark font-medium transition-colors"
               >
                 Effacer les filtres
               </button>
@@ -550,7 +550,7 @@ const FAQSection = () => {
                   </p>
                   <button 
                     onClick={handleContactChat}
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    className="bg-white text-medical-blue px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     Démarrer
                   </button>
@@ -564,7 +564,7 @@ const FAQSection = () => {
                   </p>
                   <button 
                     onClick={handleContactEmail}
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    className="bg-white text-medical-blue px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     Écrire
                   </button>
@@ -578,7 +578,7 @@ const FAQSection = () => {
                   </p>
                   <button 
                     onClick={handleContactPhone}
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                    className="bg-white text-medical-blue px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     Appeler
                   </button>

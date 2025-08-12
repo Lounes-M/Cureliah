@@ -22,8 +22,8 @@ export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: Establ
   const { user } = useAuth();
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
 
-  console.log('Vacation data:', vacation);
-  console.log('Doctor info:', vacation.doctor_info);
+  // TODO: Replace with logger.info('Vacation data:', vacation);
+  // TODO: Replace with logger.info('Doctor info:', vacation.doctor_info);
 
   const formatTimeSlots = (timeSlots: TimeSlot[]) => {
     if (!timeSlots || timeSlots.length === 0) return '';
@@ -178,7 +178,7 @@ export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: Establ
                       description: "Une réservation de test a été créée avec succès.",
                     });
                   } catch (error: any) {
-                    console.error('Error creating test booking:', error);
+                    // TODO: Replace with logger.error('Error creating test booking:', error);
                     toast({
                       title: "Erreur",
                       description: error.message || "Une erreur est survenue",

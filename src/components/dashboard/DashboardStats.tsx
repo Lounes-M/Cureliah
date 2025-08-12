@@ -102,7 +102,7 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
         unreadMessages: unreadMessages?.length || 0
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      // TODO: Replace with logger.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }
@@ -113,14 +113,14 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
       title: 'Réservations totales',
       value: stats.totalBookings,
       icon: Calendar,
-      color: 'text-blue-600',
+      color: 'text-medical-blue',
       bgColor: 'bg-blue-100'
     },
     {
       title: 'Réservations terminées',
       value: stats.completedBookings,
       icon: CheckCircle,
-      color: 'text-green-600',
+      color: 'text-medical-green',
       bgColor: 'bg-green-100'
     },
     {

@@ -308,7 +308,7 @@ const TestimonialSection = () => {
                     >
                       <Play
                         className={`w-4 h-4 ${
-                          isPlaying ? "text-green-600" : ""
+                          isPlaying ? "text-medical-green" : ""
                         }`}
                       />
                     </button>
@@ -439,7 +439,7 @@ const TestimonialSection = () => {
             {/* Mini témoignages défilants */}
             <div className="space-y-4 max-h-96 overflow-hidden">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="w-5 h-5 mr-2 text-blue-600" />
+                <Users className="w-5 h-5 mr-2 text-medical-blue" />
                 Autres avis
               </h3>
 
@@ -467,7 +467,7 @@ const TestimonialSection = () => {
                         >
                           {testimonial.avatar}
                         </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-medical-green-light rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         </div>
                       </div>
@@ -527,10 +527,10 @@ const TestimonialSection = () => {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button className="bg-white text-blue-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                <button className="bg-white text-medical-blue px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                   Voir tous les témoignages
                 </button>
-                <button className="border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                <button className="border-2 border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-medical-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                   Commencer tout de suite !
                 </button>
               </div>

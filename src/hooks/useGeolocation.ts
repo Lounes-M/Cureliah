@@ -145,7 +145,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       
       return null;
     } catch (error) {
-      console.error('Geocoding error:', error);
+      // TODO: Replace with logger.error('Geocoding error:', error);
       return null;
     }
   };

@@ -143,7 +143,7 @@ const InvoicesAndReports = () => {
       setBookings(formattedBookings);
       calculateFinancialSummary(formattedBookings);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
+      // TODO: Replace with logger.error("Error fetching bookings:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données financières",
@@ -378,7 +378,7 @@ const InvoicesAndReports = () => {
                   </p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
-                  <Euro className="w-6 h-6 text-green-600" />
+                  <Euro className="w-6 h-6 text-medical-green" />
                 </div>
               </div>
             </CardContent>
@@ -410,7 +410,7 @@ const InvoicesAndReports = () => {
                   </p>
                 </div>
                 <div className="p-3 bg-blue-100 rounded-full">
-                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                  <BarChart3 className="w-6 h-6 text-medical-blue" />
                 </div>
               </div>
             </CardContent>
@@ -508,7 +508,7 @@ const InvoicesAndReports = () => {
                 <div className="space-y-4">
                   {loading ? (
                     <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
                       <p className="text-gray-500 mt-2">Chargement...</p>
                     </div>
                   ) : bookings.length === 0 ? (
@@ -574,7 +574,7 @@ const InvoicesAndReports = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Croissance mensuelle</span>
-                      <span className="font-bold text-green-600">+{financialSummary.monthlyGrowth}%</span>
+                      <span className="font-bold text-medical-green">+{financialSummary.monthlyGrowth}%</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Taux de commission moyen</span>

@@ -133,7 +133,7 @@ const ProPriorityAccess: React.FC = () => {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl font-bold flex items-center justify-center gap-2 mb-2">
-          <Zap className="h-8 w-8 text-blue-500" />
+          <Zap className="h-8 w-8 text-medical-blue-light" />
           Accès Prioritaire Pro
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
@@ -170,7 +170,7 @@ const ProPriorityAccess: React.FC = () => {
                       <Badge className="bg-blue-100 text-blue-800">{queue.pro_time}</Badge>
                     </td>
                     <td className="text-center py-4">
-                      <Badge variant="outline" className="text-green-600 border-green-600">
+                      <Badge variant="outline" className="text-medical-green border-medical-green">
                         {queue.savings}
                       </Badge>
                     </td>
@@ -189,7 +189,7 @@ const ProPriorityAccess: React.FC = () => {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                  <div className="p-2 bg-blue-100 rounded-lg text-medical-blue">
                     {benefit.icon}
                   </div>
                   <div>
@@ -216,7 +216,7 @@ const ProPriorityAccess: React.FC = () => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      className="bg-medical-blue-light h-2 rounded-full transition-all duration-300"
                       style={{ 
                         width: `${getUsagePercentage(benefit.usage_count, benefit.usage_limit)}%` 
                       }}
@@ -263,11 +263,11 @@ const ProPriorityAccess: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">15</div>
+              <div className="text-2xl font-bold text-medical-blue">15</div>
               <div className="text-sm text-gray-600">Candidatures prioritaires</div>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">3</div>
+              <div className="text-2xl font-bold text-medical-green">3</div>
               <div className="text-sm text-gray-600">Réponses obtenues</div>
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">

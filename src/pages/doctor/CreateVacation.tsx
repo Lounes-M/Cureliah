@@ -122,7 +122,7 @@ const CreateVacation = () => {
 
       navigate('/doctor/manage-vacations');
     } catch (error) {
-      console.error('Erreur lors de la création:', error);
+      // TODO: Replace with logger.error('Erreur lors de la création:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer la vacation",
@@ -162,7 +162,7 @@ const CreateVacation = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Stethoscope className="w-5 h-5 text-blue-600" />
+                  <Stethoscope className="w-5 h-5 text-medical-blue" />
                   Informations de la vacation
                 </CardTitle>
               </CardHeader>
@@ -340,7 +340,7 @@ const CreateVacation = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5 text-green-600" />
+                  <Eye className="w-5 h-5 text-medical-green" />
                   Aperçu
                 </CardTitle>
               </CardHeader>

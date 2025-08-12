@@ -116,11 +116,11 @@ const EnhancedAppContent = () => {
       <Toaster />
       <PWAInstallPrompt 
         onInstall={() => {
-          console.log('PWA installed successfully');
+          // TODO: Replace with logger.info('PWA installed successfully');
           monitoring.trackEvent('pwa_installed', { userId: user?.id });
         }}
         onDismiss={() => {
-          console.log('PWA install dismissed');
+          // TODO: Replace with logger.info('PWA install dismissed');
           monitoring.trackEvent('pwa_install_dismissed', { userId: user?.id });
         }}
       />
@@ -136,17 +136,17 @@ function App() {
     // Register service worker for PWA functionality
     registerServiceWorker().then((registration) => {
       if (registration) {
-        console.log('PWA Service Worker registered successfully');
+        // TODO: Replace with logger.info('PWA Service Worker registered successfully');
         monitoring.trackEvent('pwa_service_worker_registered');
         
         // Subscribe to push notifications if supported
         if ('PushManager' in window) {
-          console.log('Push notifications supported');
+          // TODO: Replace with logger.info('Push notifications supported');
           monitoring.trackEvent('push_notifications_supported');
         }
       }
     }).catch((error) => {
-      console.error('Service Worker registration failed:', error);
+      // TODO: Replace with logger.error('Service Worker registration failed:', error);
       monitoring.logError(new Error('Service Worker registration failed'), {
         error: error.message
       });

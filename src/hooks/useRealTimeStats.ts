@@ -33,7 +33,7 @@ export const useRealTimeStats = () => {
         }
       }
     } catch (error) {
-      console.warn('Erreur lors de la lecture du cache des stats:', error);
+      // TODO: Replace with logger.warn('Erreur lors de la lecture du cache des stats:', error);
     }
     return null;
   };
@@ -43,7 +43,7 @@ export const useRealTimeStats = () => {
     try {
       localStorage.setItem(STATS_CACHE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.warn('Erreur lors de la sauvegarde du cache des stats:', error);
+      // TODO: Replace with logger.warn('Erreur lors de la sauvegarde du cache des stats:', error);
     }
   };
 
@@ -109,7 +109,7 @@ export const useRealTimeStats = () => {
       setStats(freshStats);
       setCachedStats(freshStats);
     } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des statistiques:', error);
       setError('Impossible de charger les statistiques');
     } finally {
       setLoading(false);

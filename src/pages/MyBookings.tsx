@@ -74,11 +74,11 @@ const MyBookings = () => {
       const { data: bookings, error } = await query;
 
       if (error) {
-        console.error("Supabase error:", error);
+        // TODO: Replace with logger.error("Supabase error:", error);
         throw error;
       }
 
-      console.log("Bookings data:", bookings);
+      // TODO: Replace with logger.info("Bookings data:", bookings);
 
       // Calculer les statistiques
       const now = new Date();
@@ -123,7 +123,7 @@ const MyBookings = () => {
           .eq("doctor_id", user.id);
 
         if (reviewError) {
-          console.error("Error fetching reviews:", reviewError);
+          // TODO: Replace with logger.error("Error fetching reviews:", reviewError);
         } else if (reviews && reviews.length > 0) {
           averageRating =
             reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
@@ -140,7 +140,7 @@ const MyBookings = () => {
         averageRating,
       });
     } catch (error) {
-      console.error("Error loading booking stats:", error);
+      // TODO: Replace with logger.error("Error loading booking stats:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",
@@ -179,11 +179,11 @@ const MyBookings = () => {
   const getTabColor = (tab: string) => {
     switch (tab) {
       case "active":
-        return "text-green-600";
+        return "text-medical-green";
       case "pending":
         return "text-orange-600";
       case "completed":
-        return "text-blue-600";
+        return "text-medical-blue";
       case "cancelled":
         return "text-red-600";
       default:
@@ -205,7 +205,7 @@ const MyBookings = () => {
         <Header />
         <div className="flex items-center justify-center h-96">
           <Card className="p-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-medical-blue" />
             <div className="text-lg font-medium">
               Chargement de vos réservations...
             </div>
@@ -278,7 +278,7 @@ const MyBookings = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-600 text-sm font-medium mb-1">
+                    <p className="text-medical-green text-sm font-medium mb-1">
                       Réservations actives
                     </p>
                     <p className="text-3xl font-bold text-green-900">
@@ -286,7 +286,7 @@ const MyBookings = () => {
                     </p>
                     <p className="text-xs text-green-700">En cours</p>
                   </div>
-                  <div className="bg-green-600 p-3 rounded-xl">
+                  <div className="bg-medical-green p-3 rounded-xl">
                     <CheckCircle2 className="w-6 h-6 text-white" />
                   </div>
                 </div>
@@ -316,7 +316,7 @@ const MyBookings = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-600 text-sm font-medium mb-1">
+                    <p className="text-medical-blue text-sm font-medium mb-1">
                       Revenus du mois
                     </p>
                     <p className="text-3xl font-bold text-blue-900">
@@ -327,7 +327,7 @@ const MyBookings = () => {
                       Total payé: {stats.totalRevenue.toFixed(0)}€
                     </p>
                   </div>
-                  <div className="bg-blue-600 p-3 rounded-xl">
+                  <div className="bg-medical-blue p-3 rounded-xl">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
                 </div>

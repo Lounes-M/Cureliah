@@ -108,27 +108,27 @@ const FinalCTASection = () => {
   };
 
   const handleDoctorSignup = () => {
-    console.log("Navigation finale vers inscription médecin");
+    // TODO: Replace with logger.info("Navigation finale vers inscription médecin");
     window.location.href = "/auth?type=doctor&source=final-cta";
   };
 
   const handleEstablishmentSignup = () => {
-    console.log("Navigation finale vers inscription établissement");
+    // TODO: Replace with logger.info("Navigation finale vers inscription établissement");
     window.location.href = "/auth?type=establishment&source=final-cta";
   };
 
   const handleScheduleDemo = () => {
-    console.log("Planification d'une démo");
+    // TODO: Replace with logger.info("Planification d'une démo");
     window.location.href = "/schedule-demo";
   };
 
   const handleCallSales = () => {
-    console.log("Appel équipe commerciale");
+    // TODO: Replace with logger.info("Appel équipe commerciale");
     window.location.href = "tel:+33123456789";
   };
 
   const handleDownloadBrochure = () => {
-    console.log("Téléchargement brochure");
+    // TODO: Replace with logger.info("Téléchargement brochure");
     window.location.href = "/download-brochure";
   };
 
@@ -235,7 +235,7 @@ const FinalCTASection = () => {
       {/* Éléments décoratifs avancés */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Gradient orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-medical-blue-light/20 rounded-full blur-3xl animate-pulse"></div>
         <div
           className="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse"
           style={{ animationDelay: "2s" }}

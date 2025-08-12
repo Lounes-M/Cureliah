@@ -142,7 +142,7 @@ const DoctorCalendar = () => {
 
       setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error fetching events:", error);
+      // TODO: Replace with logger.error("Error fetching events:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger le calendrier",
@@ -156,15 +156,15 @@ const DoctorCalendar = () => {
   const getEventColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-green-500";
+        return "bg-medical-green-light";
       case "booked":
-        return "bg-blue-500";
+        return "bg-medical-blue-light";
       case "blocked":
         return "bg-red-500";
       case "draft":
         return "bg-gray-500";
       default:
-        return "bg-blue-500";
+        return "bg-medical-blue-light";
     }
   };
 
@@ -334,7 +334,7 @@ const DoctorCalendar = () => {
       closeEventModal();
       fetchEvents();
     } catch (error) {
-      console.error("Error saving event:", error);
+      // TODO: Replace with logger.error("Error saving event:", error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder l'événement",
@@ -363,7 +363,7 @@ const DoctorCalendar = () => {
 
       fetchEvents();
     } catch (error) {
-      console.error("Error deleting event:", error);
+      // TODO: Replace with logger.error("Error deleting event:", error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer l'événement",
@@ -449,7 +449,7 @@ const DoctorCalendar = () => {
               </Button>
               <Button 
                 onClick={() => openEventModal(selectedDate || new Date())}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-medical-blue hover:bg-medical-blue-dark text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Nouvelle vacation
@@ -490,11 +490,11 @@ const DoctorCalendar = () => {
 
                 <div className="flex items-center gap-2 text-sm">
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-green-500 rounded"></div>
+                    <div className="w-3 h-3 bg-medical-green-light rounded"></div>
                     <span>Disponible</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                    <div className="w-3 h-3 bg-medical-blue-light rounded"></div>
                     <span>Réservé</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -540,7 +540,7 @@ const DoctorCalendar = () => {
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-sm font-medium ${day.isToday ? "text-blue-600" : ""}`}>
+                      <span className={`text-sm font-medium ${day.isToday ? "text-medical-blue" : ""}`}>
                         {day.date.getDate()}
                       </span>
                     </div>

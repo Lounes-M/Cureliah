@@ -103,7 +103,7 @@ const TrustSection = () => {
       icon: Shield,
       title: "RGPD Conforme",
       description: "Protection maximale de vos données",
-      color: "text-blue-600",
+      color: "text-medical-blue",
       bg: "bg-blue-50",
     },
     {
@@ -136,7 +136,7 @@ const TrustSection = () => {
       value: animatedStats.doctors,
       suffix: "+",
       label: "Médecins vérifiés",
-      color: "text-blue-600",
+      color: "text-medical-blue",
       description: "Profils validés par notre équipe",
     },
     {

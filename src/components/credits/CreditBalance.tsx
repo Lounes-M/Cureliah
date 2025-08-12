@@ -36,7 +36,7 @@ export const CreditBalance: React.FC<CreditBalanceProps> = ({
       setCredits(userCredits);
       onBalanceUpdate?.(userCredits.balance);
     } catch (error) {
-      console.error('Erreur lors du chargement des crédits:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des crédits:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger votre solde de crédits",
@@ -116,7 +116,7 @@ export const CreditBalance: React.FC<CreditBalanceProps> = ({
               </div>
               
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-blue-600">
+                <span className="text-2xl font-bold text-medical-blue">
                   {credits.balance}
                 </span>
                 <span className="text-muted-foreground">crédits disponibles</span>

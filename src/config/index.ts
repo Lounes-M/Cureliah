@@ -183,9 +183,9 @@ export const getAssetUrl = (asset: string) => {
 if (isDevelopment()) {
   try {
     validateConfig();
-    console.log('✅ Configuration validated successfully');
+    // TODO: Replace with logger.info('✅ Configuration validated successfully');
   } catch (error) {
-    console.error('❌ Configuration validation failed:', error);
+    // TODO: Replace with logger.error('❌ Configuration validation failed:', error);
   }
 }
 

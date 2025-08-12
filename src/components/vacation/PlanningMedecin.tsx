@@ -144,7 +144,7 @@ export const PlanningMedecin = ({
   const fetchTimeSlots = async () => {
     setIsLoading(true);
     try {
-      console.log("Fetching time slots for doctor:", doctorId);
+      // TODO: Replace with logger.info("Fetching time slots for doctor:", doctorId);
 
       const { data: vacationStructure, error: structureError } = await supabase
         .from("vacation_posts")
@@ -152,9 +152,9 @@ export const PlanningMedecin = ({
         .limit(1);
 
       if (structureError) {
-        console.error("Error fetching vacation structure:", structureError);
+        // TODO: Replace with logger.error("Error fetching vacation structure:", structureError);
       } else {
-        console.log("Vacation posts structure:", vacationStructure);
+        // TODO: Replace with logger.info("Vacation posts structure:", vacationStructure);
       }
 
       const { data: vacations, error: vacationsError } = await supabase
@@ -163,14 +163,14 @@ export const PlanningMedecin = ({
         .eq("doctor_id", doctorId);
 
       if (vacationsError) {
-        console.error("Error fetching vacations:", vacationsError);
+        // TODO: Replace with logger.error("Error fetching vacations:", vacationsError);
         throw vacationsError;
       }
 
-      console.log("Found vacations:", vacations);
+      // TODO: Replace with logger.info("Found vacations:", vacations);
 
       if (!vacations || vacations.length === 0) {
-        console.log("No vacations found");
+        // TODO: Replace with logger.info("No vacations found");
         setEvents([]);
         return;
       }
@@ -216,7 +216,7 @@ export const PlanningMedecin = ({
           );
 
         if (slotsError) {
-          console.error("Error fetching slots batch:", slotsError);
+          // TODO: Replace with logger.error("Error fetching slots batch:", slotsError);
           throw slotsError;
         }
 
@@ -225,7 +225,7 @@ export const PlanningMedecin = ({
         }
       }
 
-      console.log("Found total slots:", allSlots.length);
+      // TODO: Replace with logger.info("Found total slots:", allSlots.length);
 
       const calendarEvents =
         allSlots
@@ -235,7 +235,7 @@ export const PlanningMedecin = ({
               : (slot.vacation_posts as VacationPostData);
 
             if (!vacationPost) {
-              console.warn("Slot without vacation_posts:", slot);
+              // TODO: Replace with logger.warn("Slot without vacation_posts:", slot);
               return null;
             }
 
@@ -249,13 +249,13 @@ export const PlanningMedecin = ({
               endTime = "18:00:00";
             } else if (slot.type === "custom") {
               if (!slot.start_time || !slot.end_time) {
-                console.warn("Custom time slot has invalid dates:", slot);
+                // TODO: Replace with logger.warn("Custom time slot has invalid dates:", slot);
                 return null;
               }
               startTime = slot.start_time;
               endTime = slot.end_time;
             } else {
-              console.warn("Unknown time slot type:", slot);
+              // TODO: Replace with logger.warn("Unknown time slot type:", slot);
               return null;
             }
 
@@ -293,16 +293,16 @@ export const PlanningMedecin = ({
                 textColor: "#ffffff",
               };
             } catch (error) {
-              console.error("Error processing slot:", error, slot);
+              // TODO: Replace with logger.error("Error processing slot:", error, slot);
               return null;
             }
           })
           .filter(Boolean) || [];
 
-      console.log("Processed calendar events:", calendarEvents);
+      // TODO: Replace with logger.info("Processed calendar events:", calendarEvents);
       setEvents(calendarEvents);
     } catch (error) {
-      console.error("Error fetching time slots:", error);
+      // TODO: Replace with logger.error("Error fetching time slots:", error);
       toast({
         title: "❌ Erreur",
         description: "Impossible de charger les créneaux",
@@ -334,8 +334,8 @@ export const PlanningMedecin = ({
 
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event;
-    console.log("Event clicked:", event);
-    console.log("Event extended props:", event.extendedProps);
+    // TODO: Replace with logger.info("Event clicked:", event);
+    // TODO: Replace with logger.info("Event extended props:", event.extendedProps);
     setSelectedEvent({
       id: event.id,
       title: event.title,
@@ -489,7 +489,7 @@ export const PlanningMedecin = ({
         planningElement.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } catch (error) {
-      console.error("Error creating time slots:", error);
+      // TODO: Replace with logger.error("Error creating time slots:", error);
       toast({
         title: "❌ Erreur",
         description: "Impossible de créer les disponibilités",
@@ -619,7 +619,7 @@ export const PlanningMedecin = ({
 
       fetchTimeSlots();
     } catch (error) {
-      console.error("Error deleting time slot:", error);
+      // TODO: Replace with logger.error("Error deleting time slot:", error);
       toast({
         title: "❌ Erreur",
         description: "Impossible de supprimer le créneau",
@@ -677,7 +677,7 @@ export const PlanningMedecin = ({
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Réservés</p>
-                  <p className="text-2xl font-bold text-blue-600">{statsData.booked}</p>
+                  <p className="text-2xl font-bold text-medical-blue">{statsData.booked}</p>
                 </div>
               </div>
             </div>
@@ -1067,7 +1067,7 @@ export const PlanningMedecin = ({
                 <div className="space-y-4">
                   <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-3 mb-2">
-                      <Stethoscope className="w-5 h-5 text-blue-500" />
+                      <Stethoscope className="w-5 h-5 text-medical-blue-light" />
                       <span className="font-semibold text-gray-700">Spécialité</span>
                     </div>
                     <p className="text-gray-800 font-medium">
@@ -1203,7 +1203,7 @@ export const PlanningMedecin = ({
               {/* Informations principales */}
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <Stethoscope className="w-5 h-5 text-blue-500" />
+                  <Stethoscope className="w-5 h-5 text-medical-blue-light" />
                   Informations principales
                 </h3>
                 

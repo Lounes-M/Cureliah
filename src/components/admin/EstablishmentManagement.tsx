@@ -109,7 +109,7 @@ export default function EstablishmentManagement() {
       
       setEstablishments(formattedEstablishments);
     } catch (error: any) {
-      console.error('Error fetching establishments:', error);
+      // TODO: Replace with logger.error('Error fetching establishments:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les établissements",
@@ -186,7 +186,7 @@ export default function EstablishmentManagement() {
         fetchEstablishments();
       }
     } catch (error: any) {
-      console.error('Error adding establishment:', error);
+      // TODO: Replace with logger.error('Error adding establishment:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'ajouter l'établissement",
@@ -211,7 +211,7 @@ export default function EstablishmentManagement() {
 
       fetchEstablishments();
     } catch (error: any) {
-      console.error('Error toggling establishment status:', error);
+      // TODO: Replace with logger.error('Error toggling establishment status:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut",
@@ -236,7 +236,7 @@ export default function EstablishmentManagement() {
 
       fetchEstablishments();
     } catch (error: any) {
-      console.error('Error verifying establishment:', error);
+      // TODO: Replace with logger.error('Error verifying establishment:', error);
       toast({
         title: "Erreur",
         description: "Impossible de vérifier l'établissement",

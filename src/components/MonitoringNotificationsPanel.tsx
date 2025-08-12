@@ -42,7 +42,7 @@ const MonitoringNotificationsPanel: React.FC<MonitoringNotificationsPanelProps> 
       case 'critical': return 'bg-red-500';
       case 'high': return 'bg-orange-500';
       case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-blue-500';
+      case 'low': return 'bg-medical-blue-light';
       default: return 'bg-gray-500';
     }
   };
@@ -87,7 +87,7 @@ const MonitoringNotificationsPanel: React.FC<MonitoringNotificationsPanelProps> 
             {/* Indicateur de connexion */}
             <div className="absolute -top-1 -left-1">
               {isConnected ? (
-                <Wifi className="h-3 w-3 text-green-500" />
+                <Wifi className="h-3 w-3 text-medical-green-light" />
               ) : (
                 <WifiOff className="h-3 w-3 text-red-500" />
               )}
@@ -127,8 +127,8 @@ const MonitoringNotificationsPanel: React.FC<MonitoringNotificationsPanelProps> 
                   <div className="flex items-center gap-1 text-xs">
                     {isConnected ? (
                       <>
-                        <Wifi className="h-3 w-3 text-green-500" />
-                        <span className="text-green-600">Connecté</span>
+                        <Wifi className="h-3 w-3 text-medical-green-light" />
+                        <span className="text-medical-green">Connecté</span>
                       </>
                     ) : (
                       <>

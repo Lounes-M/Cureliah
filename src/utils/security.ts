@@ -194,7 +194,7 @@ class SecurityService {
       return { allowed: true };
       
     } catch (error) {
-      console.error('Security check failed:', error);
+      // TODO: Replace with logger.error('Security check failed:', error);
       // Fail secure - deny access on error
       return { allowed: false, reason: 'Security check failed' };
     }
@@ -315,7 +315,7 @@ class SecurityService {
       return 'good';
       
     } catch (error) {
-      console.error('Threat intelligence check failed:', error);
+      // TODO: Replace with logger.error('Threat intelligence check failed:', error);
       return 'good'; // Fail open for availability
     }
   }
@@ -361,7 +361,7 @@ class SecurityService {
       });
 
       // Store security event
-      console.log('Security Event:', securityEvent);
+      // TODO: Replace with logger.info('Security Event:', securityEvent);
 
       // Send alerts for high/critical events
       if (securityEvent.severity === 'high' || securityEvent.severity === 'critical') {
@@ -374,7 +374,7 @@ class SecurityService {
       }
 
     } catch (error) {
-      console.error('Failed to log security event:', error);
+      // TODO: Replace with logger.error('Failed to log security event:', error);
     }
   }
 

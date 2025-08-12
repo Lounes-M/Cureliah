@@ -64,7 +64,7 @@ export function useConversations() {
       
       if (profile?.user_type === 'doctor') {
         // Si l'utilisateur est médecin, chercher les bookings où il est le doctor
-        console.log('👨‍⚕️ [useConversations] User is doctor, looking for bookings with doctor_id');
+        // TODO: Replace with logger.info('👨‍⚕️ [useConversations] User is doctor, looking for bookings with doctor_id');
         bookingsQuery = supabase
           .from('bookings')
           .select(`
@@ -81,7 +81,7 @@ export function useConversations() {
           .eq('doctor_id', user.id);
       } else if (profile?.user_type === 'establishment') {
         // Si l'utilisateur est établissement, chercher les bookings où il est l'establishment
-        console.log('🏢 [useConversations] User is establishment, looking for bookings with establishment_id');
+        // TODO: Replace with logger.info('🏢 [useConversations] User is establishment, looking for bookings with establishment_id');
         bookingsQuery = supabase
           .from('bookings')
           .select(`
@@ -98,7 +98,7 @@ export function useConversations() {
           .eq('establishment_id', user.id);
       } else {
         // Type d'utilisateur non reconnu
-        console.warn('⚠️ [useConversations] Unknown user type:', profile?.user_type);
+        // TODO: Replace with logger.warn('⚠️ [useConversations] Unknown user type:', profile?.user_type);
         setConversations([]);
         return;
       }
@@ -109,14 +109,14 @@ export function useConversations() {
       const { data: bookings, error: bookingsError } = await bookingsQuery;
 
       if (bookingsError) {
-        console.error('❌ [useConversations] Error fetching bookings:', bookingsError);
+        // TODO: Replace with logger.error('❌ [useConversations] Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
 
-      console.log('📋 [useConversations] Bookings found:', bookings?.length || 0);
+      // TODO: Replace with logger.info('📋 [useConversations] Bookings found:', bookings?.length || 0);
 
       if (!bookings || bookings.length === 0) {
-        console.log('ℹ️ [useConversations] No bookings found - user has no conversations');
+        // TODO: Replace with logger.info('ℹ️ [useConversations] No bookings found - user has no conversations');
         setConversations([]);
         return;
       }
@@ -125,7 +125,7 @@ export function useConversations() {
       const conversationsData = await Promise.all(
         bookings.map(async (booking: Booking) => {
           try {
-            console.log(`🔍 [useConversations] Processing booking: ${booking.id} (status: ${booking.status})`);
+            // TODO: Replace with logger.info(`🔍 [useConversations] Processing booking: ${booking.id} (status: ${booking.status});`);
             
             const isDoctor = profile?.user_type === 'doctor';
             const otherUserId = isDoctor ? booking.establishment_id : booking.doctor_id;
@@ -134,7 +134,7 @@ export function useConversations() {
             const activeStatuses = ['pending', 'confirmed', 'active'];
             const isActive = activeStatuses.includes(booking.status);
 
-            console.log(`👤 [useConversations] User is ${isDoctor ? 'doctor' : 'establishment'}, other user: ${otherUserId}, active: ${isActive}`);
+            // TODO: Replace with logger.info(`👤 [useConversations] User is ${isDoctor ? 'doctor' : 'establishment'}, other user: ${otherUserId}, active: ${isActive}`);
 
             // ÉTAPE 2.1: Récupérer les informations de la vacation
             let vacationInfo = { title: 'Vacation', location: null };
@@ -143,9 +143,9 @@ export function useConversations() {
                 title: booking.vacation_posts.title || 'Vacation',
                 location: booking.vacation_posts.location || null
               };
-              console.log(`✅ [useConversations] Vacation found: ${booking.vacation_posts.title}`);
+              // TODO: Replace with logger.info(`✅ [useConversations] Vacation found: ${booking.vacation_posts.title}`);
             } else {
-              console.warn(`⚠️ [useConversations] No vacation info found for booking: ${booking.id}`);
+              // TODO: Replace with logger.warn(`⚠️ [useConversations] No vacation info found for booking: ${booking.id}`);
             }
 
             // ÉTAPE 2.2: Récupérer le profil de l'autre utilisateur
@@ -154,7 +154,7 @@ export function useConversations() {
             try {
               if (isDoctor) {
                 // L'utilisateur actuel est médecin, récupérer le profil de l'établissement
-                console.log(`🏢 [useConversations] Fetching establishment profile for: ${otherUserId}`);
+                // TODO: Replace with logger.info(`🏢 [useConversations] Fetching establishment profile for: ${otherUserId}`);
                 
                 const { data: establishmentProfile, error: estError } = await supabase
                   .from('establishment_profiles')
@@ -164,13 +164,13 @@ export function useConversations() {
 
                 if (establishmentProfile?.name) {
                   otherUserName = establishmentProfile.name;
-                  console.log(`✅ [useConversations] Establishment name: ${otherUserName}`);
+                  // TODO: Replace with logger.info(`✅ [useConversations] Establishment name: ${otherUserName}`);
                 } else {
-                  console.warn(`⚠️ [useConversations] No establishment profile found`, estError);
+                  // TODO: Replace with logger.warn(`⚠️ [useConversations] No establishment profile found`, estError);
                 }
               } else {
                 // L'utilisateur actuel est établissement, récupérer le profil du médecin
-                console.log(`👨‍⚕️ [useConversations] Fetching doctor profile for: ${otherUserId}`);
+                // TODO: Replace with logger.info(`👨‍⚕️ [useConversations] Fetching doctor profile for: ${otherUserId}`);
                 
                 const { data: doctorProfile, error: docError } = await supabase
                   .from('doctor_profiles')
@@ -185,15 +185,15 @@ export function useConversations() {
                   if (otherUserName === 'Dr') {
                     otherUserName = `Dr ${doctorProfile.speciality || 'Médecin'}`;
                   }
-                  console.log(`✅ [useConversations] Doctor name: ${otherUserName}`);
+                  // TODO: Replace with logger.info(`✅ [useConversations] Doctor name: ${otherUserName}`);
                 } else {
-                  console.warn(`⚠️ [useConversations] No doctor profile found`, docError);
+                  // TODO: Replace with logger.warn(`⚠️ [useConversations] No doctor profile found`, docError);
                 }
               }
 
               // Fallback: essayer la table profiles générale
               if (otherUserName === 'Utilisateur') {
-                console.log(`🔄 [useConversations] Trying general profiles table for: ${otherUserId}`);
+                // TODO: Replace with logger.info(`🔄 [useConversations] Trying general profiles table for: ${otherUserId}`);
                 
                 const { data: generalProfile, error: genError } = await supabase
                   .from('profiles')
@@ -207,17 +207,17 @@ export function useConversations() {
                   otherUserName = `${firstName} ${lastName}`.trim() || 
                                 generalProfile.email?.split('@')[0] || 
                                 'Utilisateur';
-                  console.log(`✅ [useConversations] General profile name: ${otherUserName}`);
+                  // TODO: Replace with logger.info(`✅ [useConversations] General profile name: ${otherUserName}`);
                 } else {
-                  console.warn(`⚠️ [useConversations] No general profile found`, genError);
+                  // TODO: Replace with logger.warn(`⚠️ [useConversations] No general profile found`, genError);
                 }
               }
             } catch (profileError) {
-              console.error(`❌ [useConversations] Error fetching profile for ${otherUserId}:`, profileError);
+              // TODO: Replace with logger.error(`❌ [useConversations] Error fetching profile for ${otherUserId}:`, profileError);
             }
 
             // ÉTAPE 2.3: Récupérer le dernier message de cette conversation
-            console.log(`💬 [useConversations] Fetching last message for booking: ${booking.id}`);
+            // TODO: Replace with logger.info(`💬 [useConversations] Fetching last message for booking: ${booking.id}`);
             
             const { data: lastMessage, error: messageError } = await supabase
               .from('messages')
@@ -236,11 +236,11 @@ export function useConversations() {
                 ? `Vous: ${lastMessage.content}`
                 : lastMessage.content;
               lastMessageTime = lastMessage.created_at;
-              console.log(`💬 [useConversations] Last message found: "${lastMessageText.substring(0, 30)}..."`);
+              // TODO: Replace with logger.info(`💬 [useConversations] Last message found: "${lastMessageText.substring(0, 30);}..."`);
             } else if (messageError) {
-              console.warn(`⚠️ [useConversations] Error fetching last message:`, messageError);
+              // TODO: Replace with logger.warn(`⚠️ [useConversations] Error fetching last message:`, messageError);
             } else {
-              console.log(`ℹ️ [useConversations] No messages found for booking: ${booking.id}`);
+              // TODO: Replace with logger.info(`ℹ️ [useConversations] No messages found for booking: ${booking.id}`);
             }
 
             // ÉTAPE 2.4: Compter les messages non lus (seulement pour les conversations actives)
@@ -254,7 +254,7 @@ export function useConversations() {
                 .is('read_at', null);
 
               if (countError) {
-                console.warn(`⚠️ [useConversations] Error counting unread messages:`, countError);
+                // TODO: Replace with logger.warn(`⚠️ [useConversations] Error counting unread messages:`, countError);
               } else {
                 unreadCount = count || 0;
               }
@@ -278,7 +278,7 @@ export function useConversations() {
               isActive: isActive
             };
           } catch (error: unknown) {
-            console.error('💥 [useConversations] Error processing booking:', error);
+            // TODO: Replace with logger.error('💥 [useConversations] Error processing booking:', error);
             return null;
           }
         })
@@ -296,11 +296,11 @@ export function useConversations() {
           return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
         });
 
-      console.log(`✅ [useConversations] Successfully loaded ${validConversations.length} conversations (${validConversations.filter(c => c.isActive).length} active, ${validConversations.filter(c => !c.isActive).length} archived)`);
+      // TODO: Replace with logger.info(`✅ [useConversations] Successfully loaded ${validConversations.length} conversations (${validConversations.filter(c => c.isActive);.length} active, ${validConversations.filter(c => !c.isActive).length} archived)`);
       setConversations(validConversations);
 
     } catch (error: unknown) {
-      console.error('💥 [useConversations] Fatal error loading conversations:', error);
+      // TODO: Replace with logger.error('💥 [useConversations] Fatal error loading conversations:', error);
       toast({
         title: "Erreur",
         description: `Impossible de charger les conversations: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
@@ -313,7 +313,7 @@ export function useConversations() {
   };
 
   const refetch = () => {
-    console.log('🔄 [useConversations] Manual refetch requested');
+    // TODO: Replace with logger.info('🔄 [useConversations] Manual refetch requested');
     fetchConversations();
   };
 

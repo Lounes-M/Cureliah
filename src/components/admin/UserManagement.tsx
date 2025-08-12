@@ -95,7 +95,7 @@ export default function UserManagement() {
 
       setUsers(formattedUsers);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      // TODO: Replace with logger.error('Error fetching users:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les utilisateurs",
@@ -124,7 +124,7 @@ export default function UserManagement() {
         description: `Utilisateur ${currentStatus ? 'désactivé' : 'activé'} avec succès`
       });
     } catch (error: any) {
-      console.error('Error toggling user status:', error);
+      // TODO: Replace with logger.error('Error toggling user status:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut de l'utilisateur",
@@ -151,7 +151,7 @@ export default function UserManagement() {
         description: "Type d'utilisateur modifié avec succès"
       });
     } catch (error: any) {
-      console.error('Error changing user type:', error);
+      // TODO: Replace with logger.error('Error changing user type:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le type d'utilisateur",
@@ -178,7 +178,7 @@ export default function UserManagement() {
         description: `Utilisateur ${currentStatus ? 'non vérifié' : 'vérifié'} avec succès`
       });
     } catch (error: any) {
-      console.error('Error toggling verification:', error);
+      // TODO: Replace with logger.error('Error toggling verification:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut de vérification",
@@ -265,7 +265,7 @@ export default function UserManagement() {
         });
       }
     } catch (error: any) {
-      console.error('Error adding user:', error);
+      // TODO: Replace with logger.error('Error adding user:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer l'utilisateur",

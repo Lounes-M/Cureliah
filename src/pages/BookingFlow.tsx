@@ -137,7 +137,7 @@ export default function BookingFlow() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-blue mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
@@ -184,13 +184,13 @@ export default function BookingFlow() {
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                  step <= bookingStep ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                  step <= bookingStep ? 'bg-medical-blue text-white' : 'bg-gray-200 text-gray-500'
                 }`}>
                   {step === 3 && bookingStep === 3 ? <CheckCircle className="h-4 w-4" /> : step}
                 </div>
                 {step < 3 && (
                   <div className={`w-16 h-0.5 ${
-                    step < bookingStep ? 'bg-blue-600' : 'bg-gray-200'
+                    step < bookingStep ? 'bg-medical-blue' : 'bg-gray-200'
                   }`} />
                 )}
               </div>
@@ -312,7 +312,7 @@ export default function BookingFlow() {
           {bookingStep === 3 && (
             <Card>
               <CardContent className="text-center py-8">
-                <div className="text-green-500 mb-4">
+                <div className="text-medical-green-light mb-4">
                   <CheckCircle className="h-16 w-16 mx-auto mb-4" />
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Réservation envoyée!</h2>

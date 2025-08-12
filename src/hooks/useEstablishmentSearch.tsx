@@ -125,11 +125,11 @@ export const useEstablishmentSearch = () => {
         .order('created_at', { ascending: false });
 
       if (vacationsError) {
-        console.error('Error fetching vacations:', vacationsError);
+        // TODO: Replace with logger.error('Error fetching vacations:', vacationsError);
         throw vacationsError;
       }
 
-      console.log('Raw vacations data:', JSON.stringify(vacationsData, null, 2));
+      // TODO: Replace with logger.info('Raw vacations data:', JSON.stringify(vacationsData, null, 2););
 
       if (!vacationsData || vacationsData.length === 0) {
         setVacations([]);
@@ -139,11 +139,11 @@ export const useEstablishmentSearch = () => {
 
       // Transformer les données
       const vacationsWithDoctors = vacationsData.map(vacation => {
-        console.log('Processing vacation:', vacation.id);
-        console.log('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2));
-        console.log('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2));
-        console.log('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name);
-        console.log('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name);
+        // TODO: Replace with logger.info('Processing vacation:', vacation.id);
+        // TODO: Replace with logger.info('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2););
+        // TODO: Replace with logger.info('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2););
+        // TODO: Replace with logger.info('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name);
+        // TODO: Replace with logger.info('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name);
 
         const doctorInfo = vacation.doctor ? {
           id: vacation.doctor.id,
@@ -168,7 +168,7 @@ export const useEstablishmentSearch = () => {
           hourly_rate: vacation.doctor.hourly_rate
         } : null;
 
-        console.log('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2));
+        // TODO: Replace with logger.info('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2););
 
         return {
           ...vacation,
@@ -177,12 +177,12 @@ export const useEstablishmentSearch = () => {
         };
       });
 
-      console.log('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2));
+      // TODO: Replace with logger.info('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2););
 
       setVacations(vacationsWithDoctors);
       setFilteredVacations(vacationsWithDoctors);
     } catch (error) {
-      console.error('Error fetching vacations:', error);
+      // TODO: Replace with logger.error('Error fetching vacations:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors du chargement des vacations",

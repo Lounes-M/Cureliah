@@ -35,7 +35,7 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, classNa
         onSuccess?.();
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      // TODO: Replace with logger.error('Payment error:', error);
       toast({
         title: "Erreur de paiement",
         description: "Impossible d'initier le paiement. Veuillez réessayer.",

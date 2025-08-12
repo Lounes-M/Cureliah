@@ -167,7 +167,7 @@ const DoctorBookings = () => {
       setBookings(formattedBookings);
       calculateStats(formattedBookings);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
+      // TODO: Replace with logger.error("Error fetching bookings:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -254,7 +254,7 @@ const DoctorBookings = () => {
       setSelectedBooking(null);
       setActionType(null);
     } catch (error) {
-      console.error("Error updating booking:", error);
+      // TODO: Replace with logger.error("Error updating booking:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la réservation",
@@ -386,7 +386,7 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Total
                 </CardTitle>
-                <Calendar className="w-4 h-4 text-blue-600" />
+                <Calendar className="w-4 h-4 text-medical-blue" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -418,11 +418,11 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Confirmées
                 </CardTitle>
-                <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                <CheckCircle2 className="w-4 h-4 text-medical-blue" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-medical-blue">
                 {loading ? "..." : stats.confirmed}
               </div>
             </CardContent>
@@ -434,11 +434,11 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Terminées
                 </CardTitle>
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <CheckCircle2 className="w-4 h-4 text-medical-green" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {loading ? "..." : stats.completed}
               </div>
             </CardContent>
@@ -450,11 +450,11 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Revenus (mois)
                 </CardTitle>
-                <Euro className="w-4 h-4 text-green-600" />
+                <Euro className="w-4 h-4 text-medical-green" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {loading ? "..." : `${stats.monthlyRevenue}€`}
               </div>
             </CardContent>
@@ -466,11 +466,11 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Revenus (semaine)
                 </CardTitle>
-                <TrendingUp className="w-4 h-4 text-green-600" />
+                <TrendingUp className="w-4 h-4 text-medical-green" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {loading ? "..." : `${stats.weeklyRevenue}€`}
               </div>
             </CardContent>
@@ -560,7 +560,7 @@ const DoctorBookings = () => {
             <TabsContent value={activeTab} className="p-6 pt-4">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
                 </div>
               ) : filteredBookings.length === 0 ? (
                 <div className="text-center py-12">
@@ -656,7 +656,7 @@ const DoctorBookings = () => {
                                 <Button 
                                   size="sm"
                                   onClick={() => openResponseModal(booking, "accept")}
-                                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                                  className="w-full bg-medical-green hover:bg-medical-green-dark text-white"
                                 >
                                   <CheckCircle2 className="w-4 h-4 mr-2" />
                                   Accepter
@@ -676,7 +676,7 @@ const DoctorBookings = () => {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              className="w-full border-blue-300 hover:bg-blue-50 text-blue-600"
+                              className="w-full border-blue-300 hover:bg-blue-50 text-medical-blue"
                             >
                               <MessageSquare className="w-4 h-4 mr-2" />
                               Contacter
@@ -819,7 +819,7 @@ const DoctorBookings = () => {
               </Button>
               <Button 
                 onClick={() => handleBookingAction(selectedBooking?.id || "", actionType || "accept", responseMessage)}
-                className={actionType === "accept" ? "bg-green-600 hover:bg-green-700" : ""}
+                className={actionType === "accept" ? "bg-medical-green hover:bg-medical-green-dark" : ""}
                 variant={actionType === "reject" ? "destructive" : "default"}
               >
                 <Send className="w-4 h-4 mr-2" />

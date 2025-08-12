@@ -28,7 +28,7 @@ const HowItWorksSection = () => {
   }, [activeTab]);
 
   const handleAuthNavigation = (userType) => {
-    console.log(`Navigation vers inscription ${userType}`);
+    // TODO: Replace with logger.info(`Navigation vers inscription ${userType}`);
     // Simulation de navigation - remplacer par votre logique
     window.location.href = `/auth?type=${userType}`;
   };
@@ -183,7 +183,7 @@ const HowItWorksSection = () => {
           {/* Statistiques - Mobile responsive */}
           <div className="flex justify-center gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8">
             <div className="text-center">
-              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">24h</div>
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-medical-blue">24h</div>
               <div className="text-xs sm:text-sm text-gray-500">Validation</div>
             </div>
             <div className="text-center">
@@ -205,7 +205,7 @@ const HowItWorksSection = () => {
               className={`w-1/2 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base ${
                 activeTab === "doctors"
                   ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
-                  : "text-gray-600 hover:text-blue-600"
+                  : "text-gray-600 hover:text-medical-blue"
               }`}
               aria-pressed={activeTab === "doctors"}
             >
@@ -262,7 +262,7 @@ const HowItWorksSection = () => {
         <div className="mt-12 sm:mt-16 lg:mt-20 text-center">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
             <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg border border-gray-100">
-              <Shield className="w-6 sm:w-8 h-6 sm:h-8 text-blue-600 mx-auto mb-2 sm:mb-3" />
+              <Shield className="w-6 sm:w-8 h-6 sm:h-8 text-medical-blue mx-auto mb-2 sm:mb-3" />
               <h3 className="font-semibold text-gray-900 mb-1 sm:mb-2 text-sm sm:text-base">
                 100% Sécurisé
               </h3>
@@ -306,7 +306,7 @@ const HowItWorksSection = () => {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <button
                   onClick={() => handleAuthNavigation("doctor")}
-                  className="group bg-white text-blue-600 px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm sm:text-base"
+                  className="group bg-white text-medical-blue px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm sm:text-base"
                   aria-label="S'inscrire en tant que médecin"
                 >
                   <span className="flex items-center justify-center">
@@ -316,7 +316,7 @@ const HowItWorksSection = () => {
                 </button>
                 <button
                   onClick={() => handleAuthNavigation("facility")}
-                  className="group border-2 border-white text-white px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm sm:text-base"
+                  className="group border-2 border-white text-white px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-semibold hover:bg-white hover:text-medical-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 text-sm sm:text-base"
                   aria-label="S'inscrire en tant qu'établissement"
                 >
                   <span className="flex items-center justify-center">

@@ -28,7 +28,7 @@ const ConversationsList = ({ onConversationSelect, selectedConversationId }: Con
       <Card className="h-full">
         <CardContent className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-500" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-medical-blue-light" />
             <span className="text-sm text-gray-600">Chargement des conversations...</span>
           </div>
         </CardContent>
@@ -73,8 +73,8 @@ const ConversationsList = ({ onConversationSelect, selectedConversationId }: Con
               {activeConversations.length > 0 && (
                 <>
                   <div className="flex items-center gap-2 mb-3 px-2">
-                    <Activity className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-semibold text-green-600">
+                    <Activity className="w-4 h-4 text-medical-green" />
+                    <span className="text-sm font-semibold text-medical-green">
                       Conversations actives
                     </span>
                     <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">

@@ -204,7 +204,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
           className="absolute inset-0 flex items-center justify-center bg-gray-50"
           style={{ width, height }}
         >
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-medical-blue"></div>
         </div>
       )}
     </div>
@@ -253,9 +253,9 @@ export const preloadImage = (src: string): Promise<void> => {
 export const preloadImages = async (sources: string[]): Promise<void> => {
   try {
     await Promise.all(sources.map(preloadImage));
-    console.log('All images preloaded successfully');
+    // TODO: Replace with logger.info('All images preloaded successfully');
   } catch (error) {
-    console.error('Some images failed to preload:', error);
+    // TODO: Replace with logger.error('Some images failed to preload:', error);
   }
 };
 

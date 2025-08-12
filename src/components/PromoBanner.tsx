@@ -25,7 +25,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
       
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy promo code:', err);
+      // TODO: Replace with logger.error('Failed to copy promo code:', err);
     }
   };
 
@@ -83,7 +83,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
       <div className="relative flex items-center justify-between">
         <div className="flex items-center space-x-3 flex-1">
           {/* Gift Icon */}
-          <div className={`flex-shrink-0 ${variant === 'top' ? 'text-yellow-300' : 'text-blue-500'}`}>
+          <div className={`flex-shrink-0 ${variant === 'top' ? 'text-yellow-300' : 'text-medical-blue-light'}`}>
             <Gift className="w-6 h-6" />
           </div>
           
@@ -98,7 +98,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
                 className={`inline-flex items-center space-x-1 px-2 py-1 rounded font-mono font-bold transition-all duration-200 ${
                   variant === 'top' 
                     ? 'bg-white/20 hover:bg-white/30 text-yellow-300 hover:text-yellow-200' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-medical-blue hover:bg-medical-blue-dark text-white'
                 }`}
               >
                 <span>WELCOME100</span>
@@ -146,7 +146,7 @@ export const PromoBanner: React.FC<PromoBannerProps> = ({
                 window.location.href = '/pricing'; // Fallback
               }
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="bg-medical-blue hover:bg-medical-blue-dark text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             {messages.cta}
           </button>

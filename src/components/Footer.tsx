@@ -100,13 +100,13 @@ const Footer = () => {
       icon: Linkedin,
       href: "#",
       label: "LinkedIn",
-      color: "hover:text-blue-500",
+      color: "hover:text-medical-blue-light",
     },
     {
       icon: Facebook,
       href: "#",
       label: "Facebook",
-      color: "hover:text-blue-600",
+      color: "hover:text-medical-blue",
     },
     {
       icon: Instagram,
@@ -179,8 +179,8 @@ const Footer = () => {
     >
       {/* Éléments décoratifs */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600"></div>
-      <div className="absolute top-10 left-10 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
-      <div className="absolute bottom-10 right-10 w-64 h-64 bg-emerald-600 rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+      <div className="absolute top-10 left-10 w-64 h-64 bg-medical-blue rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
+      <div className="absolute bottom-10 right-10 w-64 h-64 bg-medical-green rounded-full mix-blend-multiply filter blur-xl opacity-10"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         {/* Section principale */}
@@ -410,7 +410,7 @@ const Footer = () => {
         >
           <div className="grid md:grid-cols-3 gap-6">
             <div className="flex items-center space-x-3 p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-blue-500 transition-all duration-300">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-medical-blue rounded-xl flex items-center justify-center">
                 <Mail className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -425,7 +425,7 @@ const Footer = () => {
             </div>
 
             <div className="flex items-center space-x-3 p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-emerald-500 transition-all duration-300">
-              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-medical-green rounded-xl flex items-center justify-center">
                 <Phone className="w-5 h-5 text-white" />
               </div>
               <div>

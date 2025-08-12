@@ -113,7 +113,7 @@ const AuthCallback = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-medical-blue" />
         <p className="text-gray-600">Finalisation de la connexion...</p>
       </div>
     </div>

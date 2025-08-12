@@ -66,7 +66,7 @@ const RealAnalyticsDashboard: React.FC = () => {
       setSpecialtyMetrics(specialtyData.slice(0, 10)); // Top 10 specialties
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Erreur lors du chargement des analytics:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des analytics:', error);
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ const RealAnalyticsDashboard: React.FC = () => {
   const formatTrend = (trend: number) => {
     if (trend > 0) {
       return (
-        <span className="flex items-center text-green-600">
+        <span className="flex items-center text-medical-green">
           <TrendingUp className="h-4 w-4 mr-1" />
           +{trend}%
         </span>
@@ -171,7 +171,7 @@ const RealAnalyticsDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600">Vues du profil</p>
                   <p className="text-2xl font-bold">{userMetrics.profile_views}</p>
                 </div>
-                <Eye className="h-8 w-8 text-blue-500" />
+                <Eye className="h-8 w-8 text-medical-blue-light" />
               </div>
               <div className="mt-2">
                 {formatTrend(userMetrics.profile_views_trend)}
@@ -186,7 +186,7 @@ const RealAnalyticsDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600">Candidatures envoyées</p>
                   <p className="text-2xl font-bold">{userMetrics.applications_sent}</p>
                 </div>
-                <Send className="h-8 w-8 text-green-500" />
+                <Send className="h-8 w-8 text-medical-green-light" />
               </div>
               <div className="mt-2">
                 {formatTrend(userMetrics.applications_trend)}
@@ -355,7 +355,7 @@ const RealAnalyticsDashboard: React.FC = () => {
         <CardContent className="text-blue-800">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <TrendingUp className="h-5 w-5 mt-0.5 text-blue-600" />
+              <TrendingUp className="h-5 w-5 mt-0.5 text-medical-blue" />
               <div>
                 <h4 className="font-medium mb-1">Performance en hausse</h4>
                 <p className="text-sm">
@@ -366,7 +366,7 @@ const RealAnalyticsDashboard: React.FC = () => {
             </div>
             
             <div className="flex items-start gap-3">
-              <MapPin className="h-5 w-5 mt-0.5 text-blue-600" />
+              <MapPin className="h-5 w-5 mt-0.5 text-medical-blue" />
               <div>
                 <h4 className="font-medium mb-1">Opportunités géographiques</h4>
                 <p className="text-sm">

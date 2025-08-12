@@ -53,7 +53,7 @@ const ProfileComplete = () => {
         
         setExistingProfile(result.data);
       } catch (error: any) {
-        console.error('Error fetching profile:', error);
+        // TODO: Replace with logger.error('Error fetching profile:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger le profil",

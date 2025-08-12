@@ -109,7 +109,7 @@ const LegalPage = () => {
     <div className="space-y-8">
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
         <div className="flex items-center mb-4">
-          <Scale className="w-6 h-6 text-blue-600 mr-2" />
+          <Scale className="w-6 h-6 text-medical-blue mr-2" />
           <h3 className="text-xl font-bold text-blue-900">Informations légales</h3>
         </div>
         <div className="grid md:grid-cols-2 gap-6 text-sm">
@@ -304,7 +304,7 @@ const LegalPage = () => {
       <div className="grid md:grid-cols-2 gap-6">
         <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center mb-3">
-            <Database className="w-5 h-5 text-blue-600 mr-2" />
+            <Database className="w-5 h-5 text-medical-blue mr-2" />
             <h4 className="font-semibold text-gray-900">Données collectées</h4>
           </div>
           <ul className="text-sm text-gray-700 space-y-1">
@@ -434,7 +434,7 @@ const LegalPage = () => {
         <h3 className="text-lg font-bold text-gray-900 mb-4">Comment exercer vos droits ?</h3>
         <div className="space-y-4">
           <div className="flex items-start">
-            <Mail className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />
+            <Mail className="w-5 h-5 text-medical-blue mr-3 mt-0.5" />
             <div>
               <p className="font-medium text-gray-900">Par email</p>
               <p className="text-gray-600">dpo@cureliah.fr</p>
@@ -523,7 +523,7 @@ const LegalPage = () => {
             de votre navigateur ou en utilisant notre centre de préférences.
           </p>
           <div className="flex flex-wrap gap-3">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button className="px-4 py-2 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark transition-colors">
               <Settings className="w-4 h-4 inline mr-2" />
               Gérer les préférences
             </button>
@@ -653,7 +653,7 @@ const LegalPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
                 href="mailto:legal@cureliah.fr"
-                className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center px-6 py-3 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark transition-colors"
               >
                 <Mail className="w-4 h-4 mr-2" />
                 Contact juridique

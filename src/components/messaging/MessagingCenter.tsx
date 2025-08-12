@@ -28,7 +28,7 @@ const MessagingCenter = ({
   // Gérer l'ouverture automatique d'une conversation
   useEffect(() => {
     if (autoOpenDoctorId && autoOpenDoctorName) {
-      console.log('🚀 Auto-opening conversation with:', autoOpenDoctorName);
+      // TODO: Replace with logger.info('🚀 Auto-opening conversation with:', autoOpenDoctorName);
       
       // Créer une conversation temporaire pour l'auto-ouverture
       const autoConversation: Conversation = {

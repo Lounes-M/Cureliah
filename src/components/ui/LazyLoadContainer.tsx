@@ -80,7 +80,7 @@ export function LazyLoadContainer<T>({
         await loadMore();
       }
     } catch (error) {
-      console.error('Error loading more items:', error);
+      // TODO: Replace with logger.error('Error loading more items:', error);
     } finally {
       setLoadingMore(false);
     }
@@ -100,7 +100,7 @@ export function LazyLoadContainer<T>({
   const defaultLoadingComponent = (
     <div className="flex items-center justify-center py-8">
       <div className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border">
-        <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+        <Loader2 className="w-5 h-5 animate-spin text-medical-blue" />
         <span className="text-gray-700 font-medium">Chargement...</span>
       </div>
     </div>
@@ -186,7 +186,7 @@ export function LazyLoadContainer<T>({
           {loadingMore ? (
             <div className="flex items-center justify-center py-6">
               <div className="flex items-center gap-3 bg-white rounded-xl p-4 shadow-sm border">
-                <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                <Loader2 className="w-5 h-5 animate-spin text-medical-blue" />
                 <span className="text-gray-700 font-medium">Chargement d'autres résultats...</span>
               </div>
             </div>

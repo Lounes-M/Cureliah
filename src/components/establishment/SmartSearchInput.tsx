@@ -91,7 +91,7 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
             type: 'speciality',
             value: speciality,
             display: speciality,
-            icon: <Stethoscope className="w-4 h-4 text-green-500" />,
+            icon: <Stethoscope className="w-4 h-4 text-medical-green-light" />,
             count
           });
         });
@@ -166,7 +166,7 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
             type: 'doctor',
             value: fullName,
             display: `${fullName} - ${getSpecialityInfo(doctor.speciality).label}`,
-            icon: <User className="w-4 h-4 text-blue-500" />,
+            icon: <User className="w-4 h-4 text-medical-blue-light" />,
             count: doctor.vacationCount > 0 ? doctor.vacationCount : undefined
           });
         }
@@ -228,7 +228,7 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
               type: 'speciality',
               value: speciality,
               display: speciality,
-              icon: <Stethoscope className="w-4 h-4 text-green-500" />,
+              icon: <Stethoscope className="w-4 h-4 text-medical-green-light" />,
               count
             });
           }
@@ -236,7 +236,7 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
 
       setSuggestions(newSuggestions);
     } catch (error) {
-      console.error('Error generating suggestions:', error);
+      // TODO: Replace with logger.error('Error generating suggestions:', error);
       setSuggestions([]);
     } finally {
       setLoading(false);
@@ -293,8 +293,8 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
   const getSuggestionIcon = (type: string) => {
     switch (type) {
       case 'location': return <MapPin className="w-4 h-4 text-red-500" />;
-      case 'doctor': return <User className="w-4 h-4 text-blue-500" />;
-      case 'speciality': return <Stethoscope className="w-4 h-4 text-green-500" />;
+      case 'doctor': return <User className="w-4 h-4 text-medical-blue-light" />;
+      case 'speciality': return <Stethoscope className="w-4 h-4 text-medical-green-light" />;
       case 'recent': return <Clock className="w-4 h-4 text-gray-400" />;
       default: return <Search className="w-4 h-4 text-gray-400" />;
     }

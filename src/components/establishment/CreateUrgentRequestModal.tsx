@@ -101,7 +101,7 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
         const credits = await CreditsService.getUserCredits(establishmentId);
         setUserCredits(credits);
       } catch (error) {
-        console.error('Erreur lors du chargement des crédits:', error);
+        // TODO: Replace with logger.error('Erreur lors du chargement des crédits:', error);
       }
     };
 
@@ -263,7 +263,7 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
               
               <div className="text-left lg:text-right">
                 <div className="flex items-center gap-2 text-lg font-semibold">
-                  <ShoppingCart className="w-5 h-5 text-green-600" />
+                  <ShoppingCart className="w-5 h-5 text-medical-green" />
                   <span>Coût: {estimatedCost} crédit{estimatedCost > 1 ? 's' : ''}</span>
                 </div>
                 {userCredits && (
@@ -573,7 +573,7 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{estimatedCost}</div>
+                <div className="text-2xl font-bold text-medical-blue">{estimatedCost}</div>
                 <div className="text-xs text-gray-600">crédits</div>
               </div>
             </div>

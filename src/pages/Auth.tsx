@@ -380,7 +380,7 @@ const Auth = () => {
   // Monitor auth state changes
   useEffect(() => {
     // Auth state monitoring - can be enabled for debugging if needed
-    // console.log("Auth State:", { user, authLoading, isVisible });
+    // // TODO: Replace with logger.info("Auth State:", { user, authLoading, isVisible });
   }, [user, authLoading, isVisible]);
 
   // Données de formulaire - initialise le userType depuis l'URL si disponible
@@ -467,7 +467,7 @@ const Auth = () => {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
         <div className="text-center bg-white p-8 rounded-3xl shadow-xl max-w-md">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Check className="w-8 h-8 text-green-600" />
+            <Check className="w-8 h-8 text-medical-green" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Déjà connecté
@@ -496,8 +496,8 @@ const Auth = () => {
           </div>
 
           <div className="flex items-center justify-center mb-4">
-            <Loader2 className="w-5 h-5 animate-spin text-blue-600 mr-2" />
-            <span className="text-blue-600">Redirection en cours...</span>
+            <Loader2 className="w-5 h-5 animate-spin text-medical-blue mr-2" />
+            <span className="text-medical-blue">Redirection en cours...</span>
           </div>
 
           <button
@@ -516,7 +516,7 @@ const Auth = () => {
               });
               window.location.href = dashboardRoute;
             }}
-            className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-semibold"
+            className="w-full px-4 py-3 bg-medical-blue-light text-white rounded-lg hover:bg-medical-blue font-semibold"
           >
             Aller au tableau de bord maintenant
           </button>
@@ -530,7 +530,7 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="w-8 h-8 animate-spin text-medical-blue mx-auto mb-4" />
           <p className="text-gray-600">Vérification de l'authentification...</p>
         </div>
       </div>
@@ -761,7 +761,7 @@ const Auth = () => {
       setResetEmail("");
       setErrors({});
     } catch (error) {
-      console.error("Erreur lors de la réinitialisation:", error);
+      // TODO: Replace with logger.error("Erreur lors de la réinitialisation:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'envoi de l'email",
@@ -818,7 +818,7 @@ const Auth = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">C</span>
+                  <span className="text-medical-blue font-bold">C</span>
                 </div>
                 <span className="text-xl font-bold text-white">Cureliah</span>
               </div>
@@ -847,8 +847,8 @@ const Auth = () => {
                     }}
                     className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all duration-300 ${
                       currentTab === "signin"
-                        ? "bg-white text-blue-600 shadow-md"
-                        : "text-gray-600 hover:text-blue-600"
+                        ? "bg-white text-medical-blue shadow-md"
+                        : "text-gray-600 hover:text-medical-blue"
                     }`}
                   >
                     Connexion
@@ -930,7 +930,7 @@ const Auth = () => {
                           setResetEmail(signInData.email);
                           setErrors({});
                         }}
-                        className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        className="text-medical-blue hover:text-medical-blue-dark font-medium transition-colors"
                       >
                         Mot de passe oublié ?
                       </button>
@@ -1169,7 +1169,7 @@ const Auth = () => {
               <div className="space-y-6">
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lock className="w-8 h-8 text-blue-600" />
+                    <Lock className="w-8 h-8 text-medical-blue" />
                   </div>
                   <p className="text-gray-600">
                     Entrez votre adresse email et nous vous enverrons un lien

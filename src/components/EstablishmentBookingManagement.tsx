@@ -96,9 +96,9 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   });
 
   useEffect(() => {
-    console.log("=== DEBUG EstablishmentBookingManagement ===");
-    console.log("User ID:", user?.id);
-    console.log("Status filter:", status);
+    // TODO: Replace with logger.info("=== DEBUG EstablishmentBookingManagement ===");
+    // TODO: Replace with logger.info("User ID:", user?.id);
+    // TODO: Replace with logger.info("Status filter:", status);
     
     if (user) {
       fetchBookings();
@@ -108,21 +108,21 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   const fetchBookings = async () => {
     if (!user) return;
 
-    console.log("🔍 Fetching bookings for establishment:", user.id);
+    // TODO: Replace with logger.info("🔍 Fetching bookings for establishment:", user.id);
 
     try {
       setLoading(true);
 
       // D'abord, testons une requête simple pour voir la structure
-      console.log("🔍 Testing simple query first...");
+      // TODO: Replace with logger.info("🔍 Testing simple query first...");
       const { data: simpleTest, error: simpleError } = await supabase
         .from('bookings')
         .select('*')
         .eq('establishment_id', user.id)
         .limit(1);
       
-      console.log("📊 Simple test result:", simpleTest);
-      console.log("❌ Simple test error:", simpleError);
+      // TODO: Replace with logger.info("📊 Simple test result:", simpleTest);
+      // TODO: Replace with logger.info("❌ Simple test error:", simpleError);
 
       // Query corrigée pour utiliser la table "bookings" comme dans MyBookings
       let query = supabase
@@ -162,37 +162,37 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
       // Filtrer par statut si spécifié
       if (status) {
         const statusArray = status.split(',').map(s => s.trim());
-        console.log("🔍 Filtering by status:", statusArray);
+        // TODO: Replace with logger.info("🔍 Filtering by status:", statusArray);
         query = query.in('status', statusArray);
       }
 
       const { data: bookingsData, error: bookingsError } = await query;
 
-      console.log("📊 Raw bookings data:", bookingsData);
-      console.log("❌ Bookings error:", bookingsError);
+      // TODO: Replace with logger.info("📊 Raw bookings data:", bookingsData);
+      // TODO: Replace with logger.info("❌ Bookings error:", bookingsError);
 
       if (bookingsError) {
-        console.error("Supabase query error:", bookingsError);
+        // TODO: Replace with logger.error("Supabase query error:", bookingsError);
         throw bookingsError;
       }
 
       // Transform data to match our interface
       const transformedBookings = bookingsData?.map((booking, index) => {
-        console.log(`🔍 Processing booking ${index}:`, booking);
+        // TODO: Replace with logger.info(`🔍 Processing booking ${index}:`, booking);
         
         // Vérifier si vacation_posts existe
         if (!booking.vacation_posts) {
-          console.warn(`⚠️ No vacation_posts data for booking ${booking.id}:`, booking);
+          // TODO: Replace with logger.warn(`⚠️ No vacation_posts data for booking ${booking.id}:`, booking);
           return null;
         }
         
         // Dans tes données, vacation_posts est un objet, pas un tableau !
         const vacationPost = booking.vacation_posts as any; // Type assertion temporaire
-        console.log(`🔍 Vacation post for booking ${index}:`, vacationPost);
+        // TODO: Replace with logger.info(`🔍 Vacation post for booking ${index}:`, vacationPost);
         
         // Vérifier si doctor_profiles existe dans vacation_posts
         if (!vacationPost.doctor_profiles) {
-          console.warn(`⚠️ No doctor_profiles data for vacation post ${vacationPost.id}:`, vacationPost);
+          // TODO: Replace with logger.warn(`⚠️ No doctor_profiles data for vacation post ${vacationPost.id}:`, vacationPost);
           return null;
         }
         
@@ -200,7 +200,7 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         const doctorProfile = Array.isArray(vacationPost.doctor_profiles) 
           ? vacationPost.doctor_profiles[0] 
           : vacationPost.doctor_profiles as any; // Type assertion temporaire
-        console.log(`🔍 Doctor profile for booking ${index}:`, doctorProfile);
+        // TODO: Replace with logger.info(`🔍 Doctor profile for booking ${index}:`, doctorProfile);
         
         return {
           id: booking.id,
@@ -233,12 +233,12 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         };
       }).filter(Boolean) || []; // Filtrer les éléments null
 
-      console.log("✅ Transformed bookings:", transformedBookings);
-      console.log("✅ Found", transformedBookings.length, "bookings");
+      // TODO: Replace with logger.info("✅ Transformed bookings:", transformedBookings);
+      // TODO: Replace with logger.info("✅ Found", transformedBookings.length, "bookings");
 
       setBookings(transformedBookings);
     } catch (error: any) {
-      console.error('Error fetching bookings:', error);
+      // TODO: Replace with logger.error('Error fetching bookings:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -450,7 +450,7 @@ const BookingCard = ({
             <CardDescription className="mt-1">
               Dr. {booking.doctor_profiles.first_name} {booking.doctor_profiles.last_name}
               {booking.doctor_profiles.speciality && (
-                <span className="text-blue-600 ml-2">• {booking.doctor_profiles.speciality}</span>
+                <span className="text-medical-blue ml-2">• {booking.doctor_profiles.speciality}</span>
               )}
             </CardDescription>
           </div>
@@ -496,7 +496,7 @@ const BookingCard = ({
               </span>
             </div>
             {booking.total_amount && (
-              <div className="flex items-center text-sm font-medium text-green-600">
+              <div className="flex items-center text-sm font-medium text-medical-green">
                 <Euro className="w-4 h-4 text-gray-400 mr-2" />
                 <span>Total: {booking.total_amount}€</span>
               </div>
@@ -525,7 +525,7 @@ const BookingCard = ({
               <PaymentButton
                 bookingId={booking.id}
                 amount={booking.total_amount}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-medical-green hover:bg-medical-green-dark"
                 onSuccess={onStatusUpdate}
               />
             )}

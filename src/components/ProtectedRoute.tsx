@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, children }) => {
   const { user, loading, isSubscribed, subscriptionLoading, subscriptionStatus } = useAuth();
   const location = useLocation();
-  console.log("[ProtectedRoute] user:", user, "subscriptionStatus:", subscriptionStatus, "isSubscribed:", isSubscribed());
+  // TODO: Replace with logger.info("[ProtectedRoute] user:", user, "subscriptionStatus:", subscriptionStatus, "isSubscribed:", isSubscribed(););
 
   if (loading || subscriptionLoading) {
     return (

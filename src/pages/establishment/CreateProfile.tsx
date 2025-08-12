@@ -92,7 +92,7 @@ const CreateProfile = () => {
         ]);
 
       if (profileError) {
-        console.error('Error creating base profile:', profileError);
+        // TODO: Replace with logger.error('Error creating base profile:', profileError);
         throw profileError;
       }
 
@@ -118,7 +118,7 @@ const CreateProfile = () => {
         ]);
 
       if (establishmentError) {
-        console.error('Error creating establishment profile:', establishmentError);
+        // TODO: Replace with logger.error('Error creating establishment profile:', establishmentError);
         throw establishmentError;
       }
 
@@ -130,7 +130,7 @@ const CreateProfile = () => {
       // Rediriger vers le tableau de bord
       navigate('/establishment/dashboard');
     } catch (error: any) {
-      console.error('Error creating profile:', error);
+      // TODO: Replace with logger.error('Error creating profile:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la création du profil.",

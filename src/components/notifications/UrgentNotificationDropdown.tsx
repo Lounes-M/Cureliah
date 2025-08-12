@@ -167,7 +167,7 @@ export const UrgentNotificationDropdown: React.FC<UrgentNotificationDropdownProp
                             </h4>
                             <div className="flex items-center gap-1 ml-2">
                               {!notification.read && (
-                                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                <div className="w-2 h-2 bg-medical-blue rounded-full"></div>
                               )}
                               <Button
                                 variant="ghost"

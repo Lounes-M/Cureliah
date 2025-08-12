@@ -153,7 +153,7 @@ const VacationForm = ({
         status: 'available' as VacationStatus
       };
 
-      console.log('Submitting vacation with time slots:', finalTimeSlots);
+      // TODO: Replace with logger.info('Submitting vacation with time slots:', finalTimeSlots);
       onChange(vacationPayload);
 
       toast({
@@ -161,7 +161,7 @@ const VacationForm = ({
         description: "Vacation sauvegardée avec succès",
       });
     } catch (error: any) {
-      console.error('Error saving vacation:', error);
+      // TODO: Replace with logger.error('Error saving vacation:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de sauvegarder la vacation",

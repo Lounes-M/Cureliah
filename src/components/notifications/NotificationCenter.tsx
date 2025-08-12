@@ -58,15 +58,15 @@ export default function NotificationCenter() {
   });
 
   const handleDeleteNotification = async (id: string) => {
-    console.log('🗑️ Starting deletion for notification:', id);
-    console.log('🔐 Current user ID:', user?.id);
+    // TODO: Replace with logger.info('🗑️ Starting deletion for notification:', id);
+    // TODO: Replace with logger.info('🔐 Current user ID:', user?.id);
     
     try {
-      console.log('📞 Calling deleteNotification from hook...');
+      // TODO: Replace with logger.info('📞 Calling deleteNotification from hook...');
       await deleteNotification(id);
-      console.log('✅ Delete operation completed successfully');
+      // TODO: Replace with logger.info('✅ Delete operation completed successfully');
     } catch (error) {
-      console.error('❌ Error in handleDeleteNotification:', error);
+      // TODO: Replace with logger.error('❌ Error in handleDeleteNotification:', error);
     }
   };
 
@@ -95,11 +95,11 @@ export default function NotificationCenter() {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'booking':
-        return 'text-blue-600';
+        return 'text-medical-blue';
       case 'review':
         return 'text-yellow-600';
       case 'payment':
-        return 'text-green-600';
+        return 'text-medical-green';
       case 'message':
         return 'text-purple-600';
       case 'reminder':
@@ -110,7 +110,7 @@ export default function NotificationCenter() {
         return 'text-indigo-600';
       case 'info':
       default:
-        return 'text-blue-600';
+        return 'text-medical-blue';
     }
   };
 
@@ -195,10 +195,10 @@ export default function NotificationCenter() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">Non lues</p>
+                <p className="text-medical-blue text-sm font-medium">Non lues</p>
                 <p className="text-2xl font-bold text-blue-900">{unreadCount}</p>
               </div>
-              <Bell className="w-8 h-8 text-blue-600" />
+              <Bell className="w-8 h-8 text-medical-blue" />
             </div>
           </CardContent>
         </Card>
@@ -207,10 +207,10 @@ export default function NotificationCenter() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-600 text-sm font-medium">Total</p>
+                <p className="text-medical-green text-sm font-medium">Total</p>
                 <p className="text-2xl font-bold text-green-900">{notifications.length}</p>
               </div>
-              <Archive className="w-8 h-8 text-green-600" />
+              <Archive className="w-8 h-8 text-medical-green" />
             </div>
           </CardContent>
         </Card>
@@ -273,7 +273,7 @@ export default function NotificationCenter() {
                                 {notification.title}
                               </h4>
                               {!notification.read_at && (
-                                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                                <div className="w-2 h-2 bg-medical-blue rounded-full"></div>
                               )}
                             </div>
                             

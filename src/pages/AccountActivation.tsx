@@ -116,7 +116,7 @@ const AccountActivation = () => {
         window.location.reload(); // Force refresh pour mettre à jour le contexte auth
       }
     } catch (error) {
-      console.error("Erreur lors de la vérification du statut:", error);
+      // TODO: Replace with logger.error("Erreur lors de la vérification du statut:", error);
     } finally {
       setIsCheckingStatus(false);
     }
@@ -158,7 +158,7 @@ const AccountActivation = () => {
         ]);
 
       if (notificationError) {
-        console.log("Notification envoyée (simulation)");
+        // TODO: Replace with logger.info("Notification envoyée (simulation);");
       }
 
       setSupportTicketSent(true);
@@ -171,7 +171,7 @@ const AccountActivation = () => {
         variant: "default",
       });
     } catch (error) {
-      console.error("Erreur lors de la demande d'activation:", error);
+      // TODO: Replace with logger.error("Erreur lors de la demande d'activation:", error);
       toast({
         title: "Erreur",
         description:
@@ -270,7 +270,7 @@ const AccountActivation = () => {
             <div className="bg-gray-50 rounded-2xl p-6 mb-6">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mr-4">
-                  <UserIcon className="w-6 h-6 text-blue-600" />
+                  <UserIcon className="w-6 h-6 text-medical-blue" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">
@@ -343,7 +343,7 @@ const AccountActivation = () => {
             {/* Étapes du processus */}
             <div className="bg-blue-50 rounded-2xl p-6 mb-6">
               <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                <CheckCircle className="w-5 h-5 text-blue-600 mr-2" />
+                <CheckCircle className="w-5 h-5 text-medical-blue mr-2" />
                 Processus de validation
               </h3>
               <div className="space-y-3">
@@ -452,14 +452,14 @@ const AccountActivation = () => {
               <div className="flex items-center justify-center space-x-6">
                 <a
                   href="mailto:support@cureliah.com"
-                  className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                  className="flex items-center text-medical-blue hover:text-medical-blue-dark transition-colors"
                 >
                   <Mail className="w-4 h-4 mr-1" />
                   support@cureliah.com
                 </a>
                 <a
                   href="tel:+33123456789"
-                  className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                  className="flex items-center text-medical-blue hover:text-medical-blue-dark transition-colors"
                 >
                   <Phone className="w-4 h-4 mr-1" />
                   01 23 45 67 89

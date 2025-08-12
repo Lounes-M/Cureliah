@@ -23,7 +23,7 @@ export const PromoHeaderBanner: React.FC<PromoHeaderBannerProps> = ({
       
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy promo code:', err);
+      // TODO: Replace with logger.error('Failed to copy promo code:', err);
     }
   };
 

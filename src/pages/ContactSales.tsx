@@ -73,7 +73,7 @@ const ContactSales = () => {
         description: "Notre équipe commerciale vous contactera sous 24h.",
       });
     } catch (error) {
-      console.error('Error submitting contact form:', error);
+      // TODO: Replace with logger.error('Error submitting contact form:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer votre message. Veuillez réessayer.",
@@ -94,7 +94,7 @@ const ContactSales = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="text-center py-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-medical-green-light mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Message envoyé !</h2>
             <p className="text-gray-600 mb-6">
               Notre équipe commerciale vous recontactera dans les plus brefs délais.
@@ -122,7 +122,7 @@ const ContactSales = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Phone className="h-8 w-8 text-blue-600" />
+              <Phone className="h-8 w-8 text-medical-blue" />
               Contacter l'équipe commerciale
             </h1>
             <p className="text-gray-600 mt-1">
@@ -310,21 +310,21 @@ const ContactSales = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-blue-600" />
+                  <Phone className="h-5 w-5 text-medical-blue" />
                   <div>
                     <p className="font-medium">Téléphone</p>
                     <p className="text-gray-600">+33 1 23 45 67 89</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-blue-600" />
+                  <Mail className="h-5 w-5 text-medical-blue" />
                   <div>
                     <p className="font-medium">Email</p>
                     <p className="text-gray-600">sales@cureliah.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <MapPin className="h-5 w-5 text-medical-blue" />
                   <div>
                     <p className="font-medium">Adresse</p>
                     <p className="text-gray-600">123 Rue de la Santé<br />75014 Paris</p>
@@ -340,19 +340,19 @@ const ContactSales = () => {
               <CardContent>
                 <ul className="space-y-3 text-sm">
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-medical-green-light mt-0.5" />
                     <span>Solution clé en main pour gérer vos remplacements</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-medical-green-light mt-0.5" />
                     <span>Support dédié et formation complète</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-medical-green-light mt-0.5" />
                     <span>Intégration avec vos systèmes existants</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-medical-green-light mt-0.5" />
                     <span>Tarification transparente et flexible</span>
                   </li>
                 </ul>

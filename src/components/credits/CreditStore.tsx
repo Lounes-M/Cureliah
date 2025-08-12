@@ -64,7 +64,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
       }
 
     } catch (error) {
-      console.error('Erreur lors de l\'achat:', error);
+      // TODO: Replace with logger.error('Erreur lors de l\'achat:', error);
       toast({
         title: "Erreur",
         description: "Impossible de traiter l'achat. Veuillez réessayer.",
@@ -90,7 +90,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-blue-600" />
+            <CreditCard className="w-5 h-5 text-medical-blue" />
             Boutique de Crédits
           </DialogTitle>
           <DialogDescription>
@@ -107,37 +107,37 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
             <CardContent className="text-blue-700">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3 text-sm">
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Urgence moyenne:</strong> 1 crédit
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Urgence élevée:</strong> 2 crédits
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Urgence critique:</strong> 3 crédits
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Urgence extrême:</strong> 5 crédits
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Boost prioritaire:</strong> +2 crédits
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
                     <strong>Mise en avant:</strong> +3 crédits
                   </div>
@@ -156,14 +156,14 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                 }`}
               >
                 {pkg.popular && (
-                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-blue-600 whitespace-nowrap">
+                  <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-medical-blue whitespace-nowrap">
                     <Star className="w-3 h-3 mr-1" />
                     Populaire
                   </Badge>
                 )}
                 
                 <CardHeader className="text-center pb-2 pt-6">
-                  <div className="flex justify-center mb-2 text-blue-600">
+                  <div className="flex justify-center mb-2 text-medical-blue">
                     {getPackageIcon(pkg.id)}
                   </div>
                   <CardTitle className="text-lg">{pkg.name}</CardTitle>
@@ -172,7 +172,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                 
                 <CardContent className="text-center space-y-4 px-4 pb-4">
                   <div className="space-y-2">
-                    <div className="text-3xl font-bold text-blue-600">
+                    <div className="text-3xl font-bold text-medical-blue">
                       {pkg.credits}
                     </div>
                     <div className="text-sm text-muted-foreground">crédits</div>
@@ -182,7 +182,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                     </div>
                     
                     {pkg.savings && (
-                      <div className="text-sm text-green-600 font-medium">
+                      <div className="text-sm text-medical-green font-medium">
                         Économisez {pkg.savings}€
                       </div>
                     )}
@@ -226,15 +226,15 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4 text-medical-green" />
                   <span>Paiement 100% sécurisé avec Stripe</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4 text-medical-green" />
                   <span>Crédits ajoutés instantanément</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-600" />
+                  <Check className="w-4 h-4 text-medical-green" />
                   <span>Support client 24/7</span>
                 </div>
               </div>

@@ -220,7 +220,7 @@ export default function AnalyticsDashboard({ userType }: AnalyticsDashboardProps
         geographicDistribution
       });
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      // TODO: Replace with logger.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }
@@ -504,7 +504,7 @@ export default function AnalyticsDashboard({ userType }: AnalyticsDashboardProps
             <div className="text-2xl font-bold">{data.totalBookings}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               {data.bookingGrowth > 0 ? (
-                <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                <TrendingUp className="h-3 w-3 mr-1 text-medical-green-light" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
               )}
@@ -522,7 +522,7 @@ export default function AnalyticsDashboard({ userType }: AnalyticsDashboardProps
             <div className="text-2xl font-bold">{data.totalRevenue}€</div>
             <div className="flex items-center text-xs text-muted-foreground">
               {data.revenueGrowth > 0 ? (
-                <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+                <TrendingUp className="h-3 w-3 mr-1 text-medical-green-light" />
               ) : (
                 <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
               )}

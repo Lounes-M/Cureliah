@@ -160,7 +160,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
     try {
       setLoading(true);
-      console.log('🔍 Fetching bookings for doctor:', user.id);
+      // TODO: Replace with logger.info('🔍 Fetching bookings for doctor:', user.id);
       
       let query = supabase
         .from('bookings')
@@ -201,23 +201,23 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
       const { data: bookingsData, error: bookingsError } = await query;
 
       if (bookingsError) {
-        console.error('❌ Error fetching bookings:', bookingsError);
+        // TODO: Replace with logger.error('❌ Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
 
-      console.log('📦 Raw bookings data:', bookingsData);
+      // TODO: Replace with logger.info('📦 Raw bookings data:', bookingsData);
 
       if (!bookingsData || bookingsData.length === 0) {
-        console.log('📭 No bookings found');
+        // TODO: Replace with logger.info('📭 No bookings found');
         setBookings([]);
         return;
       }
 
-      console.log(`✅ Found ${bookingsData.length} bookings`);
+      // TODO: Replace with logger.info(`✅ Found ${bookingsData.length} bookings`);
 
       // Get establishment IDs
       const establishmentIds = [...new Set(bookingsData.map(booking => booking.establishment_id))];
-      console.log('🏥 Establishment IDs to fetch:', establishmentIds);
+      // TODO: Replace with logger.info('🏥 Establishment IDs to fetch:', establishmentIds);
       
       // Récupérer plus d'informations sur les établissements
       const { data: establishments, error: establishmentError } = await supabase
@@ -226,10 +226,10 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
         .in('id', establishmentIds);
 
       if (establishmentError) {
-        console.error('❌ Error fetching establishment profiles:', establishmentError);
+        // TODO: Replace with logger.error('❌ Error fetching establishment profiles:', establishmentError);
       }
 
-      console.log('🏥 Establishment profiles found:', establishments);
+      // TODO: Replace with logger.info('🏥 Establishment profiles found:', establishments);
 
       // Combine the data
       const combinedBookings = bookingsData.map(booking => {
@@ -250,7 +250,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
             first_name: '',
             last_name: ''
           };
-          console.log('✅ Found establishment:', establishment.name);
+          // TODO: Replace with logger.info('✅ Found establishment:', establishment.name);
         } else {
           establishmentInfo = {
             id: booking.establishment_id,
@@ -260,7 +260,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
             first_name: '',
             last_name: ''
           };
-          console.log('⚠️ Establishment not found for ID:', booking.establishment_id);
+          // TODO: Replace with logger.info('⚠️ Establishment not found for ID:', booking.establishment_id);
         }
         
         return {
@@ -304,7 +304,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
       setBookings(filteredBookings);
     } catch (error: any) {
-      console.error('Error:', error);
+      // TODO: Replace with logger.error('Error:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors du chargement des réservations",
@@ -371,7 +371,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
     return (
       <div className="space-y-6">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue mx-auto"></div>
           <p className="mt-2 text-gray-600">Chargement des réservations...</p>
         </div>
       </div>
@@ -506,13 +506,13 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                     <div className="space-y-3">
                       <h4 className="font-medium text-gray-900 mb-3">Détails de la vacation</h4>
                       <div className="flex items-center text-sm text-gray-600">
-                        <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                        <Calendar className="w-4 h-4 mr-2 text-medical-blue-light" />
                         <span>
                           Du {formatDateTime(booking.start_date)} 
                         </span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
-                        <Clock className="w-4 h-4 mr-2 text-green-500" />
+                        <Clock className="w-4 h-4 mr-2 text-medical-green-light" />
                         <span>Durée: {booking.duration_hours}h</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
@@ -549,7 +549,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-medical-green hover:bg-medical-green-dark"
                             >
                               Accepter
                             </Button>
@@ -568,7 +568,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                             <Button
                               size="sm"
                               onClick={() => handleStatusUpdate(booking.id, 'completed')}
-                              className="bg-blue-600 hover:bg-blue-700"
+                              className="bg-medical-blue hover:bg-medical-blue-dark"
                             >
                               Marquer comme terminé
                             </Button>
@@ -577,7 +577,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                             {booking.status === 'confirmed' && booking.payment_status !== 'paid' && (
                               <Button
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700"
+                                className="bg-medical-green hover:bg-medical-green-dark"
                                 onClick={() => window.open(`/payment/${booking.id}`, '_blank')}
                               >
                                 Régler cette réservation
@@ -624,7 +624,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                   {isExpanded && booking.establishment_info && (
                     <div className="mt-6 pt-6 border-t border-gray-200">
                       <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                        <Building2 className="w-5 h-5 text-blue-500" />
+                        <Building2 className="w-5 h-5 text-medical-blue-light" />
                         Informations détaillées sur l'établissement
                       </h4>
                       
@@ -642,10 +642,10 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                           
                           {booking.establishment_info.phone && (
                             <div className="flex items-center text-sm text-gray-600">
-                              <Phone className="w-4 h-4 mr-2 text-green-500" />
+                              <Phone className="w-4 h-4 mr-2 text-medical-green-light" />
                               <a 
                                 href={`tel:${booking.establishment_info.phone}`}
-                                className="hover:text-blue-600 transition-colors"
+                                className="hover:text-medical-blue transition-colors"
                               >
                                 {booking.establishment_info.phone}
                               </a>
@@ -654,10 +654,10 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                           
                           {booking.establishment_info.email && (
                             <div className="flex items-center text-sm text-gray-600">
-                              <Mail className="w-4 h-4 mr-2 text-blue-500" />
+                              <Mail className="w-4 h-4 mr-2 text-medical-blue-light" />
                               <a 
                                 href={`mailto:${booking.establishment_info.email}`}
-                                className="hover:text-blue-600 transition-colors"
+                                className="hover:text-medical-blue transition-colors"
                               >
                                 {booking.establishment_info.email}
                               </a>
@@ -671,7 +671,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                                 href={booking.establishment_info.website}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="hover:text-blue-600 transition-colors"
+                                className="hover:text-medical-blue transition-colors"
                               >
                                 Site web
                               </a>
@@ -723,7 +723,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                       {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
                         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                           <h5 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
-                            <Euro className="w-4 h-4 text-green-500" />
+                            <Euro className="w-4 h-4 text-medical-green-light" />
                             Statut du paiement
                           </h5>
                           <div className="flex items-center gap-2">

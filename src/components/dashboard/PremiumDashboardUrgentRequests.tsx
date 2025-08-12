@@ -88,7 +88,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
       setUrgentRequests(requests);
       setMyResponses(responses);
     } catch (error) {
-      console.error('Erreur lors du chargement des demandes urgentes:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des demandes urgentes:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les demandes urgentes",
@@ -105,7 +105,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
     try {
       await UrgentRequestService.markRequestAsViewed(request.id);
     } catch (error) {
-      console.error('Erreur lors du marquage comme vue:', error);
+      // TODO: Replace with logger.error('Erreur lors du marquage comme vue:', error);
     }
   };
 
@@ -349,7 +349,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-green-600">
+                      <div className="text-2xl font-bold text-medical-green">
                         {request.hourly_rate}€/h
                       </div>
                       <div className="text-xs text-red-600 font-medium">
@@ -443,7 +443,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-green-600">
+                      <div className="text-xl font-bold text-medical-green">
                         {response.requested_rate || response.request.hourly_rate}€/h
                       </div>
                     </div>

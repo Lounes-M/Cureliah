@@ -462,9 +462,9 @@ const CreateVacation = () => {
 
   const getStatusIcon = () => {
     if (saving)
-      return <Loader2 className="w-4 h-4 animate-spin text-blue-600" />;
+      return <Loader2 className="w-4 h-4 animate-spin text-medical-blue" />;
     if (hasUnsavedChanges) return <Clock className="w-4 h-4 text-orange-600" />;
-    return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+    return <CheckCircle2 className="w-4 h-4 text-medical-green" />;
   };
 
   const getStatusText = () => {
@@ -506,7 +506,7 @@ const CreateVacation = () => {
         <Header />
         <div className="flex items-center justify-center h-96">
           <Card className="p-8 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-medical-blue" />
             <div className="text-lg font-medium">
               Chargement de la vacation...
             </div>
@@ -578,7 +578,7 @@ const CreateVacation = () => {
                   </div>
 
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-medical-blue">
                       {completionPercentage}%
                     </div>
                     <div className="text-xs text-gray-500">Complété</div>

@@ -35,7 +35,7 @@ const PaymentSuccess = () => {
       <Confetti width={width} height={height} numberOfPieces={250} recycle={false} />
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-24 sm:py-32">
         <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl p-12 flex flex-col items-center text-center animate-fade-in">
-          <CheckCircle2 className="w-20 h-20 text-green-500 mb-6 animate-bounce-in" />
+          <CheckCircle2 className="w-20 h-20 text-medical-green-light mb-6 animate-bounce-in" />
           <h1 className="text-4xl font-extrabold mb-3 text-green-700 tracking-tight drop-shadow">Paiement réussi !</h1>
           <p className="text-gray-700 mb-8 text-lg">Merci pour votre paiement. Votre transaction a été traitée avec succès.<br/>Vous pouvez maintenant profiter de toutes les fonctionnalités de Cureliah.</p>
           <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
@@ -48,7 +48,7 @@ const PaymentSuccess = () => {
             </button>
             <button
               onClick={() => navigate('/bookings')}
-              className="px-6 py-3 bg-emerald-500 text-white rounded-lg font-semibold shadow hover:bg-emerald-600 transition text-base flex items-center justify-center gap-2"
+              className="px-6 py-3 bg-emerald-500 text-white rounded-lg font-semibold shadow hover:bg-medical-green transition text-base flex items-center justify-center gap-2"
             >
               Voir mes réservations
             </button>

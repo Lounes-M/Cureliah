@@ -38,7 +38,7 @@ export const PromoModal: React.FC<PromoModalProps> = ({
       
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy promo code:', err);
+      // TODO: Replace with logger.error('Failed to copy promo code:', err);
     }
   };
 
@@ -115,7 +115,7 @@ export const PromoModal: React.FC<PromoModalProps> = ({
                 {messages.title}
               </h2>
               
-              <p className="text-base text-blue-600 font-semibold mb-2">
+              <p className="text-base text-medical-blue font-semibold mb-2">
                 {messages.subtitle}
               </p>
               
@@ -140,7 +140,7 @@ export const PromoModal: React.FC<PromoModalProps> = ({
                   )}
                 </button>
                 {copied && (
-                  <div className="text-xs text-green-600 mt-1 animate-pulse">
+                  <div className="text-xs text-medical-green mt-1 animate-pulse">
                     ✓ Code copié !
                   </div>
                 )}

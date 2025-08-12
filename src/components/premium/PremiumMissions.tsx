@@ -41,7 +41,7 @@ const PremiumMissions: React.FC = () => {
       const data = await PremiumMissionService.getPremiumMissions(user.id, filters);
       setMissions(data);
     } catch (error) {
-      console.error('Erreur lors du chargement des missions Premium:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des missions Premium:', error);
     } finally {
       setLoading(false);
     }
@@ -56,7 +56,7 @@ const PremiumMissions: React.FC = () => {
       // Recharger les missions pour mettre à jour les statuts
       loadMissions();
     } catch (error) {
-      console.error('Erreur lors de la candidature:', error);
+      // TODO: Replace with logger.error('Erreur lors de la candidature:', error);
       alert('Erreur lors de la candidature. Vérifiez votre abonnement Premium.');
     } finally {
       setApplyingTo(null);
@@ -223,8 +223,8 @@ const PremiumMissions: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Euro className="h-4 w-4 text-green-600" />
-                      <span className="font-semibold text-green-600">
+                      <Euro className="h-4 w-4 text-medical-green" />
+                      <span className="font-semibold text-medical-green">
                         {formatSalary(mission.salary_min, mission.salary_max)}
                       </span>
                     </div>

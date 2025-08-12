@@ -69,7 +69,7 @@ const EarlyBirdBanner = () => {
   }, [spotsLeft]);
 
   const handleCTAClick = () => {
-    console.log("Navigation vers inscription Early Bird");
+    // TODO: Replace with logger.info("Navigation vers inscription Early Bird");
     window.location.href = "/auth?offer=early-bird&source=top-banner";
   };
 

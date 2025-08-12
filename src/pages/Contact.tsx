@@ -163,7 +163,7 @@ const Contact = () => {
         .insert([contactData]);
 
       if (error) {
-        console.error('Error saving contact request:', error);
+        // TODO: Replace with logger.error('Error saving contact request:', error);
         // Continue anyway to show user success message
       }
       
@@ -304,7 +304,7 @@ const Contact = () => {
           <div className="grid md:grid-cols-3 gap-6 max-w-2xl mx-auto">
             {stats.map((stat, index) => (
               <div key={index} className="flex items-center justify-center gap-3 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200 shadow-sm">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-medical-blue">
                   {stat.icon}
                 </div>
                 <div className="text-left">
@@ -324,7 +324,7 @@ const Contact = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-3xl flex items-center gap-3">
-                      <Send className="w-7 h-7 text-blue-600" />
+                      <Send className="w-7 h-7 text-medical-blue" />
                       Envoyez-nous un message
                     </CardTitle>
                     <CardDescription className="text-gray-600 mt-2">
@@ -499,7 +499,7 @@ const Contact = () => {
                       />
                       {attachedFile && (
                         <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
-                          <Paperclip className="w-4 h-4 text-blue-600" />
+                          <Paperclip className="w-4 h-4 text-medical-blue" />
                           <span className="text-sm text-blue-800">{attachedFile.name}</span>
                           <button
                             type="button"
@@ -530,7 +530,7 @@ const Contact = () => {
                     <label htmlFor="consent" className="text-sm text-gray-700 leading-relaxed">
                       J'accepte que mes données personnelles soient traitées par Cureliah pour répondre à ma demande. 
                       Conformément au RGPD, vous pouvez exercer vos droits d'accès, de rectification et de suppression 
-                      en nous contactant. <a href="/legal#rgpd" className="text-blue-600 hover:underline">En savoir plus</a>
+                      en nous contactant. <a href="/legal#rgpd" className="text-medical-blue hover:underline">En savoir plus</a>
                     </label>
                   </div>
 
@@ -563,7 +563,7 @@ const Contact = () => {
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-3">
-                  <Phone className="w-6 h-6 text-blue-600" />
+                  <Phone className="w-6 h-6 text-medical-blue" />
                   Nos coordonnées
                 </CardTitle>
               </CardHeader>
@@ -574,11 +574,11 @@ const Contact = () => {
                     href={info.href}
                     className="flex items-start gap-3 p-4 rounded-xl hover:bg-blue-50/50 transition-all duration-200 group border border-transparent hover:border-blue-200"
                   >
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-medical-blue flex-shrink-0 group-hover:scale-110 transition-transform">
                       {info.icon}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-700">{info.title}</h3>
+                      <h3 className="font-semibold text-gray-900 group-hover:text-medical-blue-dark">{info.title}</h3>
                       <p className="text-gray-700 font-medium">{info.value}</p>
                       <p className="text-sm text-gray-500">{info.description}</p>
                     </div>
@@ -591,13 +591,13 @@ const Contact = () => {
             <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-xl">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-3">
-                  <Users className="w-6 h-6 text-blue-600" />
+                  <Users className="w-6 h-6 text-medical-blue" />
                   Qui peut nous contacter
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-50/70 border border-blue-200">
-                  <Stethoscope className="w-6 h-6 text-blue-600" />
+                  <Stethoscope className="w-6 h-6 text-medical-blue" />
                   <div>
                     <Badge variant="secondary" className="mb-2 bg-blue-100 text-blue-800">Médecins</Badge>
                     <p className="text-sm text-gray-600">Questions sur les vacations, profil, paiements, certifications</p>
@@ -617,24 +617,24 @@ const Contact = () => {
             <Card className="bg-gradient-to-br from-green-50 to-blue-50 border-0 shadow-xl">
               <CardContent className="p-6">
                 <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-green-600" />
+                  <Shield className="w-5 h-5 text-medical-green" />
                   Nos garanties
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-4 h-4 text-medical-green" />
                     <span>Réponse garantie sous 24h</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-4 h-4 text-medical-green" />
                     <span>Données sécurisées (RGPD)</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-4 h-4 text-medical-green" />
                     <span>Support expert dédié</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    <CheckCircle className="w-4 h-4 text-medical-green" />
                     <span>Satisfaction client 99.8%</span>
                   </div>
                 </div>
@@ -668,7 +668,7 @@ const Contact = () => {
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <HelpCircle className="w-4 h-4 text-blue-600" />
+                        <HelpCircle className="w-4 h-4 text-medical-blue" />
                       </div>
                       <h3 className="font-semibold text-gray-900 text-lg">
                         {item.question}
@@ -701,7 +701,7 @@ const Contact = () => {
             </p>
             <Button 
               variant="outline" 
-              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              className="border-blue-200 text-medical-blue hover:bg-blue-50"
             >
               <HelpCircle className="w-4 h-4 mr-2" />
               Accéder au centre d'aide
@@ -733,7 +733,7 @@ const Contact = () => {
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Stethoscope className="w-5 h-5 text-blue-600" />
+                    <Stethoscope className="w-5 h-5 text-medical-blue" />
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Dr. Martin L.</p>

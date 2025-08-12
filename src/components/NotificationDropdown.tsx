@@ -75,7 +75,7 @@ const NotificationDropdown = () => {
                         {notification.title}
                       </p>
                       {!notification.read_at && (
-                        <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        <div className="w-2 h-2 bg-medical-blue rounded-full"></div>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">

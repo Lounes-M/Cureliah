@@ -66,14 +66,14 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onInstall, o
       const choiceResult = await deferredPrompt.userChoice;
       
       if (choiceResult.outcome === 'accepted') {
-        console.log('PWA installation accepted');
+        // TODO: Replace with logger.info('PWA installation accepted');
         setShowPrompt(false);
         onInstall?.();
       } else {
-        console.log('PWA installation dismissed');
+        // TODO: Replace with logger.info('PWA installation dismissed');
       }
     } catch (error) {
-      console.error('Error during PWA installation:', error);
+      // TODO: Replace with logger.error('Error during PWA installation:', error);
     }
     
     setDeferredPrompt(null);
@@ -96,7 +96,7 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onInstall, o
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-2">
-              <Smartphone className="h-5 w-5 text-blue-600" />
+              <Smartphone className="h-5 w-5 text-medical-blue" />
               <CardTitle className="text-lg">Installer Cureliah</CardTitle>
             </div>
             <Button
@@ -116,15 +116,15 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onInstall, o
         <CardContent className="pt-0">
           <div className="grid grid-cols-3 gap-3 mb-4 text-xs text-gray-600">
             <div className="flex flex-col items-center text-center">
-              <Monitor className="h-4 w-4 mb-1 text-blue-500" />
+              <Monitor className="h-4 w-4 mb-1 text-medical-blue-light" />
               <span>Accès rapide</span>
             </div>
             <div className="flex flex-col items-center text-center">
-              <Wifi className="h-4 w-4 mb-1 text-blue-500" />
+              <Wifi className="h-4 w-4 mb-1 text-medical-blue-light" />
               <span>Mode hors ligne</span>
             </div>
             <div className="flex flex-col items-center text-center">
-              <Bell className="h-4 w-4 mb-1 text-blue-500" />
+              <Bell className="h-4 w-4 mb-1 text-medical-blue-light" />
               <span>Notifications</span>
             </div>
           </div>
@@ -189,7 +189,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
         scope: '/',
       });
 
-      console.log('Service Worker registered successfully:', registration.scope);
+      // TODO: Replace with logger.info('Service Worker registered successfully:', registration.scope);
 
       // Handle service worker updates
       registration.addEventListener('updatefound', () => {
@@ -198,7 +198,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
-              console.log('New version of the app is available!');
+              // TODO: Replace with logger.info('New version of the app is available!');
               
               // Optionally show update notification
               if (window.confirm('Une nouvelle version est disponible. Actualiser maintenant ?')) {
@@ -211,11 +211,11 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
 
       return registration;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      // TODO: Replace with logger.error('Service Worker registration failed:', error);
       return null;
     }
   } else {
-    console.log('Service Workers not supported');
+    // TODO: Replace with logger.info('Service Workers not supported');
     return null;
   }
 };
@@ -229,7 +229,7 @@ export const subscribeToPushNotifications = async (
     const permission = await Notification.requestPermission();
     
     if (permission !== 'granted') {
-      console.log('Notification permission denied');
+      // TODO: Replace with logger.info('Notification permission denied');
       return null;
     }
 
@@ -239,7 +239,7 @@ export const subscribeToPushNotifications = async (
       applicationServerKey: process.env.REACT_APP_VAPID_PUBLIC_KEY, // Add VAPID key
     });
 
-    console.log('Push notification subscription:', subscription);
+    // TODO: Replace with logger.info('Push notification subscription:', subscription);
     
     // Send subscription to your server
     await fetch('/api/notifications/subscribe', {
@@ -250,7 +250,7 @@ export const subscribeToPushNotifications = async (
 
     return subscription;
   } catch (error) {
-    console.error('Push notification subscription failed:', error);
+    // TODO: Replace with logger.error('Push notification subscription failed:', error);
     return null;
   }
 };

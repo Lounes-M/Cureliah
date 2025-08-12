@@ -51,7 +51,7 @@ interface KPICardProps {
 const KPICard: React.FC<KPICardProps> = ({ title, value, change, trend, icon, subtitle }) => {
   const getTrendColor = () => {
     switch (trend) {
-      case 'up': return 'text-green-600';
+      case 'up': return 'text-medical-green';
       case 'down': return 'text-red-600';
       default: return 'text-gray-600';
     }
@@ -102,9 +102,9 @@ const InsightCard: React.FC<{ insight: PredictiveInsight }> = ({ insight }) => {
 
   const getTypeIcon = () => {
     switch (insight.type) {
-      case 'opportunity': return <Target className="w-5 h-5 text-green-600" />;
+      case 'opportunity': return <Target className="w-5 h-5 text-medical-green" />;
       case 'risk': return <AlertTriangle className="w-5 h-5 text-red-600" />;
-      case 'trend': return <TrendingUp className="w-5 h-5 text-blue-600" />;
+      case 'trend': return <TrendingUp className="w-5 h-5 text-medical-blue" />;
       case 'anomaly': return <Activity className="w-5 h-5 text-yellow-600" />;
       default: return <Activity className="w-5 h-5 text-gray-600" />;
     }
@@ -170,7 +170,7 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-medical-blue"></div>
       </div>
     );
   }
@@ -189,7 +189,7 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
       value: metrics.activeUsers.toLocaleString(),
       change: metrics.userGrowthRate,
       trend: metrics.userGrowthRate > 0 ? 'up' as const : 'down' as const,
-      icon: <Users className="w-6 h-6 text-blue-600" />,
+      icon: <Users className="w-6 h-6 text-medical-blue" />,
       subtitle: `${metrics.newUsersToday} new today`
     },
     {
@@ -197,7 +197,7 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
       value: metrics.bookingsWeek,
       change: 12.5,
       trend: 'up' as const,
-      icon: <Calendar className="w-6 h-6 text-green-600" />,
+      icon: <Calendar className="w-6 h-6 text-medical-green" />,
       subtitle: `${metrics.bookingsToday} today`
     },
     {
@@ -331,12 +331,12 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-600">Average Session Duration</p>
-                  <p className="text-2xl font-bold text-blue-600">{metrics.sessionDuration} min</p>
+                  <p className="text-2xl font-bold text-medical-blue">{metrics.sessionDuration} min</p>
                   <Progress value={75} className="w-full" />
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-600">Pages per Session</p>
-                  <p className="text-2xl font-bold text-green-600">{metrics.pageViewsPerSession}</p>
+                  <p className="text-2xl font-bold text-medical-green">{metrics.pageViewsPerSession}</p>
                   <Progress value={65} className="w-full" />
                 </div>
                 <div className="space-y-2">
@@ -397,7 +397,7 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
                 <Card className="bg-green-50 border-green-200">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2">
-                      <Shield className="w-6 h-6 text-green-600" />
+                      <Shield className="w-6 h-6 text-medical-green" />
                       <div>
                         <p className="text-sm font-medium text-green-800">Security Status</p>
                         <p className="text-lg font-bold text-green-900">Secure</p>
@@ -421,7 +421,7 @@ const AdvancedDashboard: React.FC<DashboardProps> = ({ userRole, userId }) => {
                 <Card className="bg-blue-50 border-blue-200">
                   <CardContent className="p-4">
                     <div className="flex items-center space-x-2">
-                      <Activity className="w-6 h-6 text-blue-600" />
+                      <Activity className="w-6 h-6 text-medical-blue" />
                       <div>
                         <p className="text-sm font-medium text-blue-800">Uptime</p>
                         <p className="text-lg font-bold text-blue-900">99.9%</p>

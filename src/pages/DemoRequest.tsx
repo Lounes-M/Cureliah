@@ -62,7 +62,7 @@ const DemoRequest = () => {
         ]);
 
       if (notificationError) {
-        console.error('Erreur lors de l\'envoi de la notification:', notificationError);
+        // TODO: Replace with logger.error('Erreur lors de l\'envoi de la notification:', notificationError);
         // Continue anyway, the main request was successful
       }
 
@@ -74,7 +74,7 @@ const DemoRequest = () => {
       });
 
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de la demande:', error);
+      // TODO: Replace with logger.error('Erreur lors de l\'envoi de la demande:', error);
       setLoading(false);
       toast({
         title: "Erreur",
@@ -94,7 +94,7 @@ const DemoRequest = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md w-full mx-4">
           <CardContent className="text-center py-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-medical-green-light mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Demande envoyée !</h2>
             <p className="text-gray-600 mb-6">
               Nous vous recontacterons dans les 24h pour planifier votre démonstration personnalisée.
@@ -122,7 +122,7 @@ const DemoRequest = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Calendar className="h-8 w-8 text-blue-600" />
+              <Calendar className="h-8 w-8 text-medical-blue" />
               Demande de démonstration
             </h1>
             <p className="text-gray-600 mt-1">

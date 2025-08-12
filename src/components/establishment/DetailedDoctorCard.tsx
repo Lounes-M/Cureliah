@@ -123,7 +123,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
         isNewProvider: reviewCount < 5
       });
     } catch (error) {
-      console.error('Error loading doctor stats:', error);
+      // TODO: Replace with logger.error('Error loading doctor stats:', error);
     } finally {
       setLoading(false);
     }
@@ -176,7 +176,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
               </AvatarFallback>
             </Avatar>
             {doctor.is_verified && (
-              <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1 ring-2 ring-white">
+              <div className="absolute -bottom-1 -right-1 bg-medical-green-light rounded-full p-1 ring-2 ring-white">
                 <CheckCircle2 className="w-3 h-3 text-white" />
               </div>
             )}
@@ -196,7 +196,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
             </div>
             
             <div className="flex items-center gap-2 mb-2">
-              <Stethoscope className="w-4 h-4 text-blue-500" />
+              <Stethoscope className="w-4 h-4 text-medical-blue-light" />
               <span className="text-blue-700 font-medium text-sm">
                 {getSpecialityInfo(doctor.speciality).label}
               </span>
@@ -221,7 +221,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
           </div>
 
           <div className="text-right">
-            <div className="text-2xl font-bold text-green-600 mb-1">
+            <div className="text-2xl font-bold text-medical-green mb-1">
               {vacation.hourly_rate}€
             </div>
             <div className="text-xs text-gray-500">par heure</div>
@@ -248,7 +248,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
               <span className="font-medium">{vacation.location}</span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
-              <Calendar className="w-4 h-4 text-green-500" />
+              <Calendar className="w-4 h-4 text-medical-green-light" />
               <span className="font-medium">{formatDate(vacation.start_date)}</span>
             </div>
             <div className="flex items-center gap-2 text-gray-600">
@@ -266,20 +266,20 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white rounded-lg p-3 border border-gray-100 hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-blue-500" />
+              <Users className="w-4 h-4 text-medical-blue-light" />
               <span className="text-xs font-medium text-gray-600">Interventions</span>
             </div>
-            <div className="text-lg font-bold text-blue-600">
+            <div className="text-lg font-bold text-medical-blue">
               {doctorStats.completedBookings}
             </div>
           </div>
           
           <div className="bg-white rounded-lg p-3 border border-gray-100 hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-2 mb-1">
-              <MessageSquare className="w-4 h-4 text-green-500" />
+              <MessageSquare className="w-4 h-4 text-medical-green-light" />
               <span className="text-xs font-medium text-gray-600">Réponse</span>
             </div>
-            <div className="text-lg font-bold text-green-600">
+            <div className="text-lg font-bold text-medical-green">
               {doctorStats.averageResponse}
             </div>
           </div>

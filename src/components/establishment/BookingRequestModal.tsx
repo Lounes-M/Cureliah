@@ -61,7 +61,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
         if (error) throw error;
         
-        console.log('Loaded time slots:', slots);
+        // TODO: Replace with logger.info('Loaded time slots:', slots);
         setTimeSlots(slots || []);
 
         // Générer les dates disponibles entre start_date et end_date
@@ -71,7 +71,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
         setAvailableDates(dates.map(date => format(date, 'yyyy-MM-dd')));
         
       } catch (error) {
-        console.error('Error fetching time slots:', error);
+        // TODO: Replace with logger.error('Error fetching time slots:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger les créneaux disponibles",
@@ -187,7 +187,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
       if (error) throw error;
 
-      console.log('Booking request created:', data);
+      // TODO: Replace with logger.info('Booking request created:', data);
 
       // Créer une notification pour le médecin
       await supabase
@@ -208,7 +208,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error('Error creating booking request:', error);
+      // TODO: Replace with logger.error('Error creating booking request:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande de réservation",

@@ -52,7 +52,7 @@ const VacationDetails = () => {
       if (error) throw error;
       setVacation(data);
     } catch (error: any) {
-      console.error('Error fetching vacation:', error);
+      // TODO: Replace with logger.error('Error fetching vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les détails de la vacation",
@@ -81,7 +81,7 @@ const VacationDetails = () => {
 
       navigate('/doctor/manage-vacations');
     } catch (error: any) {
-      console.error('Error deleting vacation:', error);
+      // TODO: Replace with logger.error('Error deleting vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la vacation",
@@ -247,7 +247,7 @@ const VacationDetails = () => {
               {vacation.requirements && (
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-start">
-                    <FileText className="w-5 h-5 mr-3 text-blue-600 mt-0.5" />
+                    <FileText className="w-5 h-5 mr-3 text-medical-blue mt-0.5" />
                     <div>
                       <div className="font-medium text-blue-900 mb-1">Exigences particulières</div>
                       <p className="text-blue-800 text-sm">{vacation.requirements}</p>

@@ -351,7 +351,7 @@ const EstablishmentSearch = () => {
       };
       setVacationDetails(mapped);
     } catch (error) {
-      console.error("Error fetching vacation details:", error);
+      // TODO: Replace with logger.error("Error fetching vacation details:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les détails de la vacation",
@@ -436,7 +436,7 @@ const EstablishmentSearch = () => {
 
       setVacations(vacationsWithRatings);
     } catch (error) {
-      console.error('Error loading vacations:', error);
+      // TODO: Replace with logger.error('Error loading vacations:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les vacations",
@@ -514,7 +514,7 @@ const EstablishmentSearch = () => {
 
       setFilteredVacations(filtered);
     } catch (error) {
-      console.error('Error filtering vacations:', error);
+      // TODO: Replace with logger.error('Error filtering vacations:', error);
       setFilteredVacations(vacations);
     }
   };
@@ -619,7 +619,7 @@ const EstablishmentSearch = () => {
       });
 
     } catch (error) {
-      console.error('Error submitting booking request:', error);
+      // TODO: Replace with logger.error('Error submitting booking request:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande de réservation",
@@ -651,7 +651,7 @@ const EstablishmentSearch = () => {
         <Header />
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-medical-blue" />
             <div className="text-xl font-medium text-gray-900">Chargement des médecins...</div>
             <div className="text-sm text-gray-500 mt-2">Recherche en cours</div>
           </div>
@@ -723,7 +723,7 @@ const EstablishmentSearch = () => {
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
               <CardTitle className="flex items-center justify-between text-gray-900">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-blue-600" />
+                  <Filter className="w-5 h-5 text-medical-blue" />
                   Filtres de recherche
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
@@ -870,16 +870,16 @@ const EstablishmentSearch = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-xl mb-3 group-hover:text-blue-600 transition-colors">
+                      <CardTitle className="text-xl mb-3 group-hover:text-medical-blue transition-colors">
                         {vacation.title}
                       </CardTitle>
                       <div className="flex items-center gap-6 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-blue-500" />
+                          <MapPin className="h-4 w-4 text-medical-blue-light" />
                           <span className="font-medium">{vacation.location}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-green-500" />
+                          <Calendar className="h-4 w-4 text-medical-green-light" />
                           <span>{formatDateShort(vacation.start_date)}</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1021,7 +1021,7 @@ const EstablishmentSearch = () => {
                       <MapPin className="w-4 h-4" />
                       {selectedVacation.location}
                     </span>
-                    <span className="font-bold text-green-600 text-lg">
+                    <span className="font-bold text-medical-green text-lg">
                       {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h
                     </span>
                   </div>
@@ -1052,7 +1052,7 @@ const EstablishmentSearch = () => {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-500" />
+                      <Calendar className="w-4 h-4 text-medical-blue-light" />
                       Date et heure souhaitées
                     </Label>
                     <Input
@@ -1065,7 +1065,7 @@ const EstablishmentSearch = () => {
 
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-green-500" />
+                      <Clock className="w-4 h-4 text-medical-green-light" />
                       Durée estimée (heures)
                     </Label>
                     <Input
@@ -1110,14 +1110,14 @@ const EstablishmentSearch = () => {
                   <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-5 h-5 text-green-600" />
+                        <DollarSign className="w-5 h-5 text-medical-green" />
                         <span className="text-sm font-medium text-green-800">Estimation du coût</span>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-green-700">
                           {(parseFloat(selectedVacation.hourly_rate.toString()) * bookingRequest.duration_hours).toFixed(2)}€
                         </div>
-                        <div className="text-xs text-green-600">
+                        <div className="text-xs text-medical-green">
                           {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h × {bookingRequest.duration_hours}h
                         </div>
                       </div>
@@ -1254,14 +1254,14 @@ const EstablishmentSearch = () => {
                         
                         {vacationDetails.doctor_profiles.license_number && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <FileText className="w-4 h-4 text-blue-500" />
+                            <FileText className="w-4 h-4 text-medical-blue-light" />
                             <span>N° licence: {vacationDetails.doctor_profiles.license_number}</span>
                           </div>
                         )}
                         
                         {vacationDetails.doctor_profiles.languages && vacationDetails.doctor_profiles.languages.length > 0 && (
                           <div className="flex items-center gap-2 text-gray-600">
-                            <User className="w-4 h-4 text-green-500" />
+                            <User className="w-4 h-4 text-medical-green-light" />
                             <span>Langues: {vacationDetails.doctor_profiles.languages.join(', ')}</span>
                           </div>
                         )}
@@ -1290,7 +1290,7 @@ const EstablishmentSearch = () => {
                   <div className="space-y-4">
                     <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-3 mb-2">
-                        <Stethoscope className="w-5 h-5 text-blue-500" />
+                        <Stethoscope className="w-5 h-5 text-medical-blue-light" />
                         <span className="font-semibold text-gray-700">Spécialité</span>
                       </div>
                       <p className="text-gray-800 font-medium">
@@ -1332,7 +1332,7 @@ const EstablishmentSearch = () => {
                     
                     <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
                       <div className="flex items-center gap-3 mb-2">
-                        <Clock className="w-5 h-5 text-blue-500" />
+                        <Clock className="w-5 h-5 text-medical-blue-light" />
                         <span className="font-semibold text-gray-700">Durée</span>
                       </div>
                       <p className="text-gray-800 font-medium">

@@ -72,7 +72,7 @@ const CreateProfile = () => {
       // Rediriger vers le tableau de bord
       navigate('/doctor/dashboard');
     } catch (error: any) {
-      console.error('Error creating profile:', error);
+      // TODO: Replace with logger.error('Error creating profile:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la création du profil.",

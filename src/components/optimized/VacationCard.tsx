@@ -131,7 +131,7 @@ const VacationCard = memo(({ vacation, onView, onBook, loading = false }: Vacati
 
         <div className="flex justify-between items-center pt-2">
           <div className="flex items-center">
-            <Euro className="h-4 w-4 text-green-600 mr-1" />
+            <Euro className="h-4 w-4 text-medical-green mr-1" />
             <span className="font-semibold text-lg">{formatPrice(vacation.price)}</span>
           </div>
           

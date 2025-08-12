@@ -104,10 +104,10 @@ const useProfileComplete = (user) => {
         if (result?.error) {
           if (result.error.code === "PGRST116") {
             // Aucun profil trouvé
-            console.log("🔍 No profile found in database");
+            // TODO: Replace with logger.info("🔍 No profile found in database");
             setIsComplete(false);
           } else {
-            console.error("🚨 Database error:", result.error);
+            // TODO: Replace with logger.error("🚨 Database error:", result.error);
             setIsComplete(false);
           }
         } else if (result?.data) {
@@ -134,16 +134,16 @@ const useProfileComplete = (user) => {
             setIsComplete(isProfileComplete);
           }
         } else {
-          console.log("❓ No data returned from query");
+          // TODO: Replace with logger.info("❓ No data returned from query");
           setIsComplete(false);
         }
       } catch (error) {
         if (error.message === "Timeout") {
-          console.log("⏰ Profile check timeout - assuming profile exists");
+          // TODO: Replace with logger.info("⏰ Profile check timeout - assuming profile exists");
           // En cas de timeout, on assume que le profil existe pour éviter les redirections
           setIsComplete(true);
         } else {
-          console.error("💥 Error checking profile complete:", error);
+          // TODO: Replace with logger.error("💥 Error checking profile complete:", error);
           setIsComplete(false);
         }
       } finally {

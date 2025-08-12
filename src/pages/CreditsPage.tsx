@@ -57,7 +57,7 @@ const CreditsPage: React.FC = () => {
       const userTransactions = await CreditsService.getCreditTransactions(user.id, 20);
       setTransactions(userTransactions);
     } catch (error) {
-      console.error('Erreur lors du chargement des transactions:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des transactions:', error);
     } finally {
       setLoadingTransactions(false);
     }
@@ -69,9 +69,9 @@ const CreditsPage: React.FC = () => {
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
-      case 'purchase': return <ArrowUpRight className="w-4 h-4 text-green-600" />;
+      case 'purchase': return <ArrowUpRight className="w-4 h-4 text-medical-green" />;
       case 'usage': return <ArrowDownRight className="w-4 h-4 text-red-600" />;
-      case 'refund': return <ArrowUpRight className="w-4 h-4 text-blue-600" />;
+      case 'refund': return <ArrowUpRight className="w-4 h-4 text-medical-blue" />;
       case 'bonus': return <ArrowUpRight className="w-4 h-4 text-purple-600" />;
       default: return <Coins className="w-4 h-4" />;
     }
@@ -79,9 +79,9 @@ const CreditsPage: React.FC = () => {
 
   const getTransactionColor = (type: string) => {
     switch (type) {
-      case 'purchase': return 'text-green-600';
+      case 'purchase': return 'text-medical-green';
       case 'usage': return 'text-red-600';
-      case 'refund': return 'text-blue-600';
+      case 'refund': return 'text-medical-blue';
       case 'bonus': return 'text-purple-600';
       default: return 'text-gray-600';
     }

@@ -60,7 +60,7 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
 
         return true;
       } catch (error) {
-        console.error('Error checking promo banner visibility:', error);
+        // TODO: Replace with logger.error('Error checking promo banner visibility:', error);
         // En cas d'erreur, afficher seulement si pas connecté
         return !user;
       }
@@ -76,7 +76,7 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
       }));
       setIsVisible(false);
     } catch (error) {
-      console.error('Error dismissing promo banner:', error);
+      // TODO: Replace with logger.error('Error dismissing promo banner:', error);
       setIsVisible(false);
     }
   };

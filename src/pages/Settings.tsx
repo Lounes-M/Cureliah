@@ -23,7 +23,7 @@ const Settings = () => {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <SettingsIcon className="h-8 w-8 text-blue-600" />
+              <SettingsIcon className="h-8 w-8 text-medical-blue" />
               Paramètres
             </h1>
             <p className="text-gray-600 mt-1">Gérez vos préférences et paramètres de compte</p>

@@ -33,13 +33,8 @@ import NotificationDropdown from "./NotificationDropdown";
 import { UrgentNotificationBell } from "./UrgentNotificationBell";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
-// Utilisation d'un import dynamique compatible Vite, Jest et TypeScript
-let logoUrl: string;
-try {
-  logoUrl = require('../../public/logo.png');
-} catch {
-  logoUrl = '/logo.png';
-}
+// Import statique optimisé du logo
+import logoUrl from '/logo.png';
 
 const Header = () => {
   const { user, profile, signOut, subscriptionPlan } = useAuth();
@@ -88,7 +83,7 @@ const Header = () => {
           });
         }
       } catch (error) {
-        console.error("Error fetching establishment name:", error);
+        // TODO: Replace with logger.error("Error fetching establishment name:", error);
         toast({
           title: "Erreur",
           description: "Une erreur est survenue lors du chargement du nom de l'établissement.",
@@ -111,7 +106,7 @@ const Header = () => {
         
         setUnreadNotifications(count || 0);
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        // TODO: Replace with logger.error("Error fetching notifications:", error);
       }
     }
   }, [user]);
@@ -150,7 +145,7 @@ const Header = () => {
         description: "À bientôt sur notre plateforme !",
       });
     } catch (error) {
-      console.error("Error signing out:", error);
+      // TODO: Replace with logger.error("Error signing out:", error);
       toast({
         title: "Erreur",
         description: "Erreur lors de la déconnexion",
@@ -204,8 +199,8 @@ const Header = () => {
             <Link
               to="/admin"
               className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-              } ${isActivePath('/admin') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+              } ${isActivePath('/admin') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
               onClick={onLinkClick}
               aria-current={isActivePath('/admin') ? 'page' : undefined}
             >
@@ -218,8 +213,8 @@ const Header = () => {
               <Link
                 to="/doctor/dashboard"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/doctor/dashboard') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/doctor/dashboard') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/doctor/dashboard') ? 'page' : undefined}
               >
@@ -229,8 +224,8 @@ const Header = () => {
               <Link
                 to="/bookings"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/bookings') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/bookings') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/bookings') ? 'page' : undefined}
               >
@@ -240,8 +235,8 @@ const Header = () => {
               <Link
                 to="/doctor/manage-vacations"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/doctor/manage-vacations') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/doctor/manage-vacations') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/doctor/manage-vacations') ? 'page' : undefined}
               >
@@ -252,8 +247,8 @@ const Header = () => {
                 <Link
                   to="/premium/missions"
                   className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                    mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                  } ${isActivePath('/premium/missions') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                    mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                  } ${isActivePath('/premium/missions') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                   onClick={onLinkClick}
                   aria-current={isActivePath('/premium/missions') ? 'page' : undefined}
                 >
@@ -270,8 +265,8 @@ const Header = () => {
               <Link
                 to="/establishment/dashboard"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/establishment/dashboard') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/establishment/dashboard') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/establishment/dashboard') ? 'page' : undefined}
               >
@@ -281,8 +276,8 @@ const Header = () => {
               <Link
                 to="/establishment/search"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/establishment/search') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/establishment/search') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/establishment/search') ? 'page' : undefined}
               >
@@ -292,8 +287,8 @@ const Header = () => {
               <Link
                 to="/bookings"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-blue-600 px-3 py-2'
-                } ${isActivePath('/bookings') ? 'text-blue-600 font-medium bg-blue-50' : ''}`}
+                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
+                } ${isActivePath('/bookings') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
                 onClick={onLinkClick}
                 aria-current={isActivePath('/bookings') ? 'page' : undefined}
               >
@@ -350,21 +345,21 @@ const Header = () => {
             <>
               <a
                 href="#fonctionnement"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                className="text-gray-700 hover:text-medical-blue px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
                 onClick={onLinkClick}
               >
                 Comment ça marche
               </a>
               <a
                 href="#avantages"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                className="text-gray-700 hover:text-medical-blue px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
                 onClick={onLinkClick}
               >
                 Avantages
               </a>
               <a
                 href="#tarifs"
-                className="text-gray-700 hover:text-blue-600 px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
+                className="text-gray-700 hover:text-medical-blue px-3 py-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
                 onClick={onLinkClick}
               >
                 Tarifs
@@ -443,7 +438,7 @@ const Header = () => {
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
-                        className="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 max-w-xs"
+                        className="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 hover:text-medical-blue-dark transition-all duration-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 max-w-xs"
                         data-user-menu-trigger
                         aria-label={`Menu utilisateur - ${getDisplayName()} (Alt + U)`}
                       >
@@ -494,7 +489,7 @@ const Header = () => {
                         onClick={() => navigate("/profile/complete")}
                         className="cursor-pointer hover:bg-blue-50 transition-colors focus:bg-blue-50"
                       >
-                        <User className="mr-3 h-4 w-4 text-blue-600" aria-hidden="true" />
+                        <User className="mr-3 h-4 w-4 text-medical-blue" aria-hidden="true" />
                         <span>Mon profil</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem 
@@ -627,7 +622,7 @@ const Header = () => {
                   <Button 
                     variant="ghost"
                     onClick={() => navigate("/auth?tab=signin")}
-                    className="hidden sm:flex hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="hidden sm:flex hover:bg-blue-50 hover:text-medical-blue-dark transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                   >
                     Se connecter
                   </Button>

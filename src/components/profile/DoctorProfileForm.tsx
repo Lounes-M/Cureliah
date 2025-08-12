@@ -116,7 +116,7 @@ export default function DoctorProfileForm({
         description: "Votre photo de profil a été mise à jour",
       });
     } catch (error: any) {
-      console.error("Error uploading image:", error);
+      // TODO: Replace with logger.error("Error uploading image:", error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible de télécharger l'image. Veuillez réessayer.",
@@ -275,7 +275,7 @@ export default function DoctorProfileForm({
 
       onSuccess();
     } catch (error: any) {
-      console.error("Error saving doctor profile:", error);
+      // TODO: Replace with logger.error("Error saving doctor profile:", error);
       toast({
         title: "Erreur de sauvegarde",
         description:

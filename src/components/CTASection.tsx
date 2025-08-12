@@ -278,7 +278,7 @@ const CTASection = () => {
             {subtitle}
           </p>
           {stats && (
-            <div className={`text-xs mt-1 font-medium ${primary ? "text-blue-600" : "text-yellow-300"}`}>
+            <div className={`text-xs mt-1 font-medium ${primary ? "text-medical-blue" : "text-yellow-300"}`}>
               {stats}
             </div>
           )}
@@ -287,7 +287,7 @@ const CTASection = () => {
         <ArrowRight
           className={`
           w-5 h-5 sm:w-6 sm:h-6 transition-all duration-300 group-hover:translate-x-1
-          ${primary ? "text-blue-600" : "text-white"}
+          ${primary ? "text-medical-blue" : "text-white"}
           ${hoveredButton === id ? "scale-125" : "scale-100"}
         `}
         />

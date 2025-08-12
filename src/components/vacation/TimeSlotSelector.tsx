@@ -55,7 +55,7 @@ const TimeSlotSelector = ({ timeSlots, onChange }: TimeSlotSelectorProps) => {
       updated_at: new Date().toISOString(),
     };
 
-    console.log('Adding time slot:', newSlot);
+    // TODO: Replace with logger.info('Adding time slot:', newSlot);
     const updatedSlots = [...timeSlots, newSlot];
     onChange(updatedSlots);
     
@@ -119,7 +119,7 @@ const TimeSlotSelector = ({ timeSlots, onChange }: TimeSlotSelectorProps) => {
                   <span className="font-medium text-blue-900">
                     {getSlotDisplayText(slot)}
                   </span>
-                  <p className="text-xs text-blue-600">
+                  <p className="text-xs text-medical-blue">
                     {getSlotHours(slot)}h
                   </p>
                 </div>

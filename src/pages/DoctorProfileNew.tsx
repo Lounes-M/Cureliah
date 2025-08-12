@@ -160,7 +160,7 @@ export default function DoctorProfile() {
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-96">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-blue"></div>
           </div>
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function DoctorProfile() {
                         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                           Dr {doctor.first_name} {doctor.last_name}
                           {doctor.is_verified && (
-                            <CheckCircle2 className="w-6 h-6 text-blue-500" />
+                            <CheckCircle2 className="w-6 h-6 text-medical-blue-light" />
                           )}
                         </h1>
                         <div className="flex items-center gap-2 mt-1">
@@ -268,7 +268,7 @@ export default function DoctorProfile() {
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="w-5 h-5 text-medical-blue" />
                     À propos
                   </CardTitle>
                 </CardHeader>
@@ -314,7 +314,7 @@ export default function DoctorProfile() {
                       <ul className="space-y-1">
                         {doctor.certifications.map((cert, index) => (
                           <li key={index} className="text-gray-700 flex items-center gap-2">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <div className="w-2 h-2 bg-medical-blue-light rounded-full"></div>
                             {cert}
                           </li>
                         ))}
@@ -332,7 +332,7 @@ export default function DoctorProfile() {
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  <TrendingUp className="w-5 h-5 text-medical-blue" />
                   Performance
                 </CardTitle>
               </CardHeader>
@@ -369,7 +369,7 @@ export default function DoctorProfile() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <Briefcase className="w-4 h-4 text-blue-500" />
+                      <Briefcase className="w-4 h-4 text-medical-blue-light" />
                     </div>
                     <div className="text-lg font-bold text-gray-900">{stats.totalVacations}</div>
                     <div className="text-xs text-gray-600">Missions</div>
@@ -405,7 +405,7 @@ export default function DoctorProfile() {
               <CardContent className="space-y-3">
                 {doctor.license_number && (
                   <div className="flex items-center gap-3">
-                    <Shield className="w-4 h-4 text-blue-500" />
+                    <Shield className="w-4 h-4 text-medical-blue-light" />
                     <div>
                       <div className="text-xs text-gray-500">N° d'ordre</div>
                       <div className="font-medium">{doctor.license_number}</div>

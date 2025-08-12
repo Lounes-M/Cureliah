@@ -31,7 +31,7 @@ export default function Subscribe() {
 
     setLoading(true);
     try {
-      console.log("[Subscribe] user.id utilisé pour l'abonnement:", user.id);
+      // TODO: Replace with logger.info("[Subscribe] user.id utilisé pour l'abonnement:", user.id);
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           userId: user.id,

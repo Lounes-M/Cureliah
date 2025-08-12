@@ -169,7 +169,7 @@ export default function DoctorProfile() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medical-blue mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement du profil...</p>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function DoctorProfile() {
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-4">
                 <div className="h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-10 w-10 text-blue-600" />
+                  <User className="h-10 w-10 text-medical-blue" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl font-bold">

@@ -98,13 +98,13 @@ const MonitoringDashboard: React.FC = () => {
         .rpc('get_system_health_report', { time_filter: timeFilter });
 
       if (healthError) {
-        console.error('Error loading system health:', healthError);
+        // TODO: Replace with logger.error('Error loading system health:', healthError);
       } else {
         setSystemHealth(healthData || []);
       }
 
     } catch (error) {
-      console.error('Error loading monitoring data:', error);
+      // TODO: Replace with logger.error('Error loading monitoring data:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données de monitoring",
@@ -157,7 +157,7 @@ const MonitoringDashboard: React.FC = () => {
         description: "Erreur marquée comme résolue",
       });
     } catch (error) {
-      console.error('Error resolving error:', error);
+      // TODO: Replace with logger.error('Error resolving error:', error);
       toast({
         title: "Erreur",
         description: "Impossible de marquer l'erreur comme résolue",
@@ -192,7 +192,7 @@ const MonitoringDashboard: React.FC = () => {
         description: "Alerte marquée comme résolue",
       });
     } catch (error) {
-      console.error('Error resolving alert:', error);
+      // TODO: Replace with logger.error('Error resolving alert:', error);
       toast({
         title: "Erreur",
         description: "Impossible de marquer l'alerte comme résolue",
@@ -311,7 +311,7 @@ const MonitoringDashboard: React.FC = () => {
               {systemHealth.map((health, index) => {
                 const getStatusColor = (status: string) => {
                   switch (status) {
-                    case 'healthy': return 'text-green-600 bg-green-50 border-green-200';
+                    case 'healthy': return 'text-medical-green bg-green-50 border-green-200';
                     case 'caution': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
                     case 'warning': return 'text-orange-600 bg-orange-50 border-orange-200';
                     case 'critical': return 'text-red-600 bg-red-50 border-red-200';

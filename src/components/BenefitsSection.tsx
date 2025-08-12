@@ -198,7 +198,7 @@ const BenefitsSection = () => {
   };
 
   const handleCTAClick = (userType) => {
-    console.log(`CTA clicked for ${userType}`);
+    // TODO: Replace with logger.info(`CTA clicked for ${userType}`);
     // Simulation de navigation
     window.location.href = `/auth?type=${userType}`;
   };
@@ -242,7 +242,7 @@ const BenefitsSection = () => {
           {/* Statistiques rapides */}
           <div className="flex justify-center gap-8 mt-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">98%</div>
+              <div className="text-3xl font-bold text-medical-blue">98%</div>
               <div className="text-sm text-gray-500">Satisfaction</div>
             </div>
             <div className="text-center">
@@ -263,7 +263,7 @@ const BenefitsSection = () => {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-emerald-600"></div>
 
               <div className="text-center">
-                <Quote className="w-12 h-12 text-blue-600 mx-auto mb-4 opacity-20" />
+                <Quote className="w-12 h-12 text-medical-blue mx-auto mb-4 opacity-20" />
 
                 <div className="transition-all duration-500">
                   <p className="text-xl text-gray-700 italic mb-6 leading-relaxed">
@@ -303,7 +303,7 @@ const BenefitsSection = () => {
                       onClick={() => setActiveTestimonial(index)}
                       className={`w-3 h-3 rounded-full transition-all duration-300 ${
                         index === activeTestimonial
-                          ? "bg-blue-600 scale-125"
+                          ? "bg-medical-blue scale-125"
                           : "bg-gray-300 hover:bg-gray-400"
                       }`}
                       aria-label={`Témoignage ${index + 1}`}
@@ -526,13 +526,13 @@ const BenefitsSection = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => handleCTAClick("demo")}
-                  className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  className="bg-white text-medical-blue px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   Demander une démo
                 </button>
                 <button
                   onClick={() => handleCTAClick("trial")}
-                  className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                  className="border-2 border-white text-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-medical-blue transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   Essai gratuit 30 jours
                 </button>

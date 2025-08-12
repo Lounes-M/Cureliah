@@ -51,7 +51,7 @@ const SetupProfile = () => {
         navigate('/establishment/dashboard');
       }
     } catch (error) {
-      console.error("Erreur lors de la configuration du profil:", error);
+      // TODO: Replace with logger.error("Erreur lors de la configuration du profil:", error);
       toast({
         title: "Erreur",
         description: "Impossible de configurer votre profil. Veuillez réessayer.",
@@ -108,17 +108,17 @@ const SetupProfile = () => {
               <CardHeader className="text-center pb-4">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
                   selectedType === 'doctor' 
-                    ? 'bg-blue-500' 
+                    ? 'bg-medical-blue-light' 
                     : 'bg-blue-100'
                 }`}>
                   <Stethoscope className={`w-8 h-8 ${
-                    selectedType === 'doctor' ? 'text-white' : 'text-blue-600'
+                    selectedType === 'doctor' ? 'text-white' : 'text-medical-blue'
                   }`} />
                 </div>
                 <CardTitle className="flex items-center justify-center gap-2">
                   Je suis un Médecin
                   {selectedType === 'doctor' && (
-                    <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                    <CheckCircle2 className="w-5 h-5 text-medical-blue-light" />
                   )}
                 </CardTitle>
               </CardHeader>
@@ -128,15 +128,15 @@ const SetupProfile = () => {
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 text-blue-500" />
+                    <Calendar className="w-4 h-4 text-medical-blue-light" />
                     Gérer mes créneaux de disponibilité
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4 text-blue-500" />
+                    <Users className="w-4 h-4 text-medical-blue-light" />
                     Recevoir des demandes d'établissements
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Shield className="w-4 h-4 text-blue-500" />
+                    <Shield className="w-4 h-4 text-medical-blue-light" />
                     Profil vérifié et sécurisé
                   </div>
                 </div>
@@ -155,17 +155,17 @@ const SetupProfile = () => {
               <CardHeader className="text-center pb-4">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
                   selectedType === 'establishment' 
-                    ? 'bg-green-500' 
+                    ? 'bg-medical-green-light' 
                     : 'bg-green-100'
                 }`}>
                   <Building2 className={`w-8 h-8 ${
-                    selectedType === 'establishment' ? 'text-white' : 'text-green-600'
+                    selectedType === 'establishment' ? 'text-white' : 'text-medical-green'
                   }`} />
                 </div>
                 <CardTitle className="flex items-center justify-center gap-2">
                   Je suis un Établissement
                   {selectedType === 'establishment' && (
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    <CheckCircle2 className="w-5 h-5 text-medical-green-light" />
                   )}
                 </CardTitle>
               </CardHeader>
@@ -175,15 +175,15 @@ const SetupProfile = () => {
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4 text-green-500" />
+                    <Calendar className="w-4 h-4 text-medical-green-light" />
                     Réserver des créneaux médicaux
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="w-4 h-4 text-green-500" />
+                    <Users className="w-4 h-4 text-medical-green-light" />
                     Accéder aux profils de médecins
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Shield className="w-4 h-4 text-green-500" />
+                    <Shield className="w-4 h-4 text-medical-green-light" />
                     Gestion sécurisée des réservations
                   </div>
                 </div>
@@ -198,9 +198,9 @@ const SetupProfile = () => {
               disabled={!selectedType || loading}
               className={`px-8 py-3 text-lg font-semibold ${
                 selectedType === 'doctor' 
-                  ? 'bg-blue-600 hover:bg-blue-700' 
+                  ? 'bg-medical-blue hover:bg-medical-blue-dark' 
                   : selectedType === 'establishment'
-                  ? 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-medical-green hover:bg-medical-green-dark'
                   : 'bg-gray-400'
               }`}
             >

@@ -239,7 +239,7 @@ const ManageVacations = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Total vacations
                 </CardTitle>
-                <Calendar className="w-4 h-4 text-blue-600" />
+                <Calendar className="w-4 h-4 text-medical-blue" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -255,11 +255,11 @@ const ManageVacations = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Créneaux disponibles
                 </CardTitle>
-                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <CheckCircle2 className="w-4 h-4 text-medical-green" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {loading ? "..." : stats.availableSlots}
               </div>
             </CardContent>
@@ -287,11 +287,11 @@ const ManageVacations = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Revenus totaux
                 </CardTitle>
-                <Euro className="w-4 h-4 text-green-600" />
+                <Euro className="w-4 h-4 text-medical-green" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {loading ? "..." : `${stats.totalEarnings}€`}
               </div>
             </CardContent>
@@ -303,11 +303,11 @@ const ManageVacations = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Vacations à venir
                 </CardTitle>
-                <Clock className="w-4 h-4 text-blue-600" />
+                <Clock className="w-4 h-4 text-medical-blue" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-medical-blue">
                 {loading ? "..." : stats.upcomingVacations}
               </div>
             </CardContent>
@@ -335,7 +335,7 @@ const ManageVacations = () => {
           <Card className="mb-6 border-blue-200 bg-blue-50">
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-blue-600" />
+                <Clock className="w-5 h-5 text-medical-blue" />
                 <div>
                   <div className="font-medium text-blue-900">
                     Vacations à venir
@@ -365,7 +365,7 @@ const ManageVacations = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
                 <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-blue-600" />
+                  <Calendar className="w-6 h-6 text-medical-blue" />
                   Mes vacations
                 </CardTitle>
                 <p className="text-gray-600 mt-1">
@@ -399,7 +399,7 @@ const ManageVacations = () => {
                     onClick={() => setStatusFilter(filter.key)}
                     className={`text-sm transition-all duration-200 ${
                       statusFilter === filter.key 
-                        ? "bg-blue-600 text-white shadow-md" 
+                        ? "bg-medical-blue text-white shadow-md" 
                         : "bg-white hover:bg-gray-50 border-gray-200"
                     }`}
                   >
@@ -499,7 +499,7 @@ const ManageVacations = () => {
                           <Button 
                             size="sm" 
                             onClick={() => navigate(`/doctor/vacation/${vacation.id}`)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-medical-blue hover:bg-medical-blue-dark text-white"
                           >
                             👁️ Voir
                           </Button>
@@ -542,7 +542,7 @@ const ManageVacations = () => {
                   {statusFilter === "all" && (
                     <Button 
                       onClick={() => navigate("/doctor/create-vacation")}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      className="bg-medical-blue hover:bg-medical-blue-dark text-white"
                     >
                       <Plus className="w-4 h-4 mr-2" />
                       Créer ma première vacation

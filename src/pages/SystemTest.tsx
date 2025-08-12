@@ -48,7 +48,7 @@ const SystemTest: React.FC = () => {
     } catch (error) {
       updateTestResult(testName, 'error');
       addLog(`❌ Test échoué: ${testName} - ${error.message}`);
-      console.error(`Test failed: ${testName}`, error);
+      // TODO: Replace with logger.error(`Test failed: ${testName}`, error);
     }
   };
 
@@ -155,9 +155,9 @@ const SystemTest: React.FC = () => {
 
   const getResultIcon = (result: string) => {
     switch (result) {
-      case 'success': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'success': return <CheckCircle className="w-4 h-4 text-medical-green-light" />;
       case 'error': return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'running': return <Clock className="w-4 h-4 text-blue-500 animate-spin" />;
+      case 'running': return <Clock className="w-4 h-4 text-medical-blue-light animate-spin" />;
       default: return <Clock className="w-4 h-4 text-gray-400" />;
     }
   };
@@ -210,7 +210,7 @@ const SystemTest: React.FC = () => {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{notifications.length}</div>
+              <div className="text-2xl font-bold text-medical-blue">{notifications.length}</div>
               <p className="text-sm text-muted-foreground">Total notifications</p>
             </div>
             <div className="text-center p-4 bg-orange-50 rounded-lg">
@@ -218,7 +218,7 @@ const SystemTest: React.FC = () => {
               <p className="text-sm text-muted-foreground">Non lues</p>
             </div>
             <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-medical-green">
                 {notificationsLoading ? '⏳' : '✅'}
               </div>
               <p className="text-sm text-muted-foreground">Statut temps réel</p>

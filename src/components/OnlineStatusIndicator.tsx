@@ -15,7 +15,7 @@ const OnlineStatusIndicator = ({
   const getStatusColor = (status: UserStatus) => {
     switch (status) {
       case 'online':
-        return 'bg-green-500';
+        return 'bg-medical-green-light';
       case 'away':
         return 'bg-yellow-500';
       case 'offline':

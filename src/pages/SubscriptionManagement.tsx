@@ -35,7 +35,7 @@ const SubscriptionManagement: React.FC = () => {
       <Card className="w-full max-w-lg shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl font-bold">
-            <CreditCard className="w-6 h-6 text-blue-600" />
+            <CreditCard className="w-6 h-6 text-medical-blue" />
             Gérer mon abonnement
           </CardTitle>
         </CardHeader>
