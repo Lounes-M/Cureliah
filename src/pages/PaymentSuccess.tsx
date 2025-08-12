@@ -25,7 +25,8 @@ const PaymentSuccess = () => {
     console.log('[PaymentSuccess] Effect triggered:', { 
       sessionId, 
       userId: user?.id, 
-      subscriptionLoading 
+      subscriptionLoading,
+      user: user ? 'loaded' : 'null'
     });
     
     if (!sessionId) {
@@ -33,10 +34,25 @@ const PaymentSuccess = () => {
       return;
     }
     
-    // Attendre que l'utilisateur soit chargé (non loading)
-    if (subscriptionLoading || !user?.id) {
-      console.log('[PaymentSuccess] Waiting for user to load...');
+    // Si on est encore en train de charger l'auth OU si pas d'utilisateur
+    if (subscriptionLoading) {
+      console.log('[PaymentSuccess] Auth still loading, waiting...');
       setPaymentStatus({ verified: false, loading: true, error: null });
+      return;
+    }
+    
+    if (!user?.id) {
+      console.log('[PaymentSuccess] No user ID available, retry in 1 second...');
+      setPaymentStatus({ verified: false, loading: true, error: null });
+      
+      // Retry après 1 seconde si pas d'utilisateur
+      setTimeout(() => {
+        const currentUser = user; // Capturer la valeur actuelle
+        if (currentUser?.id) {
+          console.log('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id);
+          checkPaymentStatus(sessionId, currentUser.id);
+        }
+      }, 1000);
       return;
     }
     
