@@ -107,6 +107,13 @@ serve(async (req) => {
         const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
         const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
         
+        console.log("[check-payment-status] DB Sync attempt:", { 
+          targetUserId, 
+          subscriptionId, 
+          customerId, 
+          hasUserId: !!targetUserId 
+        });
+        
         if (targetUserId) {
           console.log("[check-payment-status] Checking for existing subscription for user:", targetUserId);
           
@@ -119,6 +126,7 @@ serve(async (req) => {
 
           if (selectError) {
             console.error("[check-payment-status] Error checking existing subscription:", selectError);
+            console.log("[check-payment-status] DB sync failed due to select error");
           }
 
           const existingSub = existingSubs && existingSubs.length > 0 ? existingSubs[0] : null;
@@ -126,25 +134,30 @@ serve(async (req) => {
           if (!existingSub) {
             console.log("[check-payment-status] Subscription not in DB, creating...");
             
+            const subscriptionData = {
+              user_id: targetUserId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              status: subscription.status,
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              plan_type: 'premium', // À déterminer selon le price_id si nécessaire
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+            
+            console.log("[check-payment-status] Inserting subscription data:", subscriptionData);
+            
             // Créer l'abonnement en base
-            const { error } = await supabase
+            const { data: insertResult, error: insertError } = await supabase
               .from("user_subscriptions")
-              .upsert({
-                user_id: targetUserId,
-                stripe_customer_id: customerId,
-                stripe_subscription_id: subscriptionId,
-                status: subscription.status,
-                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                plan_type: 'premium', // À déterminer selon le price_id si nécessaire
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              });
+              .upsert(subscriptionData)
+              .select();
 
-            if (error) {
-              console.error("[check-payment-status] Error creating subscription:", error);
+            if (insertError) {
+              console.error("[check-payment-status] Error creating subscription:", insertError);
             } else {
-              console.log("[check-payment-status] Subscription created successfully");
+              console.log("[check-payment-status] Subscription created successfully:", insertResult);
               response.dbSynced = true;
             }
           } else {
@@ -152,7 +165,7 @@ serve(async (req) => {
             response.dbSynced = true;
           }
         } else {
-          console.error("[check-payment-status] No userId found in params or session metadata");
+          console.error("[check-payment-status] No userId found - userId param:", userId, "session metadata userId:", session.metadata?.userId);
         }
       }
     }

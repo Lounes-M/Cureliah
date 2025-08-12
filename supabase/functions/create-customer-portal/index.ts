@@ -69,8 +69,9 @@ serve(async (req) => {
   }
 
   // Créer la session de portail Stripe
-  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2020-08-27" });
+  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
   try {
+    console.log("[create-customer-portal] Creating portal session for customer:", subscription.stripe_customer_id);
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subscription.stripe_customer_id,
       return_url: STRIPE_PORTAL_RETURN_URL,
