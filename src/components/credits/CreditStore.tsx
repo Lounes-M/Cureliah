@@ -9,6 +9,7 @@ import { CreditsService } from '@/services/creditsService';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
+import { StripeErrorHandler } from '@/utils/stripeErrorHandler';
 
 const stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -64,12 +65,24 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
       }
 
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors de l\'achat:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de traiter l'achat. Veuillez réessayer.",
-        variant: "destructive"
-      });
+      console.error('Credit purchase error:', error);
+      
+      // Vérifier si l'erreur est due à un bloqueur de publicité
+      if (StripeErrorHandler.isBlocked(error)) {
+        StripeErrorHandler.showBlockedNotification();
+        toast({
+          title: "Achat bloqué",
+          description: StripeErrorHandler.getBlockedMessage(),
+          variant: "destructive",
+          duration: 10000
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Impossible de traiter l'achat. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setPurchasing(null);
     }

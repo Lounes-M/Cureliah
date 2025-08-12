@@ -1,0 +1,158 @@
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
+import Stripe from "https://esm.sh/stripe@12.18.0?target=deno";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+  "Content-Type": "application/json"
+};
+
+serve(async (req) => {
+  console.log("[check-payment-status] Function called");
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Authentification JWT Supabase
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Missing or invalid authorization header" }), { 
+      status: 401, headers: corsHeaders 
+    });
+  }
+
+  // Récupération des variables d'environnement
+  const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!STRIPE_SECRET_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: "Missing environment variables" }), { 
+      status: 500, headers: corsHeaders 
+    });
+  }
+
+  const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2023-10-16" });
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  try {
+    const { sessionId, userId } = await req.json();
+    
+    if (!sessionId) {
+      return new Response(JSON.stringify({ error: "Missing sessionId" }), { 
+        status: 400, headers: corsHeaders 
+      });
+    }
+
+    console.log("[check-payment-status] Checking session:", sessionId);
+    
+    // Récupérer la session Stripe
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ['subscription', 'customer']
+    });
+
+    console.log("[check-payment-status] Session details:", {
+      id: session.id,
+      status: session.status,
+      payment_status: session.payment_status,
+      amount_total: session.amount_total,
+      customer: session.customer,
+      subscription: session.subscription,
+      mode: session.mode
+    });
+
+    // Vérifier le statut du paiement
+    const response: any = {
+      sessionId: session.id,
+      status: session.status,
+      paymentStatus: session.payment_status,
+      customerId: session.customer,
+      subscriptionId: session.subscription,
+      url: session.url,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+      metadata: session.metadata,
+      dbSynced: false
+    };
+
+    // Pour les abonnements (mode: subscription)
+    if (session.mode === 'subscription') {
+      // Si le paiement est réussi OU si le montant est 0 (coupon 100%)
+      const isPaymentComplete = session.payment_status === 'paid' || 
+                               (session.amount_total === 0 && session.status === 'complete');
+                               
+      console.log("[check-payment-status] Payment analysis:", {
+        payment_status: session.payment_status,
+        amount_total: session.amount_total,
+        status: session.status,
+        isPaymentComplete
+      });
+
+      if (isPaymentComplete && session.subscription) {
+        console.log("[check-payment-status] Payment completed (including 0€ coupons), checking DB sync");
+        
+        // Récupérer les détails de l'abonnement Stripe
+        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+        console.log("[check-payment-status] Stripe subscription status:", subscription.status);
+        
+        // Déterminer l'utilisateur (depuis les params ou metadata de session)
+        const targetUserId = userId || session.metadata?.userId;
+        
+        if (targetUserId) {
+          // Vérifier si l'abonnement est déjà en base
+          const { data: existingSub } = await supabase
+            .from("user_subscriptions")
+            .select("*")
+            .eq("user_id", targetUserId)
+            .eq("stripe_subscription_id", session.subscription)
+            .single();
+
+          if (!existingSub) {
+            console.log("[check-payment-status] Subscription not in DB, creating...");
+            
+            // Créer l'abonnement en base
+            const { error } = await supabase
+              .from("user_subscriptions")
+              .upsert({
+                user_id: targetUserId,
+                stripe_customer_id: session.customer,
+                stripe_subscription_id: session.subscription,
+                status: subscription.status,
+                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                plan_type: 'premium', // À déterminer selon le price_id si nécessaire
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+
+            if (error) {
+              console.error("[check-payment-status] Error creating subscription:", error);
+            } else {
+              console.log("[check-payment-status] Subscription created successfully");
+              response.dbSynced = true;
+            }
+          } else {
+            console.log("[check-payment-status] Subscription already exists in DB");
+            response.dbSynced = true;
+          }
+        } else {
+          console.error("[check-payment-status] No userId found in params or session metadata");
+        }
+      }
+    }
+
+    return new Response(JSON.stringify(response), { 
+      status: 200, headers: corsHeaders 
+    });
+
+  } catch (error) {
+    console.error("[check-payment-status] Error:", error);
+    return new Response(JSON.stringify({ 
+      error: error.message || "Internal server error" 
+    }), { 
+      status: 500, headers: corsHeaders 
+    });
+  }
+});

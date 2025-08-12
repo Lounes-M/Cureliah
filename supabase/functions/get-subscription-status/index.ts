@@ -46,30 +46,41 @@ serve(async (req) => {
   // Créer un client Supabase avec le service role
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-  // Lire la table user_subscriptions
-  const { data, error } = await supabase
-    .from("user_subscriptions")
-    .select("status, current_period_end, stripe_customer_id, stripe_subscription_id")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  try {
+    // Lire la table user_subscriptions
+    const { data, error } = await supabase
+      .from("user_subscriptions")
+      .select("status, current_period_end, stripe_customer_id, stripe_subscription_id, plan_type")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-  console.log("[get-subscription-status] Query result:", { data, error });
+    console.log("[get-subscription-status] Query result:", { data, error });
 
-  if (error) {
-    console.log("[get-subscription-status] Database error:", error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    if (error) {
+      console.log("[get-subscription-status] Database error:", error);
+      return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    }
+
+    if (!data) {
+      console.log("[get-subscription-status] No subscription found for user", userId);
+      return new Response(JSON.stringify({ status: "none" }), { status: 200, headers: corsHeaders });
+    }
+
+    console.log("[get-subscription-status] Subscription found:", data);
+    return new Response(JSON.stringify({
+      status: data.status,
+      current_period_end: data.current_period_end,
+      stripe_customer_id: data.stripe_customer_id,
+      stripe_subscription_id: data.stripe_subscription_id,
+      plan_type: data.plan_type || 'essentiel'
+    }), {
+      status: 200,
+      headers: corsHeaders,
+    });
+  } catch (error) {
+    console.error("[get-subscription-status] Unexpected error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), { status: 500, headers: corsHeaders });
   }
-
-  if (!data) {
-    console.log("[get-subscription-status] No subscription found for user", userId);
-    return new Response(JSON.stringify({ status: "none" }), { status: 200, headers: corsHeaders });
-  }
-
-  console.log("[get-subscription-status] Subscription found:", data);
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: corsHeaders,
-  });
 });

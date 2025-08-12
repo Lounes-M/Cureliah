@@ -57,7 +57,7 @@ serve(async (req: Request): Promise<Response> => {
           userId,
         },
       },
-      success_url: `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/payment-success`,
+      success_url: `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${Deno.env.get("APP_BASE_URL") || "https://cureliah.com"}/payment-failure`,
     });
 

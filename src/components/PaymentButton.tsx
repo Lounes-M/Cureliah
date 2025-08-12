@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CreditCard, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/hooks/use-toast';
+import { StripeErrorHandler } from '@/utils/stripeErrorHandler';
 
 interface PaymentButtonProps {
   bookingId: string;
@@ -35,12 +36,25 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, classNa
         onSuccess?.();
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Payment error:', error);
-      toast({
-        title: "Erreur de paiement",
-        description: "Impossible d'initier le paiement. Veuillez réessayer.",
-        variant: "destructive"
-      });
+      console.error('Payment error:', error);
+      
+      // Vérifier si l'erreur est due à un bloqueur de publicité
+      if (StripeErrorHandler.isBlocked(error)) {
+        StripeErrorHandler.showBlockedNotification();
+        toast({
+          title: "Paiement bloqué",
+          description: StripeErrorHandler.getBlockedMessage(),
+          variant: "destructive",
+          duration: 10000
+        });
+      } else {
+        // Erreur générique
+        toast({
+          title: "Erreur de paiement",
+          description: "Impossible d'initier le paiement. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -8,12 +8,18 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { PromoHeaderBanner } from '@/components/PromoHeaderBanner';
 import { usePromoBanner } from '@/hooks/usePromoBanner';
+import { useStripeBlockerDetector } from '@/hooks/useStripeBlockerDetector';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertTriangle, Shield } from 'lucide-react';
 
 export default function Subscribe() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
+  // Hook pour détecter les bloqueurs Stripe
+  const { isBlocked, testStripeConnection } = useStripeBlockerDetector();
 
   // Hook pour la bannière promo
   const { isVisible: isPromoBannerVisible, dismiss: dismissPromoBanner } = usePromoBanner({
@@ -23,6 +29,12 @@ export default function Subscribe() {
 
   // Callback pour lancer le paiement Stripe
   const handleSubscribe = async (planId: string, isYearly: boolean) => {
+    // Vérifier l'accès à Stripe avant de continuer
+    const stripeAccessible = await testStripeConnection();
+    if (!stripeAccessible) {
+      return; // Le hook affichera déjà l'avertissement
+    }
+    
     // Si l'utilisateur n'est pas connecté, rediriger vers signup médecin
     if (!user) {
       navigate(`/auth?type=doctor&plan=${planId}`);
@@ -67,6 +79,30 @@ export default function Subscribe() {
       }`}>
       <Header />
       <main className="flex-1 flex flex-col items-center justify-center px-4">
+        
+        {/* Avertissement bloqueur Stripe */}
+        {isBlocked && (
+          <Card className="mb-6 border-orange-200 bg-orange-50 max-w-4xl mx-auto">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 text-orange-800">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <div>
+                  <p className="font-semibold">Bloqueur de publicité détecté</p>
+                  <p className="text-sm mt-1">
+                    Stripe semble être bloqué par votre navigateur. 
+                    <button 
+                      onClick={() => navigate('/payment-troubleshooting')}
+                      className="text-orange-600 underline ml-1 hover:text-orange-700"
+                    >
+                      Voir les solutions →
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         <div className="w-full">
           <PricingSection onSubscribe={handleSubscribe} loading={loading} />
         </div>

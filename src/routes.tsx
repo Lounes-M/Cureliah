@@ -29,6 +29,7 @@ const APIPremiumDoctor = lazy(() => import("./pages/APIPremiumDoctor"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
 const ProfileComplete = lazy(() => import("./pages/ProfileComplete"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentTroubleshootingPage = lazy(() => import("./pages/PaymentTroubleshootingPage"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const MonitoringDashboard = lazy(() => import("./pages/MonitoringDashboard"));
 const DoctorCreateProfile = lazy(() => import("./pages/doctor/CreateProfile"));
@@ -521,6 +522,10 @@ export default function AppRoutes() {
       <Route
         path="/payment-success"
         element={<PaymentSuccess />}
+      />
+      <Route
+        path="/payment-troubleshooting"
+        element={<PaymentTroubleshootingPage />}
       />
       <Route
         path="/payment-failure"
