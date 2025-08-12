@@ -22,12 +22,27 @@ const PaymentSuccess = () => {
   React.useEffect(() => {
     const sessionId = searchParams.get('session_id');
     
-    if (sessionId && user?.id) {
-      checkPaymentStatus(sessionId, user.id);
-    } else {
-      setPaymentStatus({ verified: false, loading: false, error: "Session ID manquant" });
+    console.log('[PaymentSuccess] Effect triggered:', { 
+      sessionId, 
+      userId: user?.id, 
+      subscriptionLoading 
+    });
+    
+    if (!sessionId) {
+      setPaymentStatus({ verified: false, loading: false, error: "Session ID manquant dans l'URL" });
+      return;
     }
-  }, [searchParams, user]);
+    
+    // Attendre que l'utilisateur soit chargé (non loading)
+    if (subscriptionLoading || !user?.id) {
+      console.log('[PaymentSuccess] Waiting for user to load...');
+      setPaymentStatus({ verified: false, loading: true, error: null });
+      return;
+    }
+    
+    console.log('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id });
+    checkPaymentStatus(sessionId, user.id);
+  }, [searchParams, user, subscriptionLoading]);
 
   const checkPaymentStatus = useCallback(async (sessionId: string, userId: string) => {
     setPaymentStatus(prev => ({ ...prev, loading: true, error: null }));
