@@ -68,8 +68,8 @@ serve(async (req) => {
       sessionId: session.id,
       status: session.status,
       paymentStatus: session.payment_status,
-      customerId: session.customer,
-      subscriptionId: session.subscription,
+      customerId: typeof session.customer === 'string' ? session.customer : session.customer?.id,
+      subscriptionId: typeof session.subscription === 'string' ? session.subscription : session.subscription?.id,
       url: session.url,
       amountTotal: session.amount_total,
       currency: session.currency,
@@ -94,20 +94,34 @@ serve(async (req) => {
         console.log("[check-payment-status] Payment completed (including 0€ coupons), checking DB sync");
         
         // Récupérer les détails de l'abonnement Stripe
-        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+        let subscription;
+        if (typeof session.subscription === 'string') {
+          subscription = await stripe.subscriptions.retrieve(session.subscription);
+        } else {
+          subscription = session.subscription; // Déjà expanded
+        }
         console.log("[check-payment-status] Stripe subscription status:", subscription.status);
         
         // Déterminer l'utilisateur (depuis les params ou metadata de session)
         const targetUserId = userId || session.metadata?.userId;
+        const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
+        const customerId = typeof session.customer === 'string' ? session.customer : session.customer.id;
         
         if (targetUserId) {
+          console.log("[check-payment-status] Checking for existing subscription for user:", targetUserId);
+          
           // Vérifier si l'abonnement est déjà en base
-          const { data: existingSub } = await supabase
+          const { data: existingSubs, error: selectError } = await supabase
             .from("user_subscriptions")
             .select("*")
             .eq("user_id", targetUserId)
-            .eq("stripe_subscription_id", session.subscription)
-            .single();
+            .eq("stripe_subscription_id", subscriptionId);
+
+          if (selectError) {
+            console.error("[check-payment-status] Error checking existing subscription:", selectError);
+          }
+
+          const existingSub = existingSubs && existingSubs.length > 0 ? existingSubs[0] : null;
 
           if (!existingSub) {
             console.log("[check-payment-status] Subscription not in DB, creating...");
@@ -117,8 +131,8 @@ serve(async (req) => {
               .from("user_subscriptions")
               .upsert({
                 user_id: targetUserId,
-                stripe_customer_id: session.customer,
-                stripe_subscription_id: session.subscription,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId,
                 status: subscription.status,
                 current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
                 current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
