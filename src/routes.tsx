@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
@@ -7,6 +8,13 @@ import { Loader2 } from "lucide-react";
 
 // Essential pages that should load immediately
 import Index from "./pages/Index";
+
+// Import the ProtectedRouteProps type
+interface ProtectedRouteProps {
+  requiredUserType?: string;
+  requireSubscription?: boolean;
+  children: React.ReactNode;
+}
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
@@ -47,7 +55,6 @@ const CreditsPage = lazy(() => import("./pages/CreditsPage"));
 
 // Premium components
 const PremiumMissions = lazy(() => import("./pages/PremiumMissions"));
-const PremiumEstablishments = lazy(() => import("./components/premium/PremiumEstablishments"));
 const ProPriorityAccess = lazy(() => import("./components/premium/ProPriorityAccess"));
 const RealAnalyticsDashboard = lazy(() => import("./components/analytics/RealAnalyticsDashboard"));
 
@@ -159,73 +166,31 @@ const useProfileComplete = (user) => {
 };
 
 // Composant de protection des routes
-export const ProtectedRoute = ({
-  children,
+function ProtectedRoute({ 
+  children, 
+  requireSubscription = false, 
   requiredUserType = null,
-  requireVerified = true,
-  requireActive = true,
-  requireComplete = false,
-  requireSubscription = false, // Ajout pour la protection abonnement
-}) => {
-  const { user, loading, getDashboardRoute, isSubscribed, subscriptionLoading } = useAuth();
-  const { isComplete: profileComplete, loading: profileLoading } =
-    useProfileComplete(user);
-  const location = window.location.pathname;
+  subscriptionPlan = null 
+}: ProtectedRouteProps) {
+  const location = useLocation();
+  const { user, subscription, subscriptionStatus, isSubscribed } = useAuth();
 
-  // Affichage du loader pendant le chargement
-  if (loading || (requireComplete && profileLoading) || (requireSubscription && subscriptionLoading)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-emerald-50">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-white rounded-xl shadow-lg flex items-center justify-center mx-auto mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-          <div className="flex items-center justify-center space-x-2 mb-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-sm">C</span>
-            </div>
-            <span className="text-xl font-bold text-gray-700">Cureliah</span>
-          </div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
-  // Redirection si pas connecté
-  if (!user) {
+  // Vérification du type d'utilisateur si requis
+  if (requiredUserType && user.user_type !== requiredUserType) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Vérification du type d'utilisateur
-  if (requiredUserType && user.user_type !== requiredUserType) {
-    // Rediriger vers le bon dashboard selon le type d'utilisateur
-    return <Navigate to={getDashboardRoute()} replace />;
-  }
-
-  // Vérification de l'email confirmé
-  if (requireVerified && !user.email_confirmed_at) {
-    return <Navigate to="/verify-email" replace />;
-  }
-
-  // Vérification du profil complet
-  if (requireComplete && !profileComplete) {
-    return <Navigate to="/profile/complete" replace />;
-  }
-
-  // Protection stricte par abonnement (pour les médecins)
-  if (
-    requireSubscription &&
-    user.user_type === 'doctor' &&
-    !isSubscribed() &&
-    location !== '/subscribe' &&
-    location !== '/profile/complete'
-  ) {
+  // Vérification de l'abonnement si requis
+  if (requireSubscription && !isSubscribed()) {
     return <Navigate to="/subscribe" replace />;
   }
 
-  return children;
-};
+  return <>{children}</>;
+}
 
 // Routes d'authentification (redirection si déjà connecté)
 const AuthRoute = ({ children }) => {
@@ -594,14 +559,6 @@ export default function AppRoutes() {
 
       {/* Routes publiques additionnelles */}
       <Route 
-        path="/demo-request" 
-        element={
-          <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-            {React.createElement(React.lazy(() => import("@/pages/DemoRequest")))}
-          </React.Suspense>
-        } 
-      />
-      <Route 
         path="/contact-sales" 
         element={
           <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
@@ -624,14 +581,6 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute requireSubscription={true}>
             <PremiumMissions />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/premium/establishments"
-        element={
-          <ProtectedRoute requireSubscription={true}>
-            <PremiumEstablishments />
           </ProtectedRoute>
         }
       />

@@ -49,13 +49,6 @@ const FAQ = () => {
               >
                 Nous contacter
               </Button>
-              <Button 
-                variant="outline"
-                onClick={() => navigate('/demo-request')}
-                size="lg"
-              >
-                Demander une démo
-              </Button>
             </div>
           </div>
         </div>

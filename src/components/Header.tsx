@@ -17,7 +17,6 @@ import {
   User, 
   Calendar, 
   Search, 
-  BookOpen, 
   ChevronDown, 
   Menu,
   LayoutDashboard,
@@ -222,17 +221,6 @@ const Header = () => {
                 Tableau de bord
               </Link>
               <Link
-                to="/bookings"
-                className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
-                } ${isActivePath('/bookings') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
-                onClick={onLinkClick}
-                aria-current={isActivePath('/bookings') ? 'page' : undefined}
-              >
-                <BookOpen className="w-4 h-4" aria-hidden="true" />
-                Mes réservations
-              </Link>
-              <Link
                 to="/doctor/manage-vacations"
                 className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
                   mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
@@ -283,17 +271,6 @@ const Header = () => {
               >
                 <Search className="w-4 h-4" aria-hidden="true" />
                 Rechercher
-              </Link>
-              <Link
-                to="/bookings"
-                className={`flex items-center gap-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg ${
-                  mobile ? 'w-full p-3 hover:bg-blue-50' : 'text-gray-700 hover:text-medical-blue px-3 py-2'
-                } ${isActivePath('/bookings') ? 'text-medical-blue font-medium bg-blue-50' : ''}`}
-                onClick={onLinkClick}
-                aria-current={isActivePath('/bookings') ? 'page' : undefined}
-              >
-                <BookOpen className="w-4 h-4" aria-hidden="true" />
-                Mes réservations
               </Link>
             </>
           )}

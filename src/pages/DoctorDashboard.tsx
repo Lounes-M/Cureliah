@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy } from "react";
 import { useLogger } from '@/utils/logger';
-import Logger from '@/utils/logger';
 import { translateSpeciality } from '@/utils/specialities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,9 @@ import {
   BarChart3,
   Loader2,
   CreditCard,
+  Crown,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import RecentVacations from "@/components/RecentVacations";
 import DashboardStats from "@/components/dashboard/DashboardStats";
@@ -37,13 +37,13 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DocumentManager from "@/components/documents/DocumentManager";
 import ReviewsRatings from "@/components/ReviewsRatings";
 import MessagingCenter from "@/components/messaging/MessagingCenter";
+import PremiumDashboard from "@/components/dashboard/PremiumDashboard";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecentVacations } from "@/hooks/useRecentVacations";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
-import React, { lazy } from "react";
 import { Bar } from 'react-chartjs-2';
 
 interface DashboardStats {
@@ -99,11 +99,15 @@ const SubscriptionManagementLazy = lazy(() => import("./SubscriptionManagement")
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile, subscriptionPlan, hasFeature } = useAuth();
   const doctorProfile = profile as DoctorProfile;
   const { vacations, loading: vacationsLoading } = useRecentVacations();
   const { toast } = useToast();
   const logger = useLogger();
+  
+  // Gérer l'onglet actif depuis l'URL
+  const tabFromUrl = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState("overview");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(
@@ -150,6 +154,14 @@ const DoctorDashboard = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  // Gérer l'activation des onglets via URL
+  useEffect(() => {
+    if (tabFromUrl && ['invoices', 'support', 'api'].includes(tabFromUrl)) {
+      setActiveTab('premium');
+      setPremiumSubTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   // Charger les données du dashboard
   useEffect(() => {
@@ -551,6 +563,20 @@ const DoctorDashboard = () => {
     },
   ];
 
+  // État pour gérer le sous-onglet du premium
+  const [premiumSubTab, setPremiumSubTab] = useState<string>(() => {
+    if (tabFromUrl && ['invoices', 'support', 'api'].includes(tabFromUrl)) {
+      return tabFromUrl;
+    }
+    return 'statistics';
+  });
+
+  // Fonction pour naviguer vers un onglet premium
+  const navigateToPremiumTab = (subTab: string) => {
+    setActiveTab('premium');
+    setPremiumSubTab(subTab);
+  };
+
   // Actions premium (affichées seulement pour les utilisateurs premium)
   const premiumActions = [
     {
@@ -558,7 +584,7 @@ const DoctorDashboard = () => {
       description: "Analyses financières détaillées",
       icon: FileText,
       color: "bg-gradient-to-r from-amber-500 to-yellow-600",
-      action: () => navigate("/doctor/reports"),
+      action: () => navigateToPremiumTab('invoices'),
       premium: true,
     },
     {
@@ -566,7 +592,7 @@ const DoctorDashboard = () => {
       description: "Assistance prioritaire 24/7",
       icon: Star,
       color: "bg-gradient-to-r from-pink-500 to-rose-600",
-      action: () => navigate("/doctor/support"),
+      action: () => navigateToPremiumTab('support'),
       premium: true,
     },
     {
@@ -574,7 +600,7 @@ const DoctorDashboard = () => {
       description: "Connectez vos applications",
       icon: Activity,
       color: "bg-gradient-to-r from-indigo-500 to-purple-600",
-      action: () => navigate("/doctor/api"),
+      action: () => navigateToPremiumTab('api'),
       premium: true,
     },
   ];
@@ -727,49 +753,13 @@ const DoctorDashboard = () => {
               <CreditCard className="w-4 h-4" />
               <span className="hidden sm:inline">Abonnement</span>
             </TabsTrigger>
-            {hasFeature('analytics') && (
+            {subscriptionPlan === 'premium' && (
               <TabsTrigger
-                value="analytics"
-                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                value="premium"
+                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200"
               >
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Statistiques avancées</span>
-              </TabsTrigger>
-            )}
-            {hasFeature('invoices') && (
-              <TabsTrigger
-                value="invoices"
-                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">Factures & Rapports</span>
-              </TabsTrigger>
-            )}
-            {hasFeature('premium_support') && (
-              <TabsTrigger
-                value="support"
-                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <Star className="w-4 h-4" />
-                <span className="hidden sm:inline">Support Premium</span>
-              </TabsTrigger>
-            )}
-            {hasFeature('premium_api') && (
-              <TabsTrigger
-                value="api"
-                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <Activity className="w-4 h-4" />
-                <span className="hidden sm:inline">API & Webhooks</span>
-              </TabsTrigger>
-            )}
-            {hasFeature('premium_missions') && subscriptionPlan === 'premium' && (
-              <TabsTrigger
-                value="premium_missions"
-                className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
-              >
-                <Star className="w-4 h-4" />
-                <span className="hidden sm:inline">Missions Premium</span>
+                <Crown className="w-4 h-4 text-yellow-600" />
+                <span className="hidden sm:inline text-yellow-700 font-semibold">Premium</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -1155,81 +1145,9 @@ const DoctorDashboard = () => {
             </React.Suspense>
           </TabsContent>
 
-          {hasFeature('analytics') && (
-            <TabsContent value="analytics" className="space-y-6">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    Statistiques avancées
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* Exemple de graphique (à personnaliser selon les vraies stats) */}
-                  <div className="w-full max-w-2xl mx-auto">
-                    <Bar
-                      data={{
-                        labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
-                        datasets: [
-                          {
-                            label: "Revenus (€)",
-                            data: [1200, 1500, 1100, 1800, 2000, 1700],
-                            backgroundColor: "#2563eb",
-                          },
-                          {
-                            label: "Missions complétées",
-                            data: [8, 10, 7, 12, 14, 11],
-                            backgroundColor: "#10b981",
-                          },
-                        ],
-                      }}
-                      options={{
-                        responsive: true,
-                        plugins: {
-                          legend: { position: 'top' },
-                          title: { display: true, text: 'Évolution sur 6 mois' },
-                        },
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
-
-          {hasFeature('invoices') && (
-            <TabsContent value="invoices" className="space-y-6">
-              {/* Page Factures & Rapports (Pro/Premium) */}
-              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                {React.createElement(require('./InvoicesAndReports').default)}
-              </React.Suspense>
-            </TabsContent>
-          )}
-
-          {hasFeature('premium_support') && (
-            <TabsContent value="support" className="space-y-6">
-              {/* Page Support Premium (Premium uniquement) */}
-              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                {React.createElement(require('./SupportPremium').default)}
-              </React.Suspense>
-            </TabsContent>
-          )}
-
-          {hasFeature('premium_api') && (
-            <TabsContent value="api" className="space-y-6">
-              {/* Page API & Webhooks (Premium uniquement) */}
-              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                {React.createElement(require('./APIPremium').default)}
-              </React.Suspense>
-            </TabsContent>
-          )}
-
-          {hasFeature('premium_missions') && subscriptionPlan === 'premium' && (
-            <TabsContent value="premium_missions" className="space-y-6">
-              {/* Page Missions Premium (Premium uniquement) */}
-              <React.Suspense fallback={<div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
-                {React.createElement(require('./PremiumMissions').default)}
-              </React.Suspense>
+          {subscriptionPlan === 'premium' && (
+            <TabsContent value="premium" className="space-y-6">
+              <PremiumDashboard initialTab={premiumSubTab} />
             </TabsContent>
           )}
         </Tabs>

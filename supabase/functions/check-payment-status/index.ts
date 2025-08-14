@@ -5,9 +5,35 @@ import Stripe from "https://esm.sh/stripe@12.18.0?target=deno";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-  "Content-Type": "application/json"
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+// Mapping des Price IDs Stripe vers les plans
+const STRIPE_PRICE_TO_PLAN: Record<string, string> = {
+  // Plans Essentiel
+  'price_1RsMk8EL5OGpZLTY5HHdsRtb': 'essentiel', // Monthly €49
+  'price_1RsMk8EL5OGpZLTY7VcvYyLF': 'essentiel', // Yearly ~€39/mois
+  
+  // Plans Pro  
+  'price_1RsMkOEL5OGpZLTYVa4yHAz6': 'pro', // Monthly €99
+  'price_1RsMkzEL5OGpZLTYLYKANste': 'pro', // Yearly ~€79/mois
+  
+  // Plans Premium
+  'price_1RsMlQEL5OGpZLTYAqJFgJIg': 'premium', // Monthly €199
+  'price_1RsMlhEL5OGpZLTYBdPpEwJH': 'premium', // Yearly ~€159/mois
+};
+
+// Fonction pour déterminer le plan depuis le price_id
+function getPlanFromPriceId(priceId: string): string {
+  const plan = STRIPE_PRICE_TO_PLAN[priceId];
+  if (plan) {
+    console.log(`[check-payment-status] Mapped price_id ${priceId} to plan: ${plan}`);
+    return plan;
+  }
+  
+  console.warn(`[check-payment-status] Unknown price_id ${priceId}, defaulting to 'essentiel'`);
+  return 'essentiel'; // Default fallback
+}
 
 serve(async (req) => {
   console.log("[check-payment-status] Function called");
@@ -102,6 +128,10 @@ serve(async (req) => {
         }
         console.log("[check-payment-status] Stripe subscription status:", subscription.status);
         
+        // Extraire le price_id pour déterminer le plan
+        const priceId = subscription.items.data[0]?.price?.id;
+        console.log("[check-payment-status] Price ID from subscription:", priceId);
+        
         // Déterminer l'utilisateur (depuis les params ou metadata de session)
         const targetUserId = userId || session.metadata?.userId;
         const subscriptionId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id;
@@ -134,6 +164,9 @@ serve(async (req) => {
           if (!existingSub) {
             console.log("[check-payment-status] Subscription not in DB, creating...");
             
+            // Déterminer le plan depuis le price_id
+            const planType = getPlanFromPriceId(priceId);
+            
             const subscriptionData = {
               user_id: targetUserId,
               stripe_customer_id: customerId,
@@ -141,7 +174,7 @@ serve(async (req) => {
               status: subscription.status,
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              plan_type: 'premium', // À déterminer selon le price_id si nécessaire
+              plan_type: planType,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             };
@@ -161,7 +194,30 @@ serve(async (req) => {
               response.dbSynced = true;
             }
           } else {
-            console.log("[check-payment-status] Subscription already exists in DB");
+            console.log("[check-payment-status] Subscription already exists in DB, updating with latest data...");
+            
+            // Déterminer le plan depuis le price_id pour l'abonnement existant aussi
+            const planType = getPlanFromPriceId(priceId);
+            
+            const { data: updateResult, error: updateError } = await supabase
+              .from("user_subscriptions")
+              .update({
+                status: subscription.status,
+                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                plan_type: planType,
+                updated_at: new Date().toISOString()
+              })
+              .eq("user_id", targetUserId)
+              .eq("stripe_subscription_id", subscriptionId)
+              .select();
+
+            if (updateError) {
+              console.error("[check-payment-status] Error updating subscription:", updateError);
+            } else {
+              console.log("[check-payment-status] Subscription updated successfully:", updateResult);
+            }
+            
             response.dbSynced = true;
           }
         } else {

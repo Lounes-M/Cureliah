@@ -79,10 +79,6 @@ const CTASection = () => {
     navigate("/auth?type=establishment&source=cta-section");
   };
 
-  const handleDemoRequest = () => {
-    navigate("/demo-request");
-  };
-
   const handleContactSales = () => {
     navigate("/contact-sales");
   };
@@ -448,21 +444,12 @@ const CTASection = () => {
           `}
         >
           <ActionButton
-            icon={Play}
-            title="Voir une démo"
-            subtitle="Découvrez la plateforme en 5 minutes"
-            onClick={handleDemoRequest}
-            id="demo"
-            className="md:col-span-1"
-          />
-
-          <ActionButton
             icon={MessageCircle}
             title="Parler à un expert"
             subtitle="Échangez avec notre équipe commerciale"
             onClick={handleContactSales}
             id="contact"
-            className="md:col-span-1"
+            className="md:col-span-2"
           />
         </div>
 

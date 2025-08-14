@@ -9,11 +9,20 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, children }) => {
-  const { user, loading, isSubscribed, subscriptionLoading, subscriptionStatus } = useAuth();
+  const { user, loading, isSubscribed, subscriptionLoading, subscriptionStatus, subscriptionPlan } = useAuth();
   const location = useLocation();
-  // TODO: Replace with logger.info("[ProtectedRoute] user:", user, "subscriptionStatus:", subscriptionStatus, "isSubscribed:", isSubscribed(););
+  
+  // FORCE AFFICHAGE DANS LA CONSOLE
+  console.warn("🚨🚨🚨 PROTECTED ROUTE DEBUG 🚨🚨🚨");
+  console.warn("User:", user);
+  console.warn("Subscription Status:", subscriptionStatus);
+  console.warn("Subscription Plan:", subscriptionPlan);
+  console.warn("Is Subscribed:", isSubscribed());
+  console.warn("Required User Type:", requiredUserType);
+  console.warn("🚨🚨🚨 FIN DEBUG 🚨🚨🚨");
 
   if (loading || subscriptionLoading) {
+    console.log("[ProtectedRoute] En chargement...", { loading, subscriptionLoading });
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -22,19 +31,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
   }
 
   if (!user) {
+    console.log("[ProtectedRoute] Pas d'utilisateur, redirection vers /auth");
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   if (requiredUserType && user.user_type !== requiredUserType) {
-    // Redirige vers la page d'accueil si le type ne correspond pas
+    console.log("[ProtectedRoute] Type utilisateur incorrect, redirection vers /");
     return <Navigate to="/" replace />;
   }
 
   // Si médecin, vérifier l'abonnement
   if (requiredUserType === "doctor" && !isSubscribed()) {
+    console.log("[ProtectedRoute] MÉDECIN NON ABONNÉ - Redirection vers /subscribe");
+    console.log("[ProtectedRoute] Détails:", {
+      subscriptionStatus,
+      isSubscribed: isSubscribed(),
+      subscriptionLoading
+    });
     return <Navigate to="/subscribe" state={{ from: location }} replace />;
   }
 
+  console.log("[ProtectedRoute] Accès autorisé");
   return <>{children}</>;
 };
 

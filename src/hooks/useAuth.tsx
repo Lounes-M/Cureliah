@@ -9,6 +9,8 @@ import React, {
 } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { log } from "@/utils/logging";
+import { useNavigate, useLocation } from "react-router-dom";
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Type guard pour vérifier si les données correspondent à un UserProfile
 function isUserProfile(data: unknown): data is UserProfile {
@@ -40,9 +42,6 @@ interface DatabaseResponse<T> {
   data: T | null;
   error: { code?: string; message?: string } | null;
 }
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate, useLocation } from "react-router-dom";
-import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface UserProfile {
   first_name?: string;
@@ -112,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [subscriptionPlan, setSubscriptionPlan] = useState<'essentiel' | 'pro' | 'premium' | null>(null);
 
   // Move hooks to top-level (fixes conditional hook call)
-  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 

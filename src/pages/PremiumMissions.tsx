@@ -13,18 +13,7 @@ const PremiumMissions: React.FC = () => {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold mb-2">Missions Premium</h1>
-        <p className="text-muted-foreground">
-          Gérez vos demandes urgentes et missions premium en temps réel
-        </p>
-      </div>
-      
-      <PremiumDashboardUrgentRequests doctorId={user.id} />
-    </div>
-  );
+  return <PremiumDashboardUrgentRequests doctorId={user.id} />;
 };
 
 export default PremiumMissions;

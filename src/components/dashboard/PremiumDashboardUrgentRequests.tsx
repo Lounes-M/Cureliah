@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   AlertCircle, 
   Clock, 
@@ -20,21 +21,28 @@ import {
   XCircle,
   Calendar,
   Building,
-  Stethoscope
+  Stethoscope,
+  Zap,
+  Crown,
+  Search,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { UrgentRequestService } from '@/services/urgentRequestService';
 import { UrgentRequest, UrgentRequestResponse } from '@/types/premium';
 import { useToast } from '@/hooks/use-toast';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 interface PremiumDashboardUrgentRequestsProps {
   doctorId: string;
 }
 
 const URGENCY_COLORS = {
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  high: 'bg-orange-100 text-orange-800 border-orange-200',
-  critical: 'bg-red-100 text-red-800 border-red-200',
-  emergency: 'bg-red-200 text-red-900 border-red-300'
+  medium: 'bg-amber-50 text-amber-700 border-amber-200',
+  high: 'bg-orange-50 text-orange-700 border-orange-200',
+  critical: 'bg-red-50 text-red-700 border-red-200',
+  emergency: 'bg-red-100 text-red-800 border-red-300'
 };
 
 const URGENCY_ICONS = {
@@ -44,14 +52,21 @@ const URGENCY_ICONS = {
   emergency: '⚡'
 };
 
+const PRIORITY_STYLES = {
+  medium: 'border-l-4 border-amber-400 bg-gradient-to-r from-amber-50 to-white',
+  high: 'border-l-4 border-orange-400 bg-gradient-to-r from-orange-50 to-white',
+  critical: 'border-l-4 border-red-400 bg-gradient-to-r from-red-50 to-white',
+  emergency: 'border-l-4 border-red-500 bg-gradient-to-r from-red-100 to-white shadow-lg'
+};
+
 export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequestsProps> = ({ doctorId }) => {
   const [urgentRequests, setUrgentRequests] = useState<UrgentRequest[]>([]);
   const [myResponses, setMyResponses] = useState<(UrgentRequestResponse & { request: UrgentRequest })[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'available' | 'my-responses'>('available');
   const [filters, setFilters] = useState({
-    specialty: '',
-    urgency_level: '',
+    specialty: 'all',
+    urgency_level: 'all',
     max_distance: '',
     min_rate: ''
   });
@@ -68,30 +83,32 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
 
   useEffect(() => {
     loadData();
-    // Actualiser toutes les 2 minutes pour les nouvelles demandes urgentes
-    const interval = setInterval(loadData, 120000);
-    return () => clearInterval(interval);
   }, [doctorId, filters]);
 
   const loadData = async () => {
     try {
       setLoading(true);
+      
+      // Préparer les filtres en traitant "all" comme un filtre vide
+      const processedFilters = {
+        specialty: filters.specialty && filters.specialty !== 'all' ? filters.specialty : undefined,
+        urgency_level: filters.urgency_level && filters.urgency_level !== 'all' ? filters.urgency_level : undefined,
+        max_distance: filters.max_distance ? parseInt(filters.max_distance) : undefined,
+        min_rate: filters.min_rate ? parseInt(filters.min_rate) : undefined
+      };
+      
       const [requests, responses] = await Promise.all([
-        UrgentRequestService.getUrgentRequestsForDoctors(doctorId, {
-          ...filters,
-          max_distance: filters.max_distance ? parseInt(filters.max_distance) : undefined,
-          min_rate: filters.min_rate ? parseInt(filters.min_rate) : undefined
-        }),
+        UrgentRequestService.getUrgentRequestsForDoctors(doctorId, processedFilters),
         UrgentRequestService.getDoctorResponses(doctorId)
       ]);
       
       setUrgentRequests(requests);
       setMyResponses(responses);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des demandes urgentes:', error);
+      console.error('Erreur lors du chargement des données:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger les demandes urgentes",
+        description: "Impossible de charger les données",
         variant: "destructive",
       });
     } finally {
@@ -99,47 +116,26 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
     }
   };
 
-  const handleViewRequest = async (request: UrgentRequest) => {
-    setSelectedRequest(request);
-    // Marquer comme vue
-    try {
-      await UrgentRequestService.markRequestAsViewed(request.id);
-    } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du marquage comme vue:', error);
-    }
-  };
-
   const handleSubmitResponse = async () => {
     if (!selectedRequest) return;
     
-    setSubmitting(true);
     try {
-      // Validation
-      if (!responseForm.availability_start || !responseForm.availability_end) {
-        throw new Error('Veuillez spécifier vos créneaux de disponibilité');
-      }
-
-      if (!responseForm.message.trim()) {
-        throw new Error('Veuillez ajouter un message');
-      }
-
-      const responseData = {
+      setSubmitting(true);
+      
+      await UrgentRequestService.respondToUrgentRequest(selectedRequest.id, doctorId, {
         response_type: responseForm.response_type,
         availability_start: responseForm.availability_start,
         availability_end: responseForm.availability_end,
-        message: responseForm.message.trim(),
-        requested_rate: responseForm.requested_rate ? parseFloat(responseForm.requested_rate) : undefined
-      };
-
-      await UrgentRequestService.respondToUrgentRequest(selectedRequest.id, doctorId, responseData);
-      
-      toast({
-        title: "Réponse envoyée !",
-        description: "Votre réponse a été transmise à l'établissement",
-        variant: "default",
+        message: responseForm.message,
+        requested_rate: responseForm.requested_rate ? parseInt(responseForm.requested_rate) : undefined
       });
 
-      // Réinitialiser le formulaire
+      toast({
+        title: "Candidature envoyée !",
+        description: "Votre candidature a été transmise à l'établissement.",
+      });
+
+      setSelectedRequest(null);
       setResponseForm({
         response_type: 'available',
         availability_start: '',
@@ -148,7 +144,6 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
         requested_rate: ''
       });
       
-      setSelectedRequest(null);
       loadData(); // Recharger les données
       
     } catch (error: any) {
@@ -162,472 +157,488 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'À l\'instant';
-    if (diffInMinutes < 60) return `${diffInMinutes}min`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h`;
-    return `${Math.floor(diffInMinutes / 1440)}j`;
-  };
-
-  const getExpiresInText = (expiresAt: string) => {
-    const now = new Date();
-    const expires = new Date(expiresAt);
-    const diffInMinutes = Math.floor((expires.getTime() - now.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes <= 0) return 'Expiré';
-    if (diffInMinutes < 60) return `${diffInMinutes}min restantes`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h restantes`;
-    return `${Math.floor(diffInMinutes / 1440)}j restants`;
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
-        <span className="ml-2 text-gray-600">Chargement des demandes urgentes...</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Header avec filtres */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <AlertCircle className="w-6 h-6 text-red-600" />
-            Demandes Urgentes
-          </h2>
-          <p className="text-gray-600 mt-1">
-            Répondez rapidement aux besoins urgents des établissements
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={loadData}
-            disabled={loading}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <Header />
+
+      {/* Contenu principal */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header avec statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">Missions disponibles</p>
+                <p className="text-2xl font-bold text-blue-800">{urgentRequests.length}</p>
+              </div>
+              <div className="p-2 bg-blue-500 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 font-medium">Mes candidatures</p>
+                <p className="text-2xl font-bold text-green-800">{myResponses.length}</p>
+              </div>
+              <div className="p-2 bg-green-500 rounded-lg">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">Missions VIP</p>
+                <p className="text-2xl font-bold text-purple-800">
+                  {urgentRequests.filter(r => r.priority_boost).length}
+                </p>
+              </div>
+              <div className="p-2 bg-purple-500 rounded-lg">
+                <Crown className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-amber-600 font-medium">Urgences</p>
+                <p className="text-2xl font-bold text-amber-800">
+                  {urgentRequests.filter(r => r.urgency_level === 'emergency' || r.urgency_level === 'critical').length}
+                </p>
+              </div>
+              <div className="p-2 bg-amber-500 rounded-lg">
+                <Zap className="w-5 h-5 text-white" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Filtres */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-4 h-4" />
-            <span className="text-sm font-medium">Filtres</span>
-          </div>
+      {/* Filtres élégants */}
+      <Card className="shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Filter className="w-5 h-5 text-blue-600" />
+            Filtres de recherche
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select
-              value={filters.specialty}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, specialty: value }))}
+            {/* Filtre Spécialité */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Spécialité</label>
+              <Select
+                value={filters.specialty}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, specialty: value }))}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Toutes les spécialités" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les spécialités</SelectItem>
+                  <SelectItem value="Médecine générale">Médecine générale</SelectItem>
+                  <SelectItem value="Médecine d'urgence">Médecine d'urgence</SelectItem>
+                  <SelectItem value="Cardiologie">Cardiologie</SelectItem>
+                  <SelectItem value="Anesthésie-Réanimation">Anesthésie-Réanimation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtre Urgence */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Niveau d'urgence</label>
+              <Select
+                value={filters.urgency_level}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, urgency_level: value }))}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Tous les niveaux" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les niveaux</SelectItem>
+                  <SelectItem value="emergency">⚡ Urgence absolue</SelectItem>
+                  <SelectItem value="critical">🚨 Critique</SelectItem>
+                  <SelectItem value="high">🔥 Élevé</SelectItem>
+                  <SelectItem value="medium">⚠️ Modéré</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Filtre Distance */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Distance max (km)</label>
+              <Input
+                type="number"
+                placeholder="ex: 50"
+                className="h-10"
+                value={filters.max_distance}
+                onChange={(e) => setFilters(prev => ({ ...prev, max_distance: e.target.value }))}
+              />
+            </div>
+
+            {/* Filtre Tarif */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Tarif min (€/h)</label>
+              <Input
+                type="number"
+                placeholder="ex: 80"
+                className="h-10"
+                value={filters.min_rate}
+                onChange={(e) => setFilters(prev => ({ ...prev, min_rate: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={loadData}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Toutes les spécialités" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Toutes les spécialités</SelectItem>
-                <SelectItem value="Médecine générale">Médecine générale</SelectItem>
-                <SelectItem value="Médecine d'urgence">Médecine d'urgence</SelectItem>
-                <SelectItem value="Cardiologie">Cardiologie</SelectItem>
-                <SelectItem value="Anesthésie-Réanimation">Anesthésie-Réanimation</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={filters.urgency_level}
-              onValueChange={(value) => setFilters(prev => ({ ...prev, urgency_level: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Tous les niveaux" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les niveaux</SelectItem>
-                <SelectItem value="emergency">⚡ Urgence absolue</SelectItem>
-                <SelectItem value="critical">🚨 Critique</SelectItem>
-                <SelectItem value="high">🔥 Élevé</SelectItem>
-                <SelectItem value="medium">⚠️ Modéré</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Input
-              placeholder="Distance max (km)"
-              value={filters.max_distance}
-              onChange={(e) => setFilters(prev => ({ ...prev, max_distance: e.target.value }))}
-            />
-
-            <Input
-              placeholder="Tarif min (€/h)"
-              value={filters.min_rate}
-              onChange={(e) => setFilters(prev => ({ ...prev, min_rate: e.target.value }))}
-            />
+              <RefreshCw className="w-4 h-4" />
+              Actualiser
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Onglets */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-        <Button
-          variant={activeTab === 'available' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('available')}
-          className="rounded-md"
-        >
-          <AlertCircle className="w-4 h-4 mr-2" />
-          Disponibles ({urgentRequests.length})
-        </Button>
-        <Button
-          variant={activeTab === 'my-responses' ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => setActiveTab('my-responses')}
-          className="rounded-md"
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          Mes réponses ({myResponses.length})
-        </Button>
-      </div>
+      {/* Tabs principales */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="available" className="flex items-center gap-2">
+            <Search className="w-4 h-4" />
+            Missions disponibles
+          </TabsTrigger>
+          <TabsTrigger value="my-responses" className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4" />
+            Mes candidatures
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Contenu des onglets */}
-      {activeTab === 'available' && (
-        <div className="space-y-4">
-          {urgentRequests.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune demande urgente</h3>
-                <p className="text-gray-600">
-                  Aucune demande urgente ne correspond à vos critères actuellement.
-                </p>
-              </CardContent>
+        <TabsContent value="available" className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-gray-600">Chargement des missions...</span>
+              </div>
+            </div>
+          ) : urgentRequests.length === 0 ? (
+            <Card className="p-8 text-center bg-gray-50">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Aucune mission disponible</h3>
+              <p className="text-gray-500">Aucune mission ne correspond à vos critères actuels.</p>
             </Card>
           ) : (
-            urgentRequests.map((request) => (
-              <Card key={request.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={URGENCY_COLORS[request.urgency_level]}>
-                          {URGENCY_ICONS[request.urgency_level]} {request.urgency_level.toUpperCase()}
-                        </Badge>
-                        {request.featured && (
-                          <Badge className="bg-purple-100 text-purple-800">
-                            <Star className="w-3 h-3 mr-1" />
-                            Vedette
-                          </Badge>
-                        )}
-                        {request.priority_boost && (
-                          <Badge className="bg-yellow-100 text-yellow-800">
-                            ⚡ Priorité
-                          </Badge>
-                        )}
+            <div className="grid gap-6">
+              {urgentRequests.map((request) => (
+                <Card 
+                  key={request.id} 
+                  className={`transition-all hover:shadow-lg ${PRIORITY_STYLES[request.urgency_level] || 'border-l-4 border-gray-300'}`}
+                >
+                  <CardContent className="p-6">
+                    {/* Header de la mission */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-blue-100 rounded-lg">
+                          <Stethoscope className="w-6 h-6 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-semibold text-gray-800">
+                              {request.specialty_required}
+                            </h3>
+                            <Badge className={`${URGENCY_COLORS[request.urgency_level]} font-medium`}>
+                              {URGENCY_ICONS[request.urgency_level]} {request.urgency_level.toUpperCase()}
+                            </Badge>
+                            {request.priority_boost && (
+                              <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                                <Crown className="w-3 h-3 mr-1" />
+                                VIP Boost
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-600 mb-3 leading-relaxed">
+                            {request.description}
+                          </p>
+                        </div>
                       </div>
-                      <CardTitle className="text-lg mb-1">{request.title}</CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Building className="w-4 h-4" />
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
+                          {request.hourly_rate}€/h
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Temps estimé
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Informations de l'établissement */}
+                    <div className="flex items-center gap-6 mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Building className="w-4 h-4 text-gray-500" />
+                        <span className="font-medium text-gray-700">
                           {request.establishment_name || 'Établissement'}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Stethoscope className="w-4 h-4" />
-                          {request.specialty_required}
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                          <span className="text-sm text-gray-600">
+                            {request.establishment_rating || 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-600">{request.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-gray-500" />
+                        <span className="text-gray-600">
+                          {new Date(request.start_time).toLocaleDateString('fr-FR')} à{' '}
+                          {new Date(request.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {formatTimeAgo(request.created_at)}
-                        </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-medical-green">
-                        {request.hourly_rate}€/h
-                      </div>
-                      <div className="text-xs text-red-600 font-medium">
-                        {getExpiresInText(request.expires_at)}
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4 line-clamp-2">{request.description}</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span>{request.start_date} - {request.end_date}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span>{request.start_time} - {request.end_time}</span>
-                    </div>
-                    {request.location && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="truncate">{request.location}</span>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {request.view_count} vues
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="w-3 h-3" />
-                        {request.response_count} réponses
-                      </span>
+                    {/* Actions */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>Expire dans {Math.ceil((new Date(request.expires_at).getTime() - Date.now()) / (1000 * 60 * 60))}h</span>
+                        <span>•</span>
+                        <span>Publié il y a {Math.floor((Date.now() - new Date(request.created_at).getTime()) / (1000 * 60 * 60))}h</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4 mr-2" />
+                          Voir détails
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button 
+                              size="sm"
+                              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                              onClick={() => setSelectedRequest(request)}
+                            >
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                              Postuler
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <Stethoscope className="w-5 h-5 text-blue-600" />
+                                Candidater à cette mission
+                              </DialogTitle>
+                            </DialogHeader>
+                            {selectedRequest && (
+                              <div className="space-y-6 py-4">
+                                {/* Récapitulatif mission */}
+                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                  <h4 className="font-semibold text-blue-800 mb-2">Récapitulatif de la mission</h4>
+                                  <div className="space-y-2 text-sm">
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Spécialité:</span>
+                                      <span className="font-medium">{selectedRequest.specialty_required}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Lieu:</span>
+                                      <span className="font-medium">{selectedRequest.location}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Tarif:</span>
+                                      <span className="font-medium text-green-600">{selectedRequest.hourly_rate}€/h</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-blue-700">Durée:</span>
+                                      <span className="font-medium">Variable</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <label className="block text-sm font-medium">Type de réponse</label>
+                                    <Select
+                                      value={responseForm.response_type}
+                                      onValueChange={(value) => setResponseForm(prev => ({ ...prev, response_type: value as any }))}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="available">✅ Disponible immédiatement</SelectItem>
+                                        <SelectItem value="interested">💡 Intéressé(e) - à discuter</SelectItem>
+                                        <SelectItem value="maybe">🤔 Peut-être - sous conditions</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  <div className="space-y-2">
+                                    <label className="block text-sm font-medium">Tarif souhaité (€/h)</label>
+                                    <Input
+                                      type="number"
+                                      placeholder={selectedRequest.hourly_rate.toString()}
+                                      value={responseForm.requested_rate}
+                                      onChange={(e) => setResponseForm(prev => ({ ...prev, requested_rate: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <label className="block text-sm font-medium">Disponible du</label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={responseForm.availability_start}
+                                      onChange={(e) => setResponseForm(prev => ({ ...prev, availability_start: e.target.value }))}
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <label className="block text-sm font-medium">Jusqu'au</label>
+                                    <Input
+                                      type="datetime-local"
+                                      value={responseForm.availability_end}
+                                      onChange={(e) => setResponseForm(prev => ({ ...prev, availability_end: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="block text-sm font-medium">Message personnel</label>
+                                  <Textarea
+                                    placeholder="Présentez votre motivation et votre expérience..."
+                                    rows={4}
+                                    value={responseForm.message}
+                                    onChange={(e) => setResponseForm(prev => ({ ...prev, message: e.target.value }))}
+                                  />
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-4 border-t">
+                                  <Button variant="outline" onClick={() => setSelectedRequest(null)}>
+                                    Annuler
+                                  </Button>
+                                  <Button 
+                                    onClick={handleSubmitResponse}
+                                    disabled={submitting}
+                                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                                  >
+                                    {submitting ? (
+                                      <>
+                                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                        Envoi...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Envoyer ma candidature
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
-                    <Button
-                      onClick={() => handleViewRequest(request)}
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      <AlertCircle className="w-4 h-4 mr-2" />
-                      Répondre
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
 
-      {activeTab === 'my-responses' && (
-        <div className="space-y-4">
-          {myResponses.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-12">
-                <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune réponse</h3>
-                <p className="text-gray-600">
-                  Vous n'avez pas encore répondu à des demandes urgentes.
-                </p>
-              </CardContent>
+        <TabsContent value="my-responses" className="space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center gap-3">
+                <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
+                <span className="text-gray-600">Chargement de vos candidatures...</span>
+              </div>
+            </div>
+          ) : myResponses.length === 0 ? (
+            <Card className="p-8 text-center bg-gray-50">
+              <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Aucune candidature</h3>
+              <p className="text-gray-500">Vous n'avez encore postulé à aucune mission.</p>
             </Card>
           ) : (
-            myResponses.map((response) => (
-              <Card key={response.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-1">{response.request.title}</CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="grid gap-4">
+              {myResponses.map((response) => (
+                <Card key={response.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                          {response.request?.specialty_required}
+                        </h3>
+                        <p className="text-gray-600 mb-2">{response.request?.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Building className="w-4 h-4" />
+                            {response.request?.establishment_name || 'Établissement'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            {response.request?.location}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Euro className="w-4 h-4" />
+                            {response.request?.hourly_rate}€/h
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
                         <Badge 
                           className={
                             response.status === 'accepted' ? 'bg-green-100 text-green-800' :
                             response.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
+                            'bg-blue-100 text-blue-800'
                           }
                         >
+                          {response.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
                           {response.status === 'accepted' && <CheckCircle className="w-3 h-3 mr-1" />}
                           {response.status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
-                          {response.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                          {response.status === 'accepted' ? 'Acceptée' : 
-                           response.status === 'rejected' ? 'Rejetée' : 'En attente'}
+                          {response.status === 'pending' ? 'En attente' :
+                           response.status === 'accepted' ? 'Acceptée' :
+                           response.status === 'rejected' ? 'Refusée' : response.status}
                         </Badge>
-                        <span>Répondu il y a {formatTimeAgo(response.created_at)}</span>
-                        <span>Temps de réponse: {response.response_time}min</span>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {new Date(response.created_at).toLocaleDateString('fr-FR')}
+                        </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-medical-green">
-                        {response.requested_rate || response.request.hourly_rate}€/h
+                    
+                    {response.message && (
+                      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700 italic">"{response.message}"</p>
                       </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 p-3 rounded-lg mb-4">
-                    <h4 className="font-medium text-sm mb-2">Votre message :</h4>
-                    <p className="text-sm text-gray-700">{response.message}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>Disponible: {response.availability_start} - {response.availability_end}</span>
-                    <span>Type: {response.response_type}</span>
-                    {response.doctor_distance_km && (
-                      <span>Distance: {response.doctor_distance_km.toFixed(1)}km</span>
                     )}
-                  </div>
-
-                  {response.notes && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-sm mb-1">Note de l'établissement :</h4>
-                      <p className="text-sm text-gray-700">{response.notes}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Modal de réponse à une demande urgente */}
-      <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-              Répondre à la demande urgente
-            </DialogTitle>
-          </DialogHeader>
-
-          {selectedRequest && (
-            <div className="space-y-6">
-              {/* Détails de la demande */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold">{selectedRequest.title}</h3>
-                  <Badge className={URGENCY_COLORS[selectedRequest.urgency_level]}>
-                    {URGENCY_ICONS[selectedRequest.urgency_level]} {selectedRequest.urgency_level.toUpperCase()}
-                  </Badge>
-                </div>
-                <p className="text-gray-700 mb-3">{selectedRequest.description}</p>
-                
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Spécialité:</span> {selectedRequest.specialty_required}
-                  </div>
-                  <div>
-                    <span className="font-medium">Rémunération:</span> {selectedRequest.hourly_rate}€/h
-                  </div>
-                  <div>
-                    <span className="font-medium">Période:</span> {selectedRequest.start_date} - {selectedRequest.end_date}
-                  </div>
-                  <div>
-                    <span className="font-medium">Horaires:</span> {selectedRequest.start_time} - {selectedRequest.end_time}
-                  </div>
-                  {selectedRequest.location && (
-                    <div className="col-span-2">
-                      <span className="font-medium">Lieu:</span> {selectedRequest.location}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-4 mt-3 text-sm">
-                  {selectedRequest.equipment_provided && (
-                    <Badge variant="outline">Équipement fourni</Badge>
-                  )}
-                  {selectedRequest.transport_provided && (
-                    <Badge variant="outline">Transport fourni</Badge>
-                  )}
-                  {selectedRequest.accommodation_provided && (
-                    <Badge variant="outline">Hébergement fourni</Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Formulaire de réponse */}
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Type de réponse</label>
-                  <Select 
-                    value={responseForm.response_type} 
-                    onValueChange={(value) => setResponseForm(prev => ({ ...prev, response_type: value as any }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="available">✅ Disponible immédiatement</SelectItem>
-                      <SelectItem value="interested">💡 Intéressé(e) - à discuter</SelectItem>
-                      <SelectItem value="maybe">🤔 Peut-être - sous conditions</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Disponible du</label>
-                    <Input
-                      type="datetime-local"
-                      value={responseForm.availability_start}
-                      onChange={(e) => setResponseForm(prev => ({ ...prev, availability_start: e.target.value }))}
-                      min={new Date().toISOString().slice(0, -8)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Jusqu'au</label>
-                    <Input
-                      type="datetime-local"
-                      value={responseForm.availability_end}
-                      onChange={(e) => setResponseForm(prev => ({ ...prev, availability_end: e.target.value }))}
-                      min={responseForm.availability_start || new Date().toISOString().slice(0, -8)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Tarif souhaité (€/h) - Optionnel</label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="5"
-                    value={responseForm.requested_rate}
-                    onChange={(e) => setResponseForm(prev => ({ ...prev, requested_rate: e.target.value }))}
-                    placeholder={`Proposé: ${selectedRequest.hourly_rate}€/h`}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Message de motivation *</label>
-                  <Textarea
-                    value={responseForm.message}
-                    onChange={(e) => setResponseForm(prev => ({ ...prev, message: e.target.value }))}
-                    placeholder="Décrivez brièvement votre expérience pertinente, votre motivation et vos disponibilités..."
-                    className="h-24"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => setSelectedRequest(null)}
-                  disabled={submitting}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  onClick={handleSubmitResponse}
-                  disabled={submitting || !responseForm.message.trim()}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Envoi...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Envoyer la réponse
-                    </>
-                  )}
-                </Button>
-              </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </TabsContent>
+      </Tabs>
+      </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

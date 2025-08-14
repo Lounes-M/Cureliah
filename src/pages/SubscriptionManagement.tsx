@@ -14,15 +14,33 @@ const SubscriptionManagement: React.FC = () => {
   const handleOpenPortal = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-customer-portal', {
-        body: { userId: user?.id },
-      });
-      if (error || !data?.url) throw error || new Error('Erreur lors de la création du portail client');
+      // Vérifier le token d'authentification
+      const session = await supabase.auth.getSession();
+      
+      if (!session.data.session?.access_token) {
+        throw new Error('No access token available');
+      }
+      
+      // Appeler la fonction Edge pour créer le portail
+      const { data, error } = await supabase.functions.invoke('create-customer-portal');
+      
+      if (error) {
+        console.error('Portal creation error:', error);
+        throw error;
+      }
+      
+      if (!data?.url) {
+        throw new Error('No portal URL returned');
+      }
+      
+      // Ouvrir le portail Stripe dans un nouvel onglet
       window.open(data.url, '_blank');
+      
     } catch (err) {
+      console.error('Portal error:', err);
       toast({
         title: 'Erreur',
-        description: "Impossible d'accéder au portail de gestion d'abonnement.",
+        description: `Impossible d'accéder au portail: ${err?.message || 'Erreur inconnue'}`,
         variant: 'destructive',
       });
     } finally {

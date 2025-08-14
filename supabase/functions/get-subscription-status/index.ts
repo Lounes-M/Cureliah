@@ -69,12 +69,17 @@ serve(async (req) => {
     }
 
     console.log("[get-subscription-status] Subscription found:", data);
+    
+    // S'assurer qu'on a toujours un plan_type
+    const planType = data.plan_type || 'essentiel';
+    console.log("[get-subscription-status] Final plan_type:", planType);
+    
     return new Response(JSON.stringify({
       status: data.status,
       current_period_end: data.current_period_end,
       stripe_customer_id: data.stripe_customer_id,
       stripe_subscription_id: data.stripe_subscription_id,
-      plan_type: data.plan_type || 'essentiel'
+      plan_type: planType
     }), {
       status: 200,
       headers: corsHeaders,

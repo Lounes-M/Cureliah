@@ -216,7 +216,6 @@ const ContactSales = () => {
                     >
                       <option value="">Sélectionnez un sujet</option>
                       <option value="pricing">Tarification et abonnements</option>
-                      <option value="demo">Demande de démonstration</option>
                       <option value="integration">Intégration et formation</option>
                       <option value="enterprise">Solution entreprise</option>
                       <option value="partnership">Partenariat</option>

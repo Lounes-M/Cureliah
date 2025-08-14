@@ -1,44 +1,76 @@
 // Types pour les missions exclusives Premium
 export interface PremiumMission {
   id: string;
+  establishment_id: string;
   title: string;
   description: string;
+  specialty?: string;
   location: string;
+  
+  // Dates et disponibilité
+  start_date: string;
+  end_date: string;
+  application_deadline: string;
+  exclusive_until: string;
+  
+  // Informations financières
   salary_min: number;
   salary_max: number;
-  duration: string;
+  currency: string;
+  
+  // Caractéristiques premium
   urgency: 'high' | 'critical';
-  exclusive_until: string;
+  duration: string;
+  mission_type: 'urgent' | 'specialized' | 'vip' | 'emergency';
+  
+  // Avantages et exigences
   premium_perks: string[];
-  establishment_id: string;
-  establishment_name: string;
-  establishment_rating: number;
-  requirements: string[];
   benefits: string[];
-  application_deadline: string;
+  requirements: string[];
+  
+  // Disponibilités
   spots_available: number;
   spots_filled: number;
+  
+  // Informations établissement (dénormalisé)
+  establishment_name?: string;
+  establishment_rating: number;
+  establishment_logo_url?: string;
+  
+  // Statut
+  status: 'available' | 'assigned' | 'in_progress' | 'completed' | 'cancelled' | 'expired';
+  is_active: boolean;
+  
+  // Métadonnées
   created_at: string;
   updated_at: string;
 }
 
 export interface PremiumMissionFilter {
   location?: string;
-  speciality?: string;
+  specialty?: string;
   salary_min?: number;
   duration?: string;
   urgency?: 'high' | 'critical';
+  mission_type?: 'urgent' | 'specialized' | 'vip' | 'emergency';
   available_spots_only?: boolean;
+  establishment_rating_min?: number;
 }
 
 export interface PremiumMissionApplication {
   id: string;
   mission_id: string;
-  user_id: string;
-  status: 'pending' | 'accepted' | 'rejected' | 'interview_scheduled';
-  application_date: string;
-  priority_score: number; // Score de priorité basé sur l'abonnement Premium
-  notes?: string;
+  doctor_id: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'interview_scheduled' | 'withdrawn';
+  priority_score: number;
+  cover_letter?: string;
+  establishment_notes?: string;
+  applied_at: string;
+  reviewed_at?: string;
+  interview_scheduled_at?: string;
+  decision_made_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Types pour les demandes urgentes d'établissements

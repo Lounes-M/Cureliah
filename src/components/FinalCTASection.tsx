@@ -24,7 +24,6 @@ import {
   Phone,
   MessageCircle,
   Mail,
-  Calendar,
   Play,
   Download,
   FileText,
@@ -115,11 +114,6 @@ const FinalCTASection = () => {
   const handleEstablishmentSignup = () => {
     // TODO: Replace with logger.info("Navigation finale vers inscription établissement");
     window.location.href = "/auth?type=establishment&source=final-cta";
-  };
-
-  const handleScheduleDemo = () => {
-    // TODO: Replace with logger.info("Planification d'une démo");
-    window.location.href = "/schedule-demo";
   };
 
   const handleCallSales = () => {
@@ -419,14 +413,6 @@ const FinalCTASection = () => {
             }
           `}
         >
-          <SecondaryAction
-            icon={Calendar}
-            title="Planifier une démo"
-            description="Démonstration personnalisée en 15 min"
-            onClick={handleScheduleDemo}
-            id="demo"
-          />
-
           <SecondaryAction
             icon={Phone}
             title="Appeler un expert"

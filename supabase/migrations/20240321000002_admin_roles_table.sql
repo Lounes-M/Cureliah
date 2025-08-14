@@ -1,5 +1,5 @@
 -- Create admin_roles table
-CREATE TABLE admin_roles (
+CREATE TABLE IF NOT EXISTS admin_roles (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('admin', 'moderator')),
@@ -11,7 +11,7 @@ CREATE TABLE admin_roles (
 );
 
 -- Create index on user_id
-CREATE INDEX admin_roles_user_id_idx ON admin_roles(user_id);
+CREATE INDEX IF NOT EXISTS admin_roles_user_id_idx ON admin_roles(user_id);
 
 -- Create index on role
-CREATE INDEX admin_roles_role_idx ON admin_roles(role); 
+CREATE INDEX IF NOT EXISTS admin_roles_role_idx ON admin_roles(role); 

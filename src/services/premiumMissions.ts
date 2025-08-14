@@ -11,19 +11,19 @@ export class PremiumMissionService {
   ): Promise<PremiumMission[]> {
     let query = supabase
       .from('premium_missions')
-      .select(`
-        *,
-        establishments (
-          name,
-          rating
-        )
-      `)
+      .select('*')
       .eq('is_active', true)
-      .gte('exclusive_until', new Date().toISOString());
+      .eq('status', 'available')
+      .gte('exclusive_until', new Date().toISOString())
+      .gte('application_deadline', new Date().toISOString());
 
     // Appliquer les filtres
     if (filters?.location) {
       query = query.ilike('location', `%${filters.location}%`);
+    }
+    
+    if (filters?.specialty) {
+      query = query.ilike('specialty', `%${filters.specialty}%`);
     }
     
     if (filters?.salary_min) {
@@ -34,11 +34,22 @@ export class PremiumMissionService {
       query = query.eq('urgency', filters.urgency);
     }
 
+    if (filters?.mission_type) {
+      query = query.eq('mission_type', filters.mission_type);
+    }
+
     if (filters?.available_spots_only) {
       query = query.filter('spots_available', 'gt', 'spots_filled');
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    if (filters?.establishment_rating_min) {
+      query = query.gte('establishment_rating', filters.establishment_rating_min);
+    }
+
+    const { data, error } = await query
+      .order('urgency', { ascending: false })
+      .order('exclusive_until', { ascending: true })
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
