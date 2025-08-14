@@ -17,10 +17,13 @@ serve(async (req) => {
 
   // Log header Authorization
   const authHeader = req.headers.get("authorization");
-  console.log("[get-subscription-status] Authorization header:", authHeader);
+  console.log("[get-subscription-status] Authorization header present:", !!authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     console.log("[get-subscription-status] Missing or invalid authorization header");
-    return new Response(JSON.stringify({ error: "Missing or invalid authorization header" }), { status: 401, headers: corsHeaders });
+    return new Response(JSON.stringify({ 
+      error: "Missing or invalid authorization header",
+      code: "MISSING_AUTH"
+    }), { status: 401, headers: corsHeaders });
   }
   const jwt = authHeader.replace("Bearer ", "");
 
@@ -32,15 +35,31 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: "Missing Supabase env vars" }), { status: 500, headers: corsHeaders });
   }
 
-  // Décoder le JWT pour obtenir l'user id
+  // Décoder le JWT pour obtenir l'user id et vérifier l'expiration
   let userId;
   try {
     const payload = JSON.parse(atob(jwt.split(".")[1]));
     userId = payload.sub;
-    console.log("[get-subscription-status] Decoded userId:", userId);
+    
+    // Vérifier l'expiration du token
+    const exp = payload.exp;
+    const now = Math.floor(Date.now() / 1000);
+    
+    if (exp && exp < now) {
+      console.log("[get-subscription-status] Token expired:", { exp, now, expired: exp < now });
+      return new Response(JSON.stringify({ 
+        error: "Token expired", 
+        code: "TOKEN_EXPIRED" 
+      }), { status: 401, headers: corsHeaders });
+    }
+    
+    console.log("[get-subscription-status] Token valid, userId:", userId);
   } catch (e) {
-    console.log("[get-subscription-status] Invalid JWT", e);
-    return new Response(JSON.stringify({ error: "Invalid JWT" }), { status: 401, headers: corsHeaders });
+    console.log("[get-subscription-status] JWT decode error:", e);
+    return new Response(JSON.stringify({ 
+      error: "Invalid JWT",
+      code: "INVALID_JWT"
+    }), { status: 401, headers: corsHeaders });
   }
 
   // Créer un client Supabase avec le service role

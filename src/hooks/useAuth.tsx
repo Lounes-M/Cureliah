@@ -10,6 +10,7 @@ import React, {
 import { supabase } from "@/integrations/supabase/client.browser";
 import { log } from "@/utils/logging";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Type guard pour vérifier si les données correspondent à un UserProfile
@@ -92,6 +93,7 @@ interface AuthContextType {
   getDashboardRoute: () => string;
   redirectToDashboard: () => void;
   isSubscribed: () => boolean;
+  refreshSubscription: () => void;
   subscriptionStatus: "active" | "inactive" | "canceled" | "trialing" | "past_due" | null;
   subscriptionLoading: boolean;
   subscriptionPlan: 'essentiel' | 'pro' | 'premium' | null;
@@ -113,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Move hooks to top-level (fixes conditional hook call)
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
 
   // Auth pages configuration
   const authPages = useMemo(
@@ -378,15 +381,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // TODO: Replace with logger.info("🔄 Auth state changed:", event, session?.user?.email);
+      console.log('[useAuth] Auth state changed:', event, session?.user?.email?.substring(0, 3) + '***');
 
       if (mounted) {
-        if (session) {
-          // TODO: Replace with logger.info("👤 Session found, fetching profile...");
-          await fetchUserProfile(session.user);
-        } else {
-          // TODO: Replace with logger.info("👤 No session, clearing user");
-          setUser(null);
+        try {
+          switch (event) {
+            case 'SIGNED_IN':
+            case 'TOKEN_REFRESHED':
+              if (session?.user) {
+                console.log('[useAuth] Processing sign-in/refresh for:', session.user.email);
+                await fetchUserProfile(session.user);
+              }
+              break;
+              
+            case 'SIGNED_OUT':
+              console.log('[useAuth] Processing sign-out');
+              setUser(null);
+              setSubscriptionStatus(null);
+              setSubscriptionPlan(null);
+              setLoading(false);
+              setInitialLoad(false);
+              // Nettoyer le cache de vérification d'abonnement
+              Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('subscription_check_')) {
+                  localStorage.removeItem(key);
+                }
+              });
+              break;
+              
+            default:
+              if (session?.user) {
+                await fetchUserProfile(session.user);
+              } else {
+                setUser(null);
+                setLoading(false);
+                setInitialLoad(false);
+              }
+          }
+        } catch (error) {
+          console.error(`[useAuth] Error handling auth event ${event}:`, error);
           setLoading(false);
           setInitialLoad(false);
         }
@@ -591,50 +624,141 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, fetchUserProfile, supabase, toast]
   );
 
-  // TODO: Replace with logger.info("[useAuth] Avant useEffect, user:", user);
-  // Récupération du statut d'abonnement pour les médecins
+  // Récupération du statut d'abonnement pour les médecins avec retry automatique
   useEffect(() => {
-    // TODO: Replace with logger.info("[useAuth] useEffect fetchSubscription triggered", user);
-    const fetchSubscription = async () => {
-      // TODO: Replace with logger.info("[useAuth] fetchSubscription called", user);
+    const fetchSubscription = async (retryCount = 0) => {
       if (!user?.id || user.user_type !== 'doctor') {
         setSubscriptionStatus(null);
         setSubscriptionPlan(null);
         return;
       }
+      
       setSubscriptionLoading(true);
+      
       try {
-        // TODO: Replace with logger.info("[useAuth] fetchSubscription: avant appel invoke");
+        // Vérifier et renouveler la session avant l'appel
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.warn('[useAuth] Session error, attempting to refresh:', sessionError.message);
+          
+          // Tenter de renouveler la session
+          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !refreshedSession) {
+            console.error('[useAuth] Session refresh failed:', refreshError?.message);
+            // Session expirée - déconnecter l'utilisateur
+            await signOut();
+            return;
+          }
+          
+          console.log('[useAuth] Session refreshed successfully');
+        }
+        
+        if (!session?.access_token) {
+          console.warn('[useAuth] No valid session token available');
+          if (retryCount < 2) {
+            // Retry après un court délai
+            setTimeout(() => fetchSubscription(retryCount + 1), 1000);
+            return;
+          }
+          throw new Error('No valid session token');
+        }
+        
+        // Appel à la fonction Edge avec session valide
         const { data, error } = await supabase.functions.invoke('get-subscription-status');
-        // TODO: Replace with logger.info("[useAuth] fetchSubscription: après appel invoke");
-        // TODO: Replace with logger.info("[useAuth] Statut abonnement reçu du backend:", data, "Erreur:", error);
-        if (!error && data?.status) {
+        
+        if (error) {
+          console.warn('[useAuth] Subscription status error:', error);
+          
+          // Si erreur d'authentification et on n'a pas encore retry
+          if (error.message?.includes('401') && retryCount < 2) {
+            console.log('[useAuth] Retrying subscription fetch after auth error');
+            setTimeout(() => fetchSubscription(retryCount + 1), 1000);
+            return;
+          }
+          throw error;
+        }
+        
+        if (data?.status) {
           setSubscriptionStatus(data.status);
-          // Mapping du plan à partir du Price ID ou du champ plan
-          let plan = null;
-          if (data.plan_id) {
+          
+          // Mapping robuste du plan
+          let plan = data.plan_type || data.plan || 'essentiel';
+          if (data.plan_id && !plan) {
             if (data.plan_id.includes('pro')) plan = 'pro';
             else if (data.plan_id.includes('premium')) plan = 'premium';
             else plan = 'essentiel';
-          } else if (data.plan) {
-            plan = data.plan;
-          } else {
-            plan = 'essentiel';
           }
+          
           setSubscriptionPlan(plan);
+          console.log('[useAuth] Subscription loaded:', { status: data.status, plan });
         } else {
-          setSubscriptionStatus(null);
+          console.log('[useAuth] No active subscription found');
+          setSubscriptionStatus('inactive');
           setSubscriptionPlan(null);
         }
-      } catch (e) {
-        setSubscriptionStatus(null);
-        setSubscriptionPlan(null);
+        
+      } catch (error) {
+        console.error('[useAuth] Failed to fetch subscription:', error);
+        
+        // En cas d'erreur, ne pas immédiatement rediriger vers subscribe
+        // Garder le dernier statut connu pendant quelques minutes
+        const lastSuccessfulCheck = localStorage.getItem(`subscription_check_${user.id}`);
+        const now = Date.now();
+        
+        if (lastSuccessfulCheck && (now - parseInt(lastSuccessfulCheck)) < 5 * 60 * 1000) {
+          console.log('[useAuth] Using cached subscription status due to recent success');
+          // Garder le statut actuel et ne pas changer
+          return;
+        }
+        
+        // Si pas de statut récent, marquer comme inactif après plusieurs tentatives
+        if (retryCount >= 2) {
+          setSubscriptionStatus('inactive');
+          setSubscriptionPlan(null);
+        } else {
+          // Retry après un délai
+          setTimeout(() => fetchSubscription(retryCount + 1), 2000);
+          return;
+        }
       } finally {
         setSubscriptionLoading(false);
       }
     };
+    
+    // Marquer un check réussi
+    const markSuccessfulCheck = () => {
+      if (user?.id && subscriptionStatus === 'active') {
+        localStorage.setItem(`subscription_check_${user.id}`, Date.now().toString());
+      }
+    };
+    
     fetchSubscription();
-  }, [user?.id, user?.user_type, supabase]);
+    markSuccessfulCheck();
+    
+    // Vérification périodique toutes les 10 minutes
+    const intervalId = setInterval(() => {
+      if (user?.id && user.user_type === 'doctor') {
+        fetchSubscription();
+      }
+    }, 10 * 60 * 1000);
+    
+    // Écouter l'événement de refresh manuel
+    const handleSubscriptionRefresh = () => {
+      if (user?.id && user.user_type === 'doctor') {
+        console.log('[useAuth] Manual subscription refresh triggered');
+        fetchSubscription();
+      }
+    };
+    
+    window.addEventListener('subscription-refresh', handleSubscriptionRefresh);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('subscription-refresh', handleSubscriptionRefresh);
+    };
+  }, [user?.id, user?.user_type, supabase, subscriptionStatus]);
 
   // Helper pour activer/désactiver les features selon le plan
   const hasFeature = useCallback((feature: string) => {
@@ -655,8 +779,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isSubscribed = useCallback(() => {
     // Seuls les médecins sont concernés par l'abonnement
     if (user?.user_type !== 'doctor') return true;
-    return subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
-  }, [user, subscriptionStatus]);
+    
+    // Si on est en train de charger, considérer comme abonné pour éviter les redirections
+    if (subscriptionLoading) return true;
+    
+    // États d'abonnement valides
+    const validStatuses = ['active', 'trialing', 'past_due'];
+    
+    if (validStatuses.includes(subscriptionStatus)) {
+      return true;
+    }
+    
+    // Grâce périodique si le statut est null/undefined (problème technique)
+    if (!subscriptionStatus && user?.id) {
+      const lastSuccessfulCheck = localStorage.getItem(`subscription_check_${user.id}`);
+      if (lastSuccessfulCheck) {
+        const timeSince = Date.now() - parseInt(lastSuccessfulCheck);
+        // Grâce de 30 minutes pour les problèmes techniques
+        if (timeSince < 30 * 60 * 1000) {
+          console.log('[useAuth] Using grace period for subscription check');
+          return true;
+        }
+      }
+    }
+    
+    // Vérification finale : si 'inactive', certainement pas abonné
+    return subscriptionStatus !== 'inactive' && subscriptionStatus !== 'canceled';
+  }, [user, subscriptionStatus, subscriptionLoading]);
+
+  // Fonction pour forcer un refresh de l'abonnement
+  const refreshSubscription = useCallback(() => {
+    if (user?.id && user.user_type === 'doctor') {
+      console.log('[useAuth] Manual subscription refresh requested');
+      const event = new CustomEvent('subscription-refresh');
+      window.dispatchEvent(event);
+    }
+  }, [user]);
 
   const isAdmin = useCallback(() => {
     return user?.user_type === "admin";
@@ -676,6 +834,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const contextValue = useMemo<AuthContextType & {
     isSubscribed: () => boolean;
+    refreshSubscription: () => void;
     subscriptionStatus: typeof subscriptionStatus;
     subscriptionLoading: boolean;
     subscriptionPlan: typeof subscriptionPlan;
@@ -696,6 +855,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       getDashboardRoute,
       redirectToDashboard,
       isSubscribed,
+      refreshSubscription,
       subscriptionStatus,
       subscriptionLoading,
       subscriptionPlan,
@@ -715,6 +875,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       getDashboardRoute,
       redirectToDashboard,
       isSubscribed,
+      refreshSubscription,
       subscriptionStatus,
       subscriptionLoading,
       subscriptionPlan,
