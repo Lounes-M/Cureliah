@@ -13,7 +13,7 @@ export const usePremiumSupport = () => {
       const data = await premiumService.getSupportTickets()
       setTickets(data)
     } catch (err) {
-      console.error('Erreur chargement tickets:', err)
+      // TODO: Replace with logger.error('Erreur chargement tickets:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -35,7 +35,7 @@ export const usePremiumSupport = () => {
       setTickets(prev => [newTicket, ...prev])
       return newTicket
     } catch (err) {
-      console.error('Erreur création ticket:', err)
+      // TODO: Replace with logger.error('Erreur création ticket:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
       throw err
     }

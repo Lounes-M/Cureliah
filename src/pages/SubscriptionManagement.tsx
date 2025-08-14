@@ -25,7 +25,7 @@ const SubscriptionManagement: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('create-customer-portal');
       
       if (error) {
-        console.error('Portal creation error:', error);
+        // TODO: Replace with logger.error('Portal creation error:', error);
         throw error;
       }
       
@@ -37,7 +37,7 @@ const SubscriptionManagement: React.FC = () => {
       window.open(data.url, '_blank');
       
     } catch (err) {
-      console.error('Portal error:', err);
+      // TODO: Replace with logger.error('Portal error:', err);
       toast({
         title: 'Erreur',
         description: `Impossible d'accéder au portail: ${err?.message || 'Erreur inconnue'}`,

@@ -22,7 +22,7 @@ export const useStripeBlockerDetector = () => {
       setIsBlocked(false);
       return true;
     } catch (error: any) {
-      console.warn('Stripe access check failed:', error);
+      // TODO: Replace with logger.warn('Stripe access check failed:', error);
       
       // Vérifier les indicateurs d'erreur de bloqueur
       const errorString = error.toString().toLowerCase();

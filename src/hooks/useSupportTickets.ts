@@ -25,7 +25,7 @@ export const useSupportTickets = () => {
       const data = await premiumService.getSupportTickets()
       setTickets(data)
     } catch (err) {
-      console.error('Erreur chargement tickets:', err)
+      // TODO: Replace with logger.error('Erreur chargement tickets:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       setTickets([]) // Fallback vers tableau vide
     } finally {
@@ -48,7 +48,7 @@ export const useSupportTickets = () => {
       // Recharger les tickets après création
       await loadTickets()
     } catch (err) {
-      console.error('Erreur création ticket:', err)
+      // TODO: Replace with logger.error('Erreur création ticket:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
     }
   }

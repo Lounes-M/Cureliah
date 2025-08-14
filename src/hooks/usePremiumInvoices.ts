@@ -14,7 +14,7 @@ export const usePremiumInvoices = () => {
         const data = await premiumService.getPremiumInvoices()
         setInvoices(data)
       } catch (err) {
-        console.error('Erreur chargement factures:', err)
+        // TODO: Replace with logger.error('Erreur chargement factures:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue')
       } finally {
         setLoading(false)

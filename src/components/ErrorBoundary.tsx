@@ -1,6 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { ErrorHandler } from '@/utils/logger';
-import MonitoringService from '@/services/monitoring';
+import { createError, handleError } from '@/lib/errorManager';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,20 +25,18 @@ class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log to existing error handler
-    ErrorHandler.handleUnexpectedError(error, { 
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true 
-    });
+    // Logger l'erreur avec le nouveau système
+    const appError = createError(
+      'SYSTEM_UNKNOWN_ERROR',
+      error.message,
+      'critical',
+      {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true,
+      }
+    );
 
-    // Report to new monitoring service
-    const monitoring = MonitoringService.getInstance();
-    monitoring.captureException(error, {
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    }, 'high');
+    handleError(appError, false);
     
     this.setState({
       error,

@@ -14,7 +14,7 @@ export const usePremiumStatistics = () => {
         const data = await premiumService.getPremiumStatistics()
         setStatistics(data)
       } catch (err) {
-        console.error('Erreur chargement statistiques:', err)
+        // TODO: Replace with logger.error('Erreur chargement statistiques:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue')
       } finally {
         setLoading(false)

@@ -36,27 +36,27 @@ const PaymentSuccess = () => {
     
     // Si on est encore en train de charger l'auth OU si pas d'utilisateur
     if (subscriptionLoading) {
-      console.log('[PaymentSuccess] Auth still loading, waiting...');
+      // TODO: Replace with logger.info('[PaymentSuccess] Auth still loading, waiting...');
       setPaymentStatus({ verified: false, loading: true, error: null });
       return;
     }
     
     if (!user?.id) {
-      console.log('[PaymentSuccess] No user ID available, retry in 1 second...');
+      // TODO: Replace with logger.info('[PaymentSuccess] No user ID available, retry in 1 second...');
       setPaymentStatus({ verified: false, loading: true, error: null });
       
       // Retry après 1 seconde si pas d'utilisateur
       setTimeout(() => {
         const currentUser = user; // Capturer la valeur actuelle
         if (currentUser?.id) {
-          console.log('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id);
+          // TODO: Replace with logger.info('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id);
           checkPaymentStatus(sessionId, currentUser.id);
         }
       }, 1000);
       return;
     }
     
-    console.log('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id });
+    // TODO: Replace with logger.info('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id });
     checkPaymentStatus(sessionId, user.id);
   }, [searchParams, user, subscriptionLoading]);
 
@@ -70,7 +70,7 @@ const PaymentSuccess = () => {
 
       if (error) throw error;
 
-      console.log('Payment status check:', data);
+      // TODO: Replace with logger.info('Payment status check:', data);
       
       if (data?.paymentStatus === 'paid') {
         setPaymentStatus({
@@ -104,7 +104,7 @@ const PaymentSuccess = () => {
         });
       }
     } catch (error) {
-      console.error('Error checking payment status:', error);
+      // TODO: Replace with logger.error('Error checking payment status:', error);
       setPaymentStatus({ 
         verified: false, 
         loading: false, 

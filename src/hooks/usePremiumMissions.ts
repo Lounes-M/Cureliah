@@ -14,7 +14,7 @@ export const usePremiumMissions = () => {
       const data = await premiumService.getPremiumMissions()
       setMissions(data)
     } catch (err) {
-      console.error('Erreur chargement missions:', err)
+      // TODO: Replace with logger.error('Erreur chargement missions:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -31,7 +31,7 @@ export const usePremiumMissions = () => {
       // Recharger les missions après candidature
       await loadMissions()
     } catch (err) {
-      console.error('Erreur candidature mission:', err)
+      // TODO: Replace with logger.error('Erreur candidature mission:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la candidature')
     }
   }

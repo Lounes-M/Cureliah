@@ -105,7 +105,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
       setUrgentRequests(requests);
       setMyResponses(responses);
     } catch (error) {
-      console.error('Erreur lors du chargement des données:', error);
+      // TODO: Replace with logger.error('Erreur lors du chargement des données:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données",

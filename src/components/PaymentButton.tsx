@@ -36,7 +36,7 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, classNa
         onSuccess?.();
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      // TODO: Replace with logger.error('Payment error:', error);
       
       // Vérifier si l'erreur est due à un bloqueur de publicité
       if (StripeErrorHandler.isBlocked(error)) {

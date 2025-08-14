@@ -81,7 +81,7 @@ class PremiumService {
         monthlyTrend: Math.round(monthlyTrend * 10) / 10
       }
     } catch (error) {
-      console.error('Erreur récupération statistiques:', error)
+      // TODO: Replace with logger.error('Erreur récupération statistiques:', error);
       
       // Fallback en cas d'erreur - récupération directe depuis la DB
       try {
@@ -107,7 +107,7 @@ class PremiumService {
           }
         }
       } catch (dbError) {
-        console.error('Erreur fallback database:', dbError)
+        // TODO: Replace with logger.error('Erreur fallback database:', dbError);
       }
       
       // Fallback final - pas de données de démonstration
@@ -134,7 +134,7 @@ class PremiumService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Erreur récupération factures:', error)
+        // TODO: Replace with logger.error('Erreur récupération factures:', error);
         throw new Error('Erreur lors de la récupération des factures')
       }
 
@@ -153,7 +153,7 @@ class PremiumService {
         created_at: invoice.created_at
       }))
     } catch (error) {
-      console.error('Erreur récupération factures:', error)
+      // TODO: Replace with logger.error('Erreur récupération factures:', error);
       throw error
     }
   }
@@ -168,7 +168,7 @@ class PremiumService {
       const { PremiumMissionService } = await import('./premiumMissions')
       return await PremiumMissionService.getPremiumMissions(user.id)
     } catch (error) {
-      console.error('Erreur récupération missions:', error)
+      // TODO: Replace with logger.error('Erreur récupération missions:', error);
       throw error
     }
   }
@@ -183,7 +183,7 @@ class PremiumService {
       const { PremiumMissionService } = await import('./premiumMissions')
       await PremiumMissionService.applyToPremiumMission(missionId, user.id)
     } catch (error) {
-      console.error('Erreur acceptation mission:', error)
+      // TODO: Replace with logger.error('Erreur acceptation mission:', error);
       throw error
     }
   }
@@ -202,13 +202,13 @@ class PremiumService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Erreur récupération tickets:', error)
+        // TODO: Replace with logger.error('Erreur récupération tickets:', error);
         throw new Error('Erreur lors de la récupération des tickets')
       }
 
       return tickets || []
     } catch (error) {
-      console.error('Erreur récupération tickets:', error)
+      // TODO: Replace with logger.error('Erreur récupération tickets:', error);
       throw error
     }
   }
@@ -239,13 +239,13 @@ class PremiumService {
         .single()
 
       if (error) {
-        console.error('Erreur création ticket:', error)
+        // TODO: Replace with logger.error('Erreur création ticket:', error);
         throw new Error('Erreur lors de la création du ticket')
       }
 
       return data
     } catch (error) {
-      console.error('Erreur création ticket:', error)
+      // TODO: Replace with logger.error('Erreur création ticket:', error);
       throw error
     }
   }
@@ -264,13 +264,13 @@ class PremiumService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Erreur récupération clés API:', error)
+        // TODO: Replace with logger.error('Erreur récupération clés API:', error);
         throw new Error('Erreur lors de la récupération des clés API')
       }
 
       return apiKeys || []
     } catch (error) {
-      console.error('Erreur récupération clés API:', error)
+      // TODO: Replace with logger.error('Erreur récupération clés API:', error);
       throw error
     }
   }
@@ -289,7 +289,7 @@ class PremiumService {
         .eq('is_active', true)
 
       if (countError) {
-        console.error('Erreur vérification limite:', countError)
+        // TODO: Replace with logger.error('Erreur vérification limite:', countError);
         throw new Error('Erreur lors de la vérification des clés existantes')
       }
 
@@ -315,13 +315,13 @@ class PremiumService {
         .single()
 
       if (error) {
-        console.error('Erreur création clé API:', error)
+        // TODO: Replace with logger.error('Erreur création clé API:', error);
         throw new Error('Erreur lors de la création de la clé API')
       }
 
       return { apiKey: data, key: generatedKey }
     } catch (error) {
-      console.error('Erreur création clé API:', error)
+      // TODO: Replace with logger.error('Erreur création clé API:', error);
       throw error
     }
   }
@@ -340,11 +340,11 @@ class PremiumService {
         .eq('doctor_id', user.id)
 
       if (error) {
-        console.error('Erreur désactivation clé API:', error)
+        // TODO: Replace with logger.error('Erreur désactivation clé API:', error);
         throw new Error('Erreur lors de la désactivation de la clé API')
       }
     } catch (error) {
-      console.error('Erreur désactivation clé API:', error)
+      // TODO: Replace with logger.error('Erreur désactivation clé API:', error);
       throw error
     }
   }

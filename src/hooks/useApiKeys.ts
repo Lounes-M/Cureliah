@@ -13,7 +13,7 @@ export const useApiKeys = () => {
       const data = await premiumService.getApiKeys()
       setApiKeys(data)
     } catch (err) {
-      console.error('Erreur chargement clés API:', err)
+      // TODO: Replace with logger.error('Erreur chargement clés API:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -30,7 +30,7 @@ export const useApiKeys = () => {
       setApiKeys(prev => [result.apiKey, ...prev])
       return result
     } catch (err) {
-      console.error('Erreur création clé API:', err)
+      // TODO: Replace with logger.error('Erreur création clé API:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
       throw err
     }
@@ -43,7 +43,7 @@ export const useApiKeys = () => {
         key.id === keyId ? { ...key, is_active: false } : key
       ))
     } catch (err) {
-      console.error('Erreur désactivation clé API:', err)
+      // TODO: Replace with logger.error('Erreur désactivation clé API:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la désactivation')
     }
   }
