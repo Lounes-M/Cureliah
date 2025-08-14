@@ -41,13 +41,14 @@ const securityService = SecurityService.getInstance();
 
 // Enhanced App Content with advanced features
 const EnhancedAppContent = () => {
-  const { user } = useAuth();
+  const { user, subscriptionStatus } = useAuth();
   const [userSegment, setUserSegment] = useState<UserSegment | null>(null);
   const { setUser } = useMonitoring();
   const { isVisible: showPromoBanner, dismiss: dismissPromoBanner } = usePromoBanner({
     showForNewUsers: true,
     autoHideDays: 3,
-    user: user // Passer l'utilisateur au hook
+    user: user,
+    subscriptionStatus // Pass the subscription status
   });
   
   // Initialize realtime connection
@@ -102,7 +103,7 @@ const EnhancedAppContent = () => {
   }, [user, connectionState]);
 
   return (
-    <ABTestProvider userId={user?.id || ''} userSegment={userSegment || undefined}>
+    <ABTestProvider userId={user?.id || ''} userSegment={userSegment?.userType || 'establishment'}>
       {/* Promo Banner - Affiché en haut pour maximum de visibilité */}
       {showPromoBanner && (
         <PromoBanner 

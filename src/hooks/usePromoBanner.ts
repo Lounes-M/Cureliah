@@ -6,6 +6,7 @@ interface UsePromoBannerOptions {
   showForNewUsers?: boolean;
   user?: any; // Utilisateur connecté
   intendedUserType?: 'doctor' | 'establishment' | null; // Type d'utilisateur prévu (pour inscription)
+  subscriptionStatus?: "active" | "inactive" | "canceled" | "trialing" | "past_due" | null;
 }
 
 export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
@@ -14,7 +15,8 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
     autoHideDays = 7,
     showForNewUsers = true,
     user,
-    intendedUserType
+    intendedUserType,
+    subscriptionStatus
   } = options;
 
   const [isVisible, setIsVisible] = useState(false);
@@ -28,7 +30,7 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
         }
 
         // Ne pas afficher pour les médecins déjà abonnés
-        if (user && user.user_metadata?.user_type === 'doctor' && user.subscription_status === 'active') {
+        if (user && user.user_metadata?.user_type === 'doctor' && subscriptionStatus === 'active') {
           return false;
         }
 
@@ -38,7 +40,7 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
         const shouldShowForUser = !user ? 
           (intendedUserType === 'doctor') : // Visiteur qui va créer un compte médecin
           (user.user_metadata?.user_type === 'doctor' && 
-           (!user.subscription_status || user.subscription_status !== 'active'));
+           (!subscriptionStatus || subscriptionStatus !== 'active'));
 
         if (!shouldShowForUser) {
           return false;
@@ -67,7 +69,7 @@ export const usePromoBanner = (options: UsePromoBannerOptions = {}) => {
     };
 
     setIsVisible(checkShouldShow());
-  }, [storageKey, autoHideDays, showForNewUsers, user, intendedUserType]);
+  }, [storageKey, autoHideDays, showForNewUsers, user, intendedUserType, subscriptionStatus]);
 
   const dismiss = () => {
     try {
