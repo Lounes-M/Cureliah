@@ -37,11 +37,55 @@ serve(async (req) => {
   ) {
     const object = event.data.object;
     
-    // Gestion des paiements de réservations
+    // Gestion des paiements de réservations et achats de crédits
     if (event.type === "checkout.session.completed" && object.mode === "payment") {
       const bookingId = object.metadata?.bookingId;
+      const creditAmount = object.metadata?.creditAmount;
+      const userId = object.metadata?.userId;
       const paymentIntentId = object.payment_intent;
       
+      // Traitement des achats de crédits
+      if (creditAmount && userId) {
+        console.log("[stripe-webhook] Processing credit purchase:", creditAmount, "for user:", userId);
+        
+        try {
+          // Ajouter les crédits au solde de l'utilisateur
+          const { data, error } = await supabase.rpc('purchase_credits', {
+            p_user_id: userId,
+            p_amount: parseInt(creditAmount),
+            p_payment_intent_id: paymentIntentId,
+            p_description: `Achat de ${creditAmount} crédits via Stripe`
+          });
+
+          if (error) {
+            console.error("[stripe-webhook] Credit purchase error:", error.message);
+            return new Response("Credit purchase error", { status: 500 });
+          }
+
+          console.log("[stripe-webhook] Credits added successfully for user:", userId);
+          
+          // Créer une notification pour l'utilisateur
+          await supabase
+            .from("notifications")
+            .insert({
+              user_id: userId,
+              title: "Crédits ajoutés !",
+              message: `${creditAmount} crédits ont été ajoutés à votre solde.`,
+              type: "payment",
+              data: { 
+                credit_amount: creditAmount,
+                payment_intent_id: paymentIntentId
+              }
+            });
+
+          return new Response("ok", { status: 200 });
+        } catch (error) {
+          console.error("[stripe-webhook] Error processing credit purchase:", error);
+          return new Response("Credit processing error", { status: 500 });
+        }
+      }
+      
+      // Traitement des réservations (code existant)
       if (bookingId) {
         console.log("[stripe-webhook] Processing booking payment:", bookingId);
         

@@ -102,14 +102,25 @@ export class CreditsService {
     return data;
   }
 
-  static async createStripeCheckoutSession(userId: string, creditAmount: number): Promise<{ sessionId: string }> {
+  static async createStripeCheckoutSession(userId: string, packageId: string): Promise<{ sessionId: string }> {
+    const baseUrl = import.meta.env.VITE_APP_BASE_URL || window.location.origin;
+    const isLocal = window.location.hostname === 'localhost';
+    
+    // Pour le développement local, on utilise l'URL de production pour éviter les erreurs Stripe
+    const returnUrl = isLocal 
+      ? 'https://cureliah.com/establishment-dashboard?tab=urgent-requests&purchase=success'
+      : `${baseUrl}/establishment-dashboard?tab=urgent-requests&purchase=success`;
+    
+    const cancelUrl = isLocal
+      ? 'https://cureliah.com/establishment-dashboard?tab=urgent-requests&purchase=cancel'
+      : `${baseUrl}/establishment-dashboard?tab=urgent-requests&purchase=cancel`;
+
     const { data, error } = await supabase.functions.invoke('create-credits-checkout', {
       body: {
         userId,
-        creditAmount,
-        pricePerCredit: 1, // 1€ par crédit
-        returnUrl: `${window.location.origin}/credits/success`,
-        cancelUrl: `${window.location.origin}/credits/cancel`
+        packageId,
+        returnUrl,
+        cancelUrl
       }
     });
 
@@ -126,7 +137,7 @@ export class CreditsService {
     return data;
   }
 
-  // Packages prédéfinis de crédits
+  // Packages prédéfinis de crédits avec les nouveaux Price IDs Stripe
   static getCreditPackages() {
     return [
       {
@@ -135,7 +146,8 @@ export class CreditsService {
         credits: 10,
         price: 10,
         description: 'Parfait pour commencer',
-        popular: false
+        popular: false,
+        stripePriceId: 'price_1RwpPFEL5OGpZLTYLX00Bjwz'
       },
       {
         id: 'professional',
@@ -144,7 +156,8 @@ export class CreditsService {
         price: 45, // 10% de réduction
         description: 'Pour les établissements actifs',
         popular: true,
-        savings: 5
+        savings: 5,
+        stripePriceId: 'price_1RwpPcEL5OGpZLTY1m0SrRxD'
       },
       {
         id: 'enterprise',
@@ -153,7 +166,8 @@ export class CreditsService {
         price: 85, // 15% de réduction
         description: 'Pour les grands établissements',
         popular: false,
-        savings: 15
+        savings: 15,
+        stripePriceId: 'price_1RwpQ0EL5OGpZLTYfv8Umlnr'
       },
       {
         id: 'premium',
@@ -162,33 +176,19 @@ export class CreditsService {
         price: 160, // 20% de réduction
         description: 'Maximum d\'économies',
         popular: false,
-        savings: 40
+        savings: 40,
+        stripePriceId: 'price_1RwpQVEL5OGpZLTY8SGgoaqN'
       }
     ];
   }
 
   static calculateUrgentRequestCost(urgencyLevel: string, priorityBoost: boolean, featured: boolean): number {
-    let baseCost = 1;
-
-    // Coût selon le niveau d'urgence
-    switch (urgencyLevel) {
-      case 'medium':
-        baseCost = 1;
-        break;
-      case 'high':
-        baseCost = 2;
-        break;
-      case 'critical':
-        baseCost = 3;
-        break;
-      case 'emergency':
-        baseCost = 5;
-        break;
-    }
+    // Coût de base pour toutes les demandes urgentes
+    let baseCost = 5;
 
     // Options supplémentaires
     if (priorityBoost) baseCost += 2;
-    if (featured) baseCost += 3;
+    if (featured) baseCost += 4;
 
     return baseCost;
   }

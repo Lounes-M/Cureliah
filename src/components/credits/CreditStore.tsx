@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import { StripeErrorHandler } from '@/utils/stripeErrorHandler';
 
-const stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
 interface CreditStoreProps {
   open: boolean;
@@ -30,11 +30,24 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
   
   const packages = CreditsService.getCreditPackages();
 
+  // Vérifier que Stripe est configuré
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+  const isStripeConfigured = stripeKey && stripeKey.length > 0;
+
   const handlePurchase = async (packageId: string) => {
     if (!user?.id) {
       toast({
         title: "Erreur",
         description: "Vous devez être connecté pour acheter des crédits",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isStripeConfigured) {
+      toast({
+        title: "Configuration manquante",
+        description: "Le système de paiement n'est pas configuré. Contactez le support.",
         variant: "destructive"
       });
       return;
@@ -46,16 +59,21 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
     setPurchasing(packageId);
 
     try {
-      // Créer la session Stripe Checkout
+      // Vérifier d'abord si Stripe est accessible
+      if (!stripePromise) {
+        throw new Error('STRIPE_BLOCKED');
+      }
+
+      // Créer la session Stripe Checkout avec le nouveau packageId
       const { sessionId } = await CreditsService.createStripeCheckoutSession(
         user.id,
-        selectedPackage.credits
+        packageId
       );
 
       // Rediriger vers Stripe Checkout
       const stripe = await stripePromise;
       if (!stripe) {
-        throw new Error('Stripe n\'est pas chargé');
+        throw new Error('STRIPE_BLOCKED');
       }
 
       const { error } = await stripe.redirectToCheckout({ sessionId });
@@ -64,22 +82,22 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
         throw error;
       }
 
-    } catch (error) {
-      // TODO: Replace with logger.error('Credit purchase error:', error);
+    } catch (error: any) {
+      console.error('Credit purchase error:', error);
       
       // Vérifier si l'erreur est due à un bloqueur de publicité
-      if (StripeErrorHandler.isBlocked(error)) {
+      if (StripeErrorHandler.isBlocked(error) || error?.message === 'STRIPE_BLOCKED') {
         StripeErrorHandler.showBlockedNotification();
         toast({
-          title: "Achat bloqué",
-          description: StripeErrorHandler.getBlockedMessage(),
+          title: "Paiement bloqué par votre navigateur",
+          description: "Veuillez désactiver votre bloqueur de publicité pour Stripe, ou contactez le support pour un paiement alternatif.",
           variant: "destructive",
-          duration: 10000
+          duration: 15000
         });
       } else {
         toast({
           title: "Erreur",
-          description: "Impossible de traiter l'achat. Veuillez réessayer.",
+          description: error?.message || "Impossible de traiter l'achat. Veuillez réessayer.",
           variant: "destructive"
         });
       }
@@ -122,25 +140,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                 <div className="flex items-start gap-2">
                   <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
-                    <strong>Urgence moyenne:</strong> 1 crédit
-                  </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
-                  <div>
-                    <strong>Urgence élevée:</strong> 2 crédits
-                  </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
-                  <div>
-                    <strong>Urgence critique:</strong> 3 crédits
-                  </div>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
-                  <div>
-                    <strong>Urgence extrême:</strong> 5 crédits
+                    <strong>Demande urgente:</strong> 5 crédits
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
@@ -152,7 +152,25 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                 <div className="flex items-start gap-2">
                   <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
                   <div>
-                    <strong>Mise en avant:</strong> +3 crédits
+                    <strong>Mise en vedette:</strong> +4 crédits
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
+                  <div>
+                    <strong>Crédits permanents:</strong> Pas d'expiration
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
+                  <div>
+                    <strong>Facturation instantanée:</strong> Utilisez immédiatement
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className="w-4 h-4 mt-0.5 text-medical-blue flex-shrink-0" />
+                  <div>
+                    <strong>Support premium:</strong> Assistance prioritaire
                   </div>
                 </div>
               </div>
@@ -210,13 +228,17 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                   <Button 
                     className="w-full h-10"
                     onClick={() => handlePurchase(pkg.id)}
-                    disabled={purchasing === pkg.id}
+                    disabled={purchasing === pkg.id || !isStripeConfigured}
                     variant={pkg.popular ? "default" : "outline"}
                   >
                     {purchasing === pkg.id ? (
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                         <span>Traitement...</span>
+                      </div>
+                    ) : !isStripeConfigured ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <span>Configuration manquante</span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2">
@@ -250,6 +272,29 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
                   <Check className="w-4 h-4 text-medical-green" />
                   <span>Support client 24/7</span>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Information bloqueur de publicité */}
+          <Card className="bg-yellow-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-lg text-yellow-800 flex items-center gap-2">
+                ⚠️ Problème de paiement ?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-yellow-700 text-sm space-y-2">
+                <p>
+                  Si le paiement ne fonctionne pas, cela peut être dû à un bloqueur de publicité qui bloque Stripe.
+                </p>
+                <div className="font-medium">Solutions :</div>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Désactivez temporairement votre bloqueur de publicité</li>
+                  <li>Ajoutez *.stripe.com à votre liste blanche</li>
+                  <li>Utilisez un autre navigateur (Chrome/Firefox)</li>
+                  <li>Contactez notre support pour un paiement alternatif</li>
+                </ul>
               </div>
             </CardContent>
           </Card>

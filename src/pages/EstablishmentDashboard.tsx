@@ -85,7 +85,7 @@ import {
   X,
   User,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Header from "@/components/Header";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DocumentManager from "@/components/documents/DocumentManager";
@@ -209,12 +209,14 @@ interface RecentActivity {
 
 const EstablishmentDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const logger = useLogger();
   // Convertir le profil en profil étendu pour les établissements
   const extendedProfile = profile as ExtendedProfile;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+  const [refreshCredits, setRefreshCredits] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [establishmentStats, setEstablishmentStats] =
     useState<EstablishmentStats | null>(null);
@@ -561,6 +563,47 @@ const EstablishmentDashboard = () => {
       loadDashboardData();
     }
   }, [user]);
+
+  // Gestion des paramètres d'URL pour les achats de crédits
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const purchase = searchParams.get('purchase');
+    const sessionId = searchParams.get('session_id');
+
+    // Si on revient d'un achat réussi
+    if (purchase === 'success' && sessionId) {
+      toast({
+        title: "Achat réussi !",
+        description: "Vos crédits ont été ajoutés à votre solde.",
+        variant: "default",
+      });
+      
+      // Forcer le refresh du solde de crédits
+      setRefreshCredits(prev => prev + 1);
+      
+      // Nettoyer les paramètres d'URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('purchase');
+      newSearchParams.delete('session_id');
+      setSearchParams(newSearchParams);
+    } else if (purchase === 'cancel') {
+      toast({
+        title: "Achat annulé",
+        description: "L'achat de crédits a été annulé.",
+        variant: "default",
+      });
+      
+      // Nettoyer les paramètres d'URL
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.delete('purchase');
+      setSearchParams(newSearchParams);
+    }
+
+    // Gérer l'onglet actif depuis l'URL
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams, toast, activeTab]);
 
   const loadDashboardData = async () => {
     if (!user?.id) return;
@@ -1108,55 +1151,55 @@ const EstablishmentDashboard = () => {
           onValueChange={handleTabChange}
           className="space-y-6"
         >
-          <TabsList className="flex w-full bg-white/50 backdrop-blur-sm border shadow-sm rounded-lg">
+          <TabsList className="flex w-full bg-white/50 backdrop-blur-sm border shadow-sm rounded-lg px-2 py-1">
             <TabsTrigger
               value="overview"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Vue d'ensemble</span>
+              <span className="hidden sm:inline text-sm">Vue d'ensemble</span>
             </TabsTrigger>
             <TabsTrigger
               value="doctors"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <UserCheck className="w-4 h-4" />
-              <span className="hidden sm:inline">Médecins</span>
+              <span className="hidden sm:inline text-sm">Médecins</span>
             </TabsTrigger>
             <TabsTrigger
               value="messages"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Messages</span>
+              <span className="hidden sm:inline text-sm">Messages</span>
             </TabsTrigger>
             <TabsTrigger
               value="documents"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">Documents</span>
+              <span className="hidden sm:inline text-sm">Documents</span>
             </TabsTrigger>
             <TabsTrigger
               value="reviews"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <Star className="w-4 h-4" />
-              <span className="hidden sm:inline">Avis</span>
+              <span className="hidden sm:inline text-sm">Avis</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline">Notifications</span>
+              <span className="hidden sm:inline text-sm">Notifications</span>
             </TabsTrigger>
             <TabsTrigger
               value="urgent-requests"
-              className="flex-1 flex items-center justify-center space-x-2 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="flex-1 flex items-center justify-center space-x-2 py-2 px-3 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all"
             >
               <AlertCircle className="w-4 h-4" />
-              <span className="hidden sm:inline">Demandes Urgentes</span>
+              <span className="hidden sm:inline text-sm">Demandes Urgentes</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1669,7 +1712,10 @@ const EstablishmentDashboard = () => {
           </TabsContent>
 
           <TabsContent value="urgent-requests">
-            <EstablishmentUrgentRequests establishmentId={user?.id || ''} />
+            <EstablishmentUrgentRequests 
+              establishmentId={user?.id || ''} 
+              refreshTrigger={refreshCredits}
+            />
           </TabsContent>
         </Tabs>
 

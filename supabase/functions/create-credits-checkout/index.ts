@@ -7,6 +7,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Packages de crédits avec leurs Price IDs Stripe
+const CREDIT_PACKAGES = {
+  'starter': {
+    credits: 10,
+    price: 10,
+    stripePriceId: 'price_1RwpPFEL5OGpZLTYLX00Bjwz'
+  },
+  'professional': {
+    credits: 50,
+    price: 45,
+    stripePriceId: 'price_1RwpPcEL5OGpZLTY1m0SrRxD'
+  },
+  'enterprise': {
+    credits: 100,
+    price: 85,
+    stripePriceId: 'price_1RwpQ0EL5OGpZLTYfv8Umlnr'
+  },
+  'premium': {
+    credits: 200,
+    price: 160,
+    stripePriceId: 'price_1RwpQVEL5OGpZLTY8SGgoaqN'
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -22,11 +46,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     )
 
-    const { userId, creditAmount, pricePerCredit, returnUrl, cancelUrl } = await req.json()
+    const { userId, packageId, returnUrl, cancelUrl } = await req.json()
 
-    if (!userId || !creditAmount || !pricePerCredit) {
+    if (!userId || !packageId) {
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Vérifier que le package existe
+    const packageInfo = CREDIT_PACKAGES[packageId];
+    if (!packageInfo) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid package ID' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -46,29 +82,22 @@ serve(async (req) => {
       )
     }
 
-    // Créer la session Stripe Checkout
+    // Créer la session Stripe Checkout avec le Price ID prédéfini
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: `${creditAmount} crédits Cureliah`,
-              description: `Pack de ${creditAmount} crédits pour publier des demandes urgentes`,
-              images: ['https://your-domain.com/credits-icon.png'], // Ajoutez une image si disponible
-            },
-            unit_amount: Math.round(pricePerCredit * 100), // Stripe utilise les centimes
-          },
-          quantity: creditAmount,
+          price: packageInfo.stripePriceId,
+          quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${returnUrl}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       customer_email: user.user?.email,
       metadata: {
         userId: userId,
-        creditAmount: creditAmount.toString(),
+        packageId: packageId,
+        creditAmount: packageInfo.credits.toString(),
         type: 'credits_purchase'
       },
       billing_address_collection: 'required',
