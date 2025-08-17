@@ -6,17 +6,8 @@ import { supabase } from "@/integrations/supabase/client.browser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
 import { logger } from "@/services/logger";
-  User, 
-  Building2, 
-  Stethoscope, 
-  ArrowRight, 
-  CheckCircle2,
-  Users,
-  Calendar,
-  Shield
-} from "lucide-react";
+import { User, Building2, Stethoscope, ArrowRight, CheckCircle2, Users, Calendar, Shield } from "lucide-react";
 
 const SetupProfile = () => {
   const { user, profile } = useAuth();

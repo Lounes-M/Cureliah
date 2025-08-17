@@ -10,31 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { 
 import { logger } from "@/services/logger";
-  Mail, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Send, 
-  MessageCircle, 
-  Users, 
-  Building2,
-  Stethoscope,
-  CheckCircle,
-  Paperclip,
-  Shield,
-  Zap,
-  MessageSquare,
-  HelpCircle,
-  Star,
-  Globe,
-  Calendar,
-  User,
-  AlertCircle,
-  ChevronDown,
-  ChevronUp
-} from "lucide-react";
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle, Users, Building2, Stethoscope, CheckCircle, Paperclip, Shield, Zap, MessageSquare, HelpCircle, Star, Globe, Calendar, User, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 const Contact = () => {
   const { toast } = useToast();
