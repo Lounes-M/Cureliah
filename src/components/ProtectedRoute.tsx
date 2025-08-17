@@ -4,6 +4,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Logger from '@/utils/logger';
+
+const logger = Logger.getInstance();
 
 interface ProtectedRouteProps {
   requiredUserType?: "doctor" | "establishment" | "admin";
@@ -34,22 +37,26 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
   }
 
   if (!user) {
-    console.log('[ProtectedRoute] Pas d\'utilisateur, redirection vers /auth');
+    logger.info('Pas d\'utilisateur, redirection vers /auth', { from: location.pathname }, 'ProtectedRoute', 'redirect_auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   if (requiredUserType && user.user_type !== requiredUserType) {
-    console.log('[ProtectedRoute] Type utilisateur incorrect, redirection vers /');
+    logger.warn('Type utilisateur incorrect, redirection vers /', { 
+      userType: user.user_type, 
+      requiredType: requiredUserType 
+    }, 'ProtectedRoute', 'redirect_home');
     return <Navigate to="/" replace />;
   }
 
   // Si médecin, vérifier l'abonnement avec interface de retry
   if (requiredUserType === "doctor" && !isSubscribed()) {
-    console.log('[ProtectedRoute] Médecin non abonné:', {
+    logger.warn('Médecin non abonné, affichage interface vérification', {
       subscriptionStatus,
       isSubscribed: isSubscribed(),
-      subscriptionLoading
-    });
+      subscriptionLoading,
+      userEmail: user.email
+    }, 'ProtectedRoute', 'subscription_check');
 
     // Afficher une interface de diagnostic avant redirection
     return (
@@ -105,7 +112,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
     );
   }
 
-  console.log('[ProtectedRoute] Accès autorisé');
+  logger.debug('Accès autorisé', { userType: user.user_type, requiredType: requiredUserType }, 'ProtectedRoute', 'access_granted');
   return <>{children}</>;
 };
 

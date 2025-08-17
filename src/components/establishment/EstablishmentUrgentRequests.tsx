@@ -26,6 +26,9 @@ import { UrgentRequestService } from '@/services/urgentRequestService';
 import { UrgentRequest, UrgentRequestResponse } from '@/types/premium';
 import { useToast } from '@/hooks/use-toast';
 import { checkTablesExist, createUrgentRequestsTables } from '@/utils/initUrgentTables';
+import Logger from '@/utils/logger';
+
+const logger = Logger.getInstance();
 
 interface EstablishmentUrgentRequestsProps {
   establishmentId: string;
@@ -86,7 +89,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
       // Vérifier si les tables existent, sinon les créer
       const tablesExist = await checkTablesExist();
       if (!tablesExist) {
-        // TODO: Replace with logger.info('🔧 Tables manquantes, initialisation...');
+        logger.info('🔧 Tables manquantes, initialisation...', { establishmentId }, 'EstablishmentUrgentRequests', 'init_tables');
         toast({
           title: "Initialisation",
           description: "Mise en place du système de demandes urgentes...",
@@ -113,7 +116,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
       setRequests(requestsData);
       setStats(statsData);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des demandes:', error);
+      logger.error('Erreur lors du chargement des demandes:', error as Error, { establishmentId }, 'EstablishmentUrgentRequests', 'load_data');
       toast({
         title: "Erreur",
         description: "Impossible de charger les demandes urgentes",

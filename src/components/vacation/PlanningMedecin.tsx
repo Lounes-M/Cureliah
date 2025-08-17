@@ -8,6 +8,7 @@ import { VacationPost, TimeSlot, Speciality } from "@/types/database";
 import { format, parseISO, addDays, addWeeks, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import "@/styles/calendar.css";
+import Logger from '@/utils/logger';
 import {
   Dialog,
   DialogContent,
@@ -108,6 +109,7 @@ export const PlanningMedecin = ({
   onSlotCreated,
   onSlotUpdated,
 }: PlanningMedecinProps) => {
+  const logger = Logger.getInstance();
   const [events, setEvents] = useState<TimeSlotEvent[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<VacationFormData>({
@@ -180,10 +182,16 @@ export const PlanningMedecin = ({
 
       for (let i = 0; i < vacations.length; i += BATCH_SIZE) {
         const batch = vacations.slice(i, i + BATCH_SIZE);
-        console.log(
-          `Processing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(
-            vacations.length / BATCH_SIZE
-          )}`
+        logger.debug(`Processing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(
+          vacations.length / BATCH_SIZE
+        )}`, 
+        { 
+          batchNumber: i / BATCH_SIZE + 1, 
+          totalBatches: Math.ceil(vacations.length / BATCH_SIZE),
+          batchSize: batch.length 
+        }, 
+        'PlanningMedecin', 
+        'vacation_batch_processing'
         );
 
         const { data: slots, error: slotsError } = await supabase

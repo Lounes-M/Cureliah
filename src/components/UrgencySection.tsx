@@ -20,6 +20,9 @@ import {
   UserPlus,
   Building2,
 } from "lucide-react";
+import Logger from '@/utils/logger';
+
+const logger = Logger.getInstance();
 
 const UrgencySection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -169,8 +172,10 @@ const UrgencySection = () => {
   };
 
   const handleEstablishmentSignup = () => {
-    console.log(
-      "Navigation vers inscription établissement avec offre spéciale"
+    logger.info("Navigation vers inscription établissement avec offre spéciale", 
+      { offer: 'early-bird', type: 'establishment' }, 
+      'UrgencySection', 
+      'establishment_signup'
     );
     window.location.href = "/auth?type=establishment&offer=early-bird";
   };

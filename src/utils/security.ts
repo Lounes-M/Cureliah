@@ -1,6 +1,9 @@
 // Use Web Crypto API for browser compatibility
 const crypto = globalThis.crypto;
 import { monitoring } from './monitoring';
+import Logger from './logger';
+
+const logger = Logger.getInstance();
 
 // Security Event Types
 type SecurityEventType = 
@@ -256,11 +259,13 @@ class SecurityService {
     
     for (const pattern of suspiciousPatterns) {
       if (pattern.pattern.test(checkText)) {
+        const severity = pattern.severity;
+        const shouldBlock = ['high', 'critical'].includes(severity);
         return {
           detected: true,
-          severity: pattern.severity,
+          severity,
           description: pattern.description,
-          shouldBlock: pattern.severity === 'high' || pattern.severity === 'critical',
+          shouldBlock,
           metadata: { pattern: pattern.pattern.toString(), matchedText: checkText.match(pattern.pattern)?.[0] }
         };
       }

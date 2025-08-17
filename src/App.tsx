@@ -14,7 +14,11 @@ import { useRealtime } from "@/utils/realtime";
 import { useMonitoring } from "@/services/monitoring";
 import { PromoBanner } from "@/components/PromoBanner";
 import { usePromoBanner } from "@/hooks/usePromoBanner";
+import { performanceMonitor } from "@/utils/performanceMonitor";
 import { useEffect, useState } from "react";
+import Logger from '@/utils/logger';
+
+const logger = Logger.getInstance();
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,12 @@ const EnhancedAppContent = () => {
     monitoring.monitorNetworkConditions();
     monitoring.monitorLongTasks();
     monitoring.monitorBundleSize();
+
+    // Initialize performance monitoring
+    performanceMonitor.markPerformance('app-init');
+    logger.info('Application initialized with monitoring', { 
+      timestamp: Date.now() 
+    }, 'App', 'app_init');
 
     // Set user for new monitoring service
     if (user) {

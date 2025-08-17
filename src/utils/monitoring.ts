@@ -3,6 +3,8 @@
  * Ready for external services like Sentry, DataDog, Google Analytics, etc.
  */
 
+import Logger from './logger';
+
 interface PerformanceMetrics {
   loadTime: number;
   renderTime: number;
@@ -44,6 +46,7 @@ interface PerformanceWithMemory extends Performance {
 
 class MonitoringService {
   private static instance: MonitoringService;
+  private logger = Logger.getInstance();
   private isEnabled: boolean = false;
   private config = {
     // Production environment URLs - to be configured
@@ -88,7 +91,7 @@ class MonitoringService {
 
   private initializeSentry(): void {
     // Ready for Sentry integration
-    console.log('Sentry initialized:', this.config.sentryDsn);
+    this.logger.info('Sentry initialized', { dsn: this.config.sentryDsn }, 'MonitoringService', 'sentry_init');
     
     // Production code would be:
     // import * as Sentry from "@sentry/react";
@@ -124,7 +127,7 @@ class MonitoringService {
       (windowGlobal.dataLayer = windowGlobal.dataLayer || []).push(args);
     };
 
-    console.log('Google Analytics initialized:', this.config.googleAnalyticsId);
+    this.logger.info('Google Analytics initialized', { gaId: this.config.googleAnalyticsId }, 'MonitoringService', 'ga_init');
   }
 
   private initializeDataDog(): void {
@@ -195,7 +198,7 @@ class MonitoringService {
     if (!this.isEnabled) return;
 
     // Send to monitoring service
-    console.log('Performance metrics:', metrics);
+    this.logger.debug('Performance metrics collected', metrics, 'MonitoringService', 'performance_metrics');
     
     // Integration points for external services:
     // - Sentry.addBreadcrumb({ category: 'performance', data: metrics })

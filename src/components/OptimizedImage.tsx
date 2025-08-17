@@ -1,4 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import Logger from '@/utils/logger';
+
+const logger = Logger.getInstance();
 
 interface OptimizedImageProps {
   src: string;
@@ -253,9 +256,9 @@ export const preloadImage = (src: string): Promise<void> => {
 export const preloadImages = async (sources: string[]): Promise<void> => {
   try {
     await Promise.all(sources.map(preloadImage));
-    // TODO: Replace with logger.info('All images preloaded successfully');
+    logger.info('All images preloaded successfully', { count: sources.length }, 'OptimizedImage', 'preload_batch');
   } catch (error) {
-    // TODO: Replace with logger.error('Some images failed to preload:', error);
+    logger.error('Some images failed to preload', error as Error, { sources }, 'OptimizedImage', 'preload_error');
   }
 };
 
