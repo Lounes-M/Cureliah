@@ -7,6 +7,7 @@ import { ArrowLeft, Phone, Mail, MapPin, Send, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from '@/services/logger';
 
 const ContactSales = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const ContactSales = () => {
         description: "Notre équipe commerciale vous contactera sous 24h.",
       });
     } catch (error) {
-      logger.error('Error submitting contact form:', error, {}, 'Auto', 'todo_replaced');
+  logger.error('Error submitting contact form:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer votre message. Veuillez réessayer.",
@@ -312,14 +313,14 @@ const ContactSales = () => {
                   <Phone className="h-5 w-5 text-medical-blue" />
                   <div>
                     <p className="font-medium">Téléphone</p>
-                    <p className="text-gray-600">+33 1 23 45 67 89</p>
+                      <p className="text-gray-600">+33 6 81 04 80 54</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-medical-blue" />
                   <div>
                     <p className="font-medium">Email</p>
-                    <p className="text-gray-600">sales@cureliah.com</p>
+                      <p className="text-gray-600">contact@cureliah.com</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

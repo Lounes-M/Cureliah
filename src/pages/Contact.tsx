@@ -36,7 +36,7 @@ const Contact = () => {
   useEffect(() => {
     if (user && profile) {
       const displayName = profile.user_type === "establishment" 
-        ? profile.name || ""
+        ? profile.establishment_name || ""
         : `${profile.first_name || ""} ${profile.last_name || ""}`.trim();
 
       setFormData(prev => ({
@@ -153,7 +153,7 @@ const Contact = () => {
       // Reset form et supprimer le brouillon
       setFormData({
         name: user && profile ? (profile.user_type === "establishment" 
-          ? profile.name || ""
+          ? profile.establishment_name || ""
           : `${profile.first_name || ""} ${profile.last_name || ""}`.trim()) : "",
         email: user?.email || "",
         subject: "",
@@ -183,16 +183,16 @@ const Contact = () => {
     {
       icon: <Mail className="w-5 h-5" />,
       title: "Email",
-      value: "contact@cureliah.com",
-      description: "Réponse sous 24h",
-      href: "mailto:contact@cureliah.com"
+    value: "contact@cureliah.com",
+    description: "Réponse sous 24h",
+    href: "mailto:contact@cureliah.com"
     },
     {
       icon: <Phone className="w-5 h-5" />,
       title: "Téléphone",
-      value: "+33 1 23 45 67 89",
-      description: "Lun-Ven 9h-18h",
-      href: "tel:+33123456789"
+    value: "+33 6 81 04 80 54",
+    description: "Lun-Ven 9h-18h",
+    href: "tel:+33681048054"
     },
     {
       icon: <MessageSquare className="w-5 h-5" />,
