@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { getSpecialityInfo } from '@/utils/specialities';
+import { logger } from "@/services/logger";
 
 interface SearchSuggestion {
   type: 'location' | 'doctor' | 'speciality' | 'recent';
@@ -236,7 +237,7 @@ export const SmartSearchInput: React.FC<SmartSearchInputProps> = ({
 
       setSuggestions(newSuggestions);
     } catch (error) {
-      // TODO: Replace with logger.error('Error generating suggestions:', error);
+      logger.error('Error generating suggestions:', error);
       setSuggestions([]);
     } finally {
       setLoading(false);

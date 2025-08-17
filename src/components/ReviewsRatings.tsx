@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { logger } from "@/services/logger";
 
 interface Review {
   id: string;
@@ -98,7 +99,7 @@ const ReviewsRatings = ({
       if (error) throw error;
       setReviews(data || []);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching reviews:', error);
+      logger.error('Error fetching reviews:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les avis",
@@ -139,7 +140,7 @@ const ReviewsRatings = ({
       setNewRating(5);
       fetchReviews();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error submitting review:', error);
+      logger.error('Error submitting review:', error);
       toast({
         title: "Erreur",
         description: "Impossible de publier l'avis",
@@ -173,7 +174,7 @@ const ReviewsRatings = ({
 
       fetchReviews();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error moderating review:', error);
+      logger.error('Error moderating review:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modérer l'avis",

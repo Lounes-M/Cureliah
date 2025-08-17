@@ -29,6 +29,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Search, Plus, Calendar as CalendarIcon, Clock, MapPin, User, Building2 } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface Vacation {
   id: string;
@@ -84,7 +85,7 @@ export default function VacationManagement() {
 
       setVacations(data || []);
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching vacations:', error);
+      logger.error('Error fetching vacations:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les vacations",
@@ -110,7 +111,7 @@ export default function VacationManagement() {
         name: `${doctor.first_name} ${doctor.last_name}`
       })));
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching doctors:', error);
+      logger.error('Error fetching doctors:', error);
     }
   };
 
@@ -129,7 +130,7 @@ export default function VacationManagement() {
         name: establishment.name
       })));
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching establishments:', error);
+      logger.error('Error fetching establishments:', error);
     }
   };
 
@@ -151,7 +152,7 @@ export default function VacationManagement() {
         description: "Statut de la vacation mis à jour",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error updating vacation status:', error);
+      logger.error('Error updating vacation status:', error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
@@ -194,7 +195,7 @@ export default function VacationManagement() {
         description: "Vacation ajoutée avec succès",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error adding vacation:', error);
+      logger.error('Error adding vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter la vacation",

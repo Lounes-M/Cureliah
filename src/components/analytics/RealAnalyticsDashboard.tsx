@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { RealAnalyticsService, RealAnalyticsData } from '@/services/realAnalytics';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from "@/services/logger";
 
 const RealAnalyticsDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -66,7 +67,7 @@ const RealAnalyticsDashboard: React.FC = () => {
       setSpecialtyMetrics(specialtyData.slice(0, 10)); // Top 10 specialties
       setLastUpdated(new Date());
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des analytics:', error);
+      logger.error('Erreur lors du chargement des analytics:', error);
     } finally {
       setLoading(false);
     }

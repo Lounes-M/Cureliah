@@ -4,6 +4,7 @@ import { MessageSquare } from 'lucide-react';
 import ConversationsList from './ConversationsList';
 import MessagingInterface from '../MessagingInterface';
 import { Conversation } from '@/hooks/useConversations';
+import { logger } from "@/services/logger";
 
 interface MessagingCenterProps {
   autoOpenDoctorId?: string;
@@ -28,7 +29,7 @@ const MessagingCenter = ({
   // Gérer l'ouverture automatique d'une conversation
   useEffect(() => {
     if (autoOpenDoctorId && autoOpenDoctorName) {
-      // TODO: Replace with logger.info('🚀 Auto-opening conversation with:', autoOpenDoctorName);
+      logger.info('🚀 Auto-opening conversation with:', autoOpenDoctorName);
       
       // Créer une conversation temporaire pour l'auto-ouverture
       const autoConversation: Conversation = {

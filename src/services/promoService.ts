@@ -57,7 +57,7 @@ export class PromoService {
         error: 'Code promo invalide'
       };
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors de la validation du code promo:', error);
+      logger.error('Erreur lors de la validation du code promo:', error);
       return {
         valid: false,
         error: 'Erreur lors de la validation'

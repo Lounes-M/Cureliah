@@ -197,7 +197,7 @@ class SecurityService {
       return { allowed: true };
       
     } catch (error) {
-      // TODO: Replace with logger.error('Security check failed:', error);
+      logger.error('Security check failed:', error, {}, 'Security', 'security_check');
       // Fail secure - deny access on error
       return { allowed: false, reason: 'Security check failed' };
     }
@@ -320,7 +320,7 @@ class SecurityService {
       return 'good';
       
     } catch (error) {
-      // TODO: Replace with logger.error('Threat intelligence check failed:', error);
+      logger.error('Threat intelligence check failed:', error, {}, 'Security', 'threat_intelligence');
       return 'good'; // Fail open for availability
     }
   }
@@ -355,8 +355,8 @@ class SecurityService {
     };
 
     try {
-      // Log to console for now (monitoring system doesn't have security logging method)
-      console.log('Security Event:', {
+      // Log to logger for structured security monitoring
+      logger.info('Security Event:', {
         type: securityEvent.type,
         severity: securityEvent.severity,
         blocked: securityEvent.blocked,
@@ -366,7 +366,7 @@ class SecurityService {
       });
 
       // Store security event
-      // TODO: Replace with logger.info('Security Event:', securityEvent);
+      logger.info('Security Event:', securityEvent);
 
       // Send alerts for high/critical events
       if (securityEvent.severity === 'high' || securityEvent.severity === 'critical') {
@@ -379,7 +379,7 @@ class SecurityService {
       }
 
     } catch (error) {
-      // TODO: Replace with logger.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error);
     }
   }
 
@@ -424,7 +424,7 @@ class SecurityService {
 
   private async sendSecurityAlert(event: SecurityEvent): Promise<void> {
     // In production: send to security team via email/Slack/PagerDuty
-    console.warn('SECURITY ALERT:', {
+    logger.warn('SECURITY ALERT:', {
       type: event.type,
       severity: event.severity,
       description: event.description,

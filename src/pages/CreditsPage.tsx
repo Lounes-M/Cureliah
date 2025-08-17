@@ -57,7 +57,7 @@ const CreditsPage: React.FC = () => {
       const userTransactions = await CreditsService.getCreditTransactions(user.id, 20);
       setTransactions(userTransactions);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des transactions:', error);
+      logger.error('Erreur lors du chargement des transactions:', error, {}, 'Auto', 'todo_replaced');
     } finally {
       setLoadingTransactions(false);
     }

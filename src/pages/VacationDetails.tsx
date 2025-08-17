@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import { VacationPost, TimeSlot } from '@/types/database';
 import { getSpecialityInfo } from '@/utils/specialities';
+import { logger } from "@/services/logger";
 
 const VacationDetails = () => {
   const { vacationId } = useParams<{ vacationId: string }>();
@@ -52,7 +53,7 @@ const VacationDetails = () => {
       if (error) throw error;
       setVacation(data);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching vacation:', error);
+      logger.error('Error fetching vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les détails de la vacation",
@@ -81,7 +82,7 @@ const VacationDetails = () => {
 
       navigate('/doctor/manage-vacations');
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error deleting vacation:', error);
+      logger.error('Error deleting vacation:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la vacation",

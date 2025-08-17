@@ -13,6 +13,7 @@ import { fr } from 'date-fns/locale';
 import OnlineStatusIndicator from './OnlineStatusIndicator';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface MessagingInterfaceProps {
   bookingId: string;
@@ -121,7 +122,7 @@ const MessagingInterface = ({
         });
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('File upload error:', error);
+      logger.error('File upload error:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer le fichier",

@@ -11,6 +11,7 @@ import { usePromoBanner } from '@/hooks/usePromoBanner';
 import { useStripeBlockerDetector } from '@/hooks/useStripeBlockerDetector';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, Shield } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 export default function Subscribe() {
   const { user, profile } = useAuth();
@@ -43,7 +44,7 @@ export default function Subscribe() {
 
     setLoading(true);
     try {
-      // TODO: Replace with logger.info("[Subscribe] user.id utilisé pour l'abonnement:", user.id);
+      logger.info("[Subscribe] user.id utilisé pour l'abonnement:", user.id);
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           userId: user.id,

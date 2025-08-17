@@ -7,6 +7,7 @@ import { CreditsService, UserCredits } from '@/services/creditsService';
 import { CreditStore } from './CreditStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface CreditBalanceProps {
   variant?: 'default' | 'compact' | 'inline';
@@ -36,7 +37,7 @@ export const CreditBalance: React.FC<CreditBalanceProps> = ({
       setCredits(userCredits);
       onBalanceUpdate?.(userCredits.balance);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des crédits:', error);
+      logger.error('Erreur lors du chargement des crédits:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger votre solde de crédits",

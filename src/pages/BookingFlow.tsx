@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Calendar, MapPin, Clock, User, CreditCard, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 
 interface VacationData {
   id: string;
@@ -26,7 +26,6 @@ export default function BookingFlow() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const logger = useLogger();
   const [vacation, setVacation] = useState<VacationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);

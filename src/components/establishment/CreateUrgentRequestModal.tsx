@@ -14,6 +14,7 @@ import { UrgentRequestService } from '@/services/urgentRequestService';
 import { CreditsService, UserCredits } from '@/services/creditsService';
 import { CreditBalance } from '@/components/credits/CreditBalance';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface CreateUrgentRequestModalProps {
   establishmentId: string;
@@ -101,7 +102,7 @@ export const CreateUrgentRequestModal: React.FC<CreateUrgentRequestModalProps> =
         const credits = await CreditsService.getUserCredits(establishmentId);
         setUserCredits(credits);
       } catch (error) {
-        // TODO: Replace with logger.error('Erreur lors du chargement des crédits:', error);
+        logger.error('Erreur lors du chargement des crédits:', error);
       }
     };
 

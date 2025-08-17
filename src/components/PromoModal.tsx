@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Gift, Copy, Check, Sparkles } from 'lucide-react';
 import { promoService } from '@/services/promoService';
+import { logger } from "@/services/logger";
 
 interface PromoModalProps {
   isOpen: boolean;
@@ -38,7 +39,7 @@ export const PromoModal: React.FC<PromoModalProps> = ({
       
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      // TODO: Replace with logger.error('Failed to copy promo code:', err);
+      logger.error('Failed to copy promo code:', err);
     }
   };
 

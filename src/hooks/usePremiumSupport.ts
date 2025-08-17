@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { premiumService, SupportTicket } from '../services/premiumService'
+import { logger } from "@/services/logger";
 
 export const usePremiumSupport = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([])
@@ -13,7 +14,7 @@ export const usePremiumSupport = () => {
       const data = await premiumService.getSupportTickets()
       setTickets(data)
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur chargement tickets:', err);
+      logger.error('Erreur chargement tickets:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -35,7 +36,7 @@ export const usePremiumSupport = () => {
       setTickets(prev => [newTicket, ...prev])
       return newTicket
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur création ticket:', err);
+      logger.error('Erreur création ticket:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
       throw err
     }

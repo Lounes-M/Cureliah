@@ -11,6 +11,7 @@ import {
   Star,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/services/logger";
 
 const HowItWorksSection = () => {
   const [visibleSteps, setVisibleSteps] = useState(new Set());
@@ -28,7 +29,7 @@ const HowItWorksSection = () => {
   }, [activeTab]);
 
   const handleAuthNavigation = (userType) => {
-    // TODO: Replace with logger.info(`Navigation vers inscription ${userType}`);
+    logger.info(`Navigation vers inscription ${userType}`);
     // Simulation de navigation - remplacer par votre logique
     window.location.href = `/auth?type=${userType}`;
   };

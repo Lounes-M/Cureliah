@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { uploadProfilePicture } from "@/services/profileService";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { logger } from "@/services/logger";
 
 interface DoctorProfileFormProps {
   userId: string;
@@ -116,7 +117,7 @@ export default function DoctorProfileForm({
         description: "Votre photo de profil a été mise à jour",
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error("Error uploading image:", error);
+      logger.error("Error uploading image:", error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible de télécharger l'image. Veuillez réessayer.",
@@ -275,7 +276,7 @@ export default function DoctorProfileForm({
 
       onSuccess();
     } catch (error: any) {
-      // TODO: Replace with logger.error("Error saving doctor profile:", error);
+      logger.error("Error saving doctor profile:", error);
       toast({
         title: "Erreur de sauvegarde",
         description:

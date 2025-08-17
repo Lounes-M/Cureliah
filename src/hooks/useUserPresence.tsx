@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { UserPresence, UserStatus } from '@/types/database';
 
 export function useUserPresence() {
   const { user } = useAuth();
-  const logger = useLogger();
   const [userPresences, setUserPresences] = useState<Record<string, UserPresence>>({});
 
   useEffect(() => {

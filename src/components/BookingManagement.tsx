@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { logger } from "@/services/logger";
 
 // Fonction de formatage des dates
 const formatDate = (dateString: string) => {
@@ -160,7 +161,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
     try {
       setLoading(true);
-      // TODO: Replace with logger.info('🔍 Fetching bookings for doctor:', user.id);
+      logger.info('🔍 Fetching bookings for doctor:', user.id);
       
       let query = supabase
         .from('bookings')
@@ -201,23 +202,23 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
       const { data: bookingsData, error: bookingsError } = await query;
 
       if (bookingsError) {
-        // TODO: Replace with logger.error('❌ Error fetching bookings:', bookingsError);
+        logger.error('❌ Error fetching bookings:', bookingsError);
         throw bookingsError;
       }
 
-      // TODO: Replace with logger.info('📦 Raw bookings data:', bookingsData);
+      logger.info('📦 Raw bookings data:', bookingsData);
 
       if (!bookingsData || bookingsData.length === 0) {
-        // TODO: Replace with logger.info('📭 No bookings found');
+        logger.info('📭 No bookings found');
         setBookings([]);
         return;
       }
 
-      // TODO: Replace with logger.info(`✅ Found ${bookingsData.length} bookings`);
+      logger.info(`✅ Found ${bookingsData.length} bookings`);
 
       // Get establishment IDs
       const establishmentIds = [...new Set(bookingsData.map(booking => booking.establishment_id))];
-      // TODO: Replace with logger.info('🏥 Establishment IDs to fetch:', establishmentIds);
+      logger.info('🏥 Establishment IDs to fetch:', establishmentIds);
       
       // Récupérer plus d'informations sur les établissements
       const { data: establishments, error: establishmentError } = await supabase
@@ -226,10 +227,10 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
         .in('id', establishmentIds);
 
       if (establishmentError) {
-        // TODO: Replace with logger.error('❌ Error fetching establishment profiles:', establishmentError);
+        logger.error('❌ Error fetching establishment profiles:', establishmentError);
       }
 
-      // TODO: Replace with logger.info('🏥 Establishment profiles found:', establishments);
+      logger.info('🏥 Establishment profiles found:', establishments);
 
       // Combine the data
       const combinedBookings = bookingsData.map(booking => {
@@ -250,7 +251,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
             first_name: '',
             last_name: ''
           };
-          // TODO: Replace with logger.info('✅ Found establishment:', establishment.name);
+          logger.info('✅ Found establishment:', establishment.name);
         } else {
           establishmentInfo = {
             id: booking.establishment_id,
@@ -260,7 +261,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
             first_name: '',
             last_name: ''
           };
-          // TODO: Replace with logger.info('⚠️ Establishment not found for ID:', booking.establishment_id);
+          logger.info('⚠️ Establishment not found for ID:', booking.establishment_id);
         }
         
         return {
@@ -304,7 +305,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
 
       setBookings(filteredBookings);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error:', error);
+      logger.error('Error:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors du chargement des réservations",

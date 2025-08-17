@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorProfileModal } from './DoctorProfileModal';
+import { logger } from "@/services/logger";
 
 interface EstablishmentVacationCardProps {
   vacation: VacationWithDoctor;
@@ -22,8 +23,8 @@ export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: Establ
   const { user } = useAuth();
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
 
-  // TODO: Replace with logger.info('Vacation data:', vacation);
-  // TODO: Replace with logger.info('Doctor info:', vacation.doctor_info);
+  logger.info('Vacation data:', vacation);
+  logger.info('Doctor info:', vacation.doctor_info);
 
   const formatTimeSlots = (timeSlots: TimeSlot[]) => {
     if (!timeSlots || timeSlots.length === 0) return '';
@@ -178,7 +179,7 @@ export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: Establ
                       description: "Une réservation de test a été créée avec succès.",
                     });
                   } catch (error: any) {
-                    // TODO: Replace with logger.error('Error creating test booking:', error);
+                    logger.error('Error creating test booking:', error);
                     toast({
                       title: "Erreur",
                       description: error.message || "Une erreur est survenue",

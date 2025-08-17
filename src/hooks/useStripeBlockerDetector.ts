@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 export const useStripeBlockerDetector = () => {
   const [isBlocked, setIsBlocked] = useState(false);
@@ -22,7 +23,7 @@ export const useStripeBlockerDetector = () => {
       setIsBlocked(false);
       return true;
     } catch (error: any) {
-      // TODO: Replace with logger.warn('Stripe access check failed:', error);
+      logger.warn('Stripe access check failed:', error);
       
       // Vérifier les indicateurs d'erreur de bloqueur
       const errorString = error.toString().toLowerCase();

@@ -73,7 +73,7 @@ const ContactSales = () => {
         description: "Notre équipe commerciale vous contactera sous 24h.",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error submitting contact form:', error);
+      logger.error('Error submitting contact form:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer votre message. Veuillez réessayer.",

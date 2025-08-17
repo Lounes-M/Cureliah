@@ -83,7 +83,7 @@ export const CreditStore: React.FC<CreditStoreProps> = ({
       }
 
     } catch (error: any) {
-      console.error('Credit purchase error:', error);
+      logger.error('Credit purchase error:', error);
       
       // Vérifier si l'erreur est due à un bloqueur de publicité
       if (StripeErrorHandler.isBlocked(error) || error?.message === 'STRIPE_BLOCKED') {

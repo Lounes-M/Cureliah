@@ -21,7 +21,7 @@ class CentralizedLogger {
    */
   info(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      // TODO: Replace with logger.info(`ℹ️ ${message}`, context || '');
+      logger.info(`ℹ️ ${message}`, context || '');
     } else {
       logger.info(message, context);
     }
@@ -32,7 +32,7 @@ class CentralizedLogger {
    */
   debug(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      // TODO: Replace with logger.info(`🐛 ${message}`, context || '');
+      logger.info(`🐛 ${message}`, context || '');
     } else {
       logger.debug(message, context);
     }
@@ -43,7 +43,7 @@ class CentralizedLogger {
    */
   warn(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      // TODO: Replace with logger.warn(`⚠️ ${message}`, context || '');
+      logger.warn(`⚠️ ${message}`, context || '');
     } else {
       logger.warn(message, context);
     }
@@ -54,7 +54,7 @@ class CentralizedLogger {
    */
   error(message: string, error?: Error | unknown, context?: LogContext) {
     if (this.isDevelopment) {
-      // TODO: Replace with logger.error(`❌ ${message}`, error || '', context || '');
+      logger.error(`❌ ${message}`, error || '', context || '');
     } else {
       // Assurer que l'erreur est au bon format pour le logger
       const errorToLog = error instanceof Error ? error : new Error(String(error || 'Unknown error'));
@@ -67,7 +67,7 @@ class CentralizedLogger {
    */
   success(message: string, context?: LogContext) {
     if (this.isDevelopment) {
-      // TODO: Replace with logger.info(`✅ ${message}`, context || '');
+      logger.info(`✅ ${message}`, context || '');
     } else {
       logger.info(`SUCCESS: ${message}`, context);
     }
@@ -85,7 +85,7 @@ class CentralizedLogger {
     };
 
     if (this.isDevelopment) {
-      // TODO: Replace with logger.info(`👤 USER ACTION: ${action}`, actionContext);
+      logger.info(`👤 USER ACTION: ${action}`, actionContext);
     } else {
       logger.info(`USER_ACTION: ${action}`, actionContext);
     }
@@ -104,7 +104,7 @@ class CentralizedLogger {
     };
 
     if (this.isDevelopment) {
-      // TODO: Replace with logger.info(`⚡ PERF: ${metric} = ${value}`, perfContext);
+      logger.info(`⚡ PERF: ${metric} = ${value}`, perfContext);
     } else {
       logger.info(`PERFORMANCE: ${metric}`, perfContext);
     }
@@ -122,7 +122,7 @@ class CentralizedLogger {
     };
 
     if (this.isDevelopment) {
-      // TODO: Replace with logger.warn(`🔒 SECURITY: ${event}`, securityContext);
+      logger.warn(`🔒 SECURITY: ${event}`, securityContext);
     } else {
       logger.warn(`SECURITY: ${event}`, securityContext);
     }

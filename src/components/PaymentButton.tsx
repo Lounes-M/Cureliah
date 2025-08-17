@@ -5,6 +5,7 @@ import { CreditCard, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/hooks/use-toast';
 import { StripeErrorHandler } from '@/utils/stripeErrorHandler';
+import { logger } from "@/services/logger";
 
 interface PaymentButtonProps {
   bookingId: string;
@@ -36,7 +37,7 @@ const PaymentButton = ({ bookingId, amount, disabled = false, onSuccess, classNa
         onSuccess?.();
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Payment error:', error);
+      logger.error('Payment error:', error);
       
       // Vérifier si l'erreur est due à un bloqueur de publicité
       if (StripeErrorHandler.isBlocked(error)) {

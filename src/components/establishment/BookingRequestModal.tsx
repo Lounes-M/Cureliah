@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { VacationPost, TimeSlot } from '@/types/database';
 import { addDays, format, parseISO, eachDayOfInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { logger } from "@/services/logger";
 
 interface DoctorInfo {
   id: string;
@@ -61,7 +62,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
         if (error) throw error;
         
-        // TODO: Replace with logger.info('Loaded time slots:', slots);
+        logger.info('Loaded time slots:', slots);
         setTimeSlots(slots || []);
 
         // Générer les dates disponibles entre start_date et end_date
@@ -71,7 +72,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
         setAvailableDates(dates.map(date => format(date, 'yyyy-MM-dd')));
         
       } catch (error) {
-        // TODO: Replace with logger.error('Error fetching time slots:', error);
+        logger.error('Error fetching time slots:', error);
         toast({
           title: "Erreur",
           description: "Impossible de charger les créneaux disponibles",
@@ -187,7 +188,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
       if (error) throw error;
 
-      // TODO: Replace with logger.info('Booking request created:', data);
+      logger.info('Booking request created:', data);
 
       // Créer une notification pour le médecin
       await supabase
@@ -208,7 +209,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
       onSuccess();
       onClose();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error creating booking request:', error);
+      logger.error('Error creating booking request:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande de réservation",

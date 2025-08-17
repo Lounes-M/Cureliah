@@ -43,7 +43,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useLogger } from "@/utils/logger";
+import { logger } from "@/services/logger";
 import {
   Dialog,
   DialogContent,
@@ -211,7 +211,6 @@ const EstablishmentDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile } = useAuth();
-  const logger = useLogger();
   // Convertir le profil en profil étendu pour les établissements
   const extendedProfile = profile as ExtendedProfile;
   const { toast } = useToast();

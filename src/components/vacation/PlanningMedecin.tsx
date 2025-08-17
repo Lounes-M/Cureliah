@@ -146,7 +146,7 @@ export const PlanningMedecin = ({
   const fetchTimeSlots = async () => {
     setIsLoading(true);
     try {
-      // TODO: Replace with logger.info("Fetching time slots for doctor:", doctorId);
+      logger.debug("Fetching time slots for doctor", { doctorId }, 'PlanningMedecin', 'fetch_time_slots');
 
       const { data: vacationStructure, error: structureError } = await supabase
         .from("vacation_posts")
@@ -154,9 +154,9 @@ export const PlanningMedecin = ({
         .limit(1);
 
       if (structureError) {
-        // TODO: Replace with logger.error("Error fetching vacation structure:", structureError);
+        logger.error("Error fetching vacation structure", structureError, { doctorId }, 'PlanningMedecin', 'structure_error');
       } else {
-        // TODO: Replace with logger.info("Vacation posts structure:", vacationStructure);
+        logger.debug("Vacation posts structure", { vacationStructure }, 'PlanningMedecin', 'structure_fetched');
       }
 
       const { data: vacations, error: vacationsError } = await supabase
@@ -165,14 +165,14 @@ export const PlanningMedecin = ({
         .eq("doctor_id", doctorId);
 
       if (vacationsError) {
-        // TODO: Replace with logger.error("Error fetching vacations:", vacationsError);
+        logger.error("Error fetching vacations", vacationsError, { doctorId }, 'PlanningMedecin', 'vacations_error');
         throw vacationsError;
       }
 
-      // TODO: Replace with logger.info("Found vacations:", vacations);
+      logger.debug("Found vacations", { vacationsCount: vacations?.length || 0 }, 'PlanningMedecin', 'vacations_fetched');
 
       if (!vacations || vacations.length === 0) {
-        // TODO: Replace with logger.info("No vacations found");
+        logger.info("No vacations found", { doctorId }, 'PlanningMedecin', 'no_vacations');
         setEvents([]);
         return;
       }
@@ -224,7 +224,10 @@ export const PlanningMedecin = ({
           );
 
         if (slotsError) {
-          // TODO: Replace with logger.error("Error fetching slots batch:", slotsError);
+          logger.error("Error fetching slots batch", slotsError, { 
+            batchNumber: i / BATCH_SIZE + 1,
+            doctorId 
+          }, 'PlanningMedecin', 'slots_batch_error');
           throw slotsError;
         }
 
@@ -233,7 +236,7 @@ export const PlanningMedecin = ({
         }
       }
 
-      // TODO: Replace with logger.info("Found total slots:", allSlots.length);
+      logger.info("Found total slots", { slotsCount: allSlots.length }, 'PlanningMedecin', 'total_slots_found');
 
       const calendarEvents =
         allSlots
@@ -243,7 +246,7 @@ export const PlanningMedecin = ({
               : (slot.vacation_posts as VacationPostData);
 
             if (!vacationPost) {
-              // TODO: Replace with logger.warn("Slot without vacation_posts:", slot);
+              logger.warn("Slot without vacation_posts:", slot, {}, 'Auto', 'todo_replaced');
               return null;
             }
 
@@ -257,13 +260,13 @@ export const PlanningMedecin = ({
               endTime = "18:00:00";
             } else if (slot.type === "custom") {
               if (!slot.start_time || !slot.end_time) {
-                // TODO: Replace with logger.warn("Custom time slot has invalid dates:", slot);
+                logger.warn("Custom time slot has invalid dates:", slot, {}, 'Auto', 'todo_replaced');
                 return null;
               }
               startTime = slot.start_time;
               endTime = slot.end_time;
             } else {
-              // TODO: Replace with logger.warn("Unknown time slot type:", slot);
+              logger.warn("Unknown time slot type:", slot, {}, 'Auto', 'todo_replaced');
               return null;
             }
 
@@ -301,16 +304,16 @@ export const PlanningMedecin = ({
                 textColor: "#ffffff",
               };
             } catch (error) {
-              // TODO: Replace with logger.error("Error processing slot:", error, slot);
+              logger.error("Error processing slot:", error, slot, {}, 'Auto', 'todo_replaced');
               return null;
             }
           })
           .filter(Boolean) || [];
 
-      // TODO: Replace with logger.info("Processed calendar events:", calendarEvents);
+      logger.info("Processed calendar events:", calendarEvents, {}, 'Auto', 'todo_replaced');
       setEvents(calendarEvents);
     } catch (error) {
-      // TODO: Replace with logger.error("Error fetching time slots:", error);
+      logger.error("Error fetching time slots:", error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "❌ Erreur",
         description: "Impossible de charger les créneaux",
@@ -342,8 +345,8 @@ export const PlanningMedecin = ({
 
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event;
-    // TODO: Replace with logger.info("Event clicked:", event);
-    // TODO: Replace with logger.info("Event extended props:", event.extendedProps);
+    logger.info("Event clicked:", event, {}, 'Auto', 'todo_replaced');
+    logger.info("Event extended props:", event.extendedProps, {}, 'Auto', 'todo_replaced');
     setSelectedEvent({
       id: event.id,
       title: event.title,
@@ -497,7 +500,7 @@ export const PlanningMedecin = ({
         planningElement.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } catch (error) {
-      // TODO: Replace with logger.error("Error creating time slots:", error);
+      logger.error("Error creating time slots:", error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "❌ Erreur",
         description: "Impossible de créer les disponibilités",
@@ -627,7 +630,7 @@ export const PlanningMedecin = ({
 
       fetchTimeSlots();
     } catch (error) {
-      // TODO: Replace with logger.error("Error deleting time slot:", error);
+      logger.error("Error deleting time slot:", error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "❌ Erreur",
         description: "Impossible de supprimer le créneau",

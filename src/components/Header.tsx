@@ -34,6 +34,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client.browser";
 // Import statique optimisé du logo
 import logoUrl from '/logo.png';
+import { logger } from "@/services/logger";
 
 const Header = () => {
   const { user, profile, signOut, subscriptionPlan } = useAuth();
@@ -82,7 +83,7 @@ const Header = () => {
           });
         }
       } catch (error) {
-        // TODO: Replace with logger.error("Error fetching establishment name:", error);
+        logger.error("Error fetching establishment name:", error);
         toast({
           title: "Erreur",
           description: "Une erreur est survenue lors du chargement du nom de l'établissement.",
@@ -105,7 +106,7 @@ const Header = () => {
         
         setUnreadNotifications(count || 0);
       } catch (error) {
-        // TODO: Replace with logger.error("Error fetching notifications:", error);
+        logger.error("Error fetching notifications:", error);
       }
     }
   }, [user]);
@@ -144,7 +145,7 @@ const Header = () => {
         description: "À bientôt sur notre plateforme !",
       });
     } catch (error) {
-      // TODO: Replace with logger.error("Error signing out:", error);
+      logger.error("Error signing out:", error);
       toast({
         title: "Erreur",
         description: "Erreur lors de la déconnexion",

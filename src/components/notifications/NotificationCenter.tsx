@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
+import { logger } from "@/services/logger";
 
 export default function NotificationCenter() {
   const { user } = useAuth();
@@ -58,15 +59,15 @@ export default function NotificationCenter() {
   });
 
   const handleDeleteNotification = async (id: string) => {
-    // TODO: Replace with logger.info('🗑️ Starting deletion for notification:', id);
-    // TODO: Replace with logger.info('🔐 Current user ID:', user?.id);
+    logger.info('🗑️ Starting deletion for notification:', id);
+    logger.info('🔐 Current user ID:', user?.id);
     
     try {
-      // TODO: Replace with logger.info('📞 Calling deleteNotification from hook...');
+      logger.info('📞 Calling deleteNotification from hook...');
       await deleteNotification(id);
-      // TODO: Replace with logger.info('✅ Delete operation completed successfully');
+      logger.info('✅ Delete operation completed successfully');
     } catch (error) {
-      // TODO: Replace with logger.error('❌ Error in handleDeleteNotification:', error);
+      logger.error('❌ Error in handleDeleteNotification:', error);
     }
   };
 

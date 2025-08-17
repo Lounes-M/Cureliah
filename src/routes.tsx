@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import DatabaseSetup from "./pages/DatabaseSetup";
+import { logger } from "@/services/logger";
 
 // Lazy loaded pages for better performance
 const DoctorDashboard = lazy(() => import("./pages/DoctorDashboard"));
@@ -112,10 +113,10 @@ const useProfileComplete = (user) => {
         if (result?.error) {
           if (result.error.code === "PGRST116") {
             // Aucun profil trouvé
-            // TODO: Replace with logger.info("🔍 No profile found in database");
+            logger.info("🔍 No profile found in database");
             setIsComplete(false);
           } else {
-            // TODO: Replace with logger.error("🚨 Database error:", result.error);
+            logger.error("🚨 Database error:", result.error);
             setIsComplete(false);
           }
         } else if (result?.data) {
@@ -142,16 +143,16 @@ const useProfileComplete = (user) => {
             setIsComplete(isProfileComplete);
           }
         } else {
-          // TODO: Replace with logger.info("❓ No data returned from query");
+          logger.info("❓ No data returned from query");
           setIsComplete(false);
         }
       } catch (error) {
         if (error.message === "Timeout") {
-          // TODO: Replace with logger.info("⏰ Profile check timeout - assuming profile exists");
+          logger.info("⏰ Profile check timeout - assuming profile exists");
           // En cas de timeout, on assume que le profil existe pour éviter les redirections
           setIsComplete(true);
         } else {
-          // TODO: Replace with logger.error("💥 Error checking profile complete:", error);
+          logger.error("💥 Error checking profile complete:", error);
           setIsComplete(false);
         }
       } finally {

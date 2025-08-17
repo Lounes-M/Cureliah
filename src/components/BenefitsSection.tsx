@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/services/logger";
 import {
   DollarSign,
   Clock,
@@ -198,7 +199,7 @@ const BenefitsSection = () => {
   };
 
   const handleCTAClick = (userType) => {
-    // TODO: Replace with logger.info(`CTA clicked for ${userType}`);
+    logger.info(`CTA clicked for ${userType}`);
     // Simulation de navigation
     window.location.href = `/auth?type=${userType}`;
   };

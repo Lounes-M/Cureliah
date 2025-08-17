@@ -95,7 +95,7 @@ export default function UserManagement() {
 
       setUsers(formattedUsers);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les utilisateurs",
@@ -124,7 +124,7 @@ export default function UserManagement() {
         description: `Utilisateur ${currentStatus ? 'désactivé' : 'activé'} avec succès`
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error toggling user status:', error);
+      logger.error('Error toggling user status:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut de l'utilisateur",
@@ -151,7 +151,7 @@ export default function UserManagement() {
         description: "Type d'utilisateur modifié avec succès"
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error changing user type:', error);
+      logger.error('Error changing user type:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de modifier le type d'utilisateur",
@@ -178,7 +178,7 @@ export default function UserManagement() {
         description: `Utilisateur ${currentStatus ? 'non vérifié' : 'vérifié'} avec succès`
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error toggling verification:', error);
+      logger.error('Error toggling verification:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut de vérification",
@@ -265,7 +265,7 @@ export default function UserManagement() {
         });
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error adding user:', error);
+      logger.error('Error adding user:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de créer l'utilisateur",

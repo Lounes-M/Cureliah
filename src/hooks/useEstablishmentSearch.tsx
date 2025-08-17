@@ -125,11 +125,11 @@ export const useEstablishmentSearch = () => {
         .order('created_at', { ascending: false });
 
       if (vacationsError) {
-        // TODO: Replace with logger.error('Error fetching vacations:', vacationsError);
+        logger.error('Error fetching vacations:', vacationsError, {}, 'Auto', 'todo_replaced');
         throw vacationsError;
       }
 
-      // TODO: Replace with logger.info('Raw vacations data:', JSON.stringify(vacationsData, null, 2););
+      logger.info('Raw vacations data:', JSON.stringify(vacationsData, null, 2);, {}, 'Auto', 'todo_replaced');
 
       if (!vacationsData || vacationsData.length === 0) {
         setVacations([]);
@@ -139,11 +139,11 @@ export const useEstablishmentSearch = () => {
 
       // Transformer les données
       const vacationsWithDoctors = vacationsData.map(vacation => {
-        // TODO: Replace with logger.info('Processing vacation:', vacation.id);
-        // TODO: Replace with logger.info('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2););
-        // TODO: Replace with logger.info('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2););
-        // TODO: Replace with logger.info('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name);
-        // TODO: Replace with logger.info('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name);
+        logger.info('Processing vacation:', vacation.id, {}, 'Auto', 'todo_replaced');
+        logger.info('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2);, {}, 'Auto', 'todo_replaced');
+        logger.info('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2);, {}, 'Auto', 'todo_replaced');
+        logger.info('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name, {}, 'Auto', 'todo_replaced');
+        logger.info('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name, {}, 'Auto', 'todo_replaced');
 
         const doctorInfo = vacation.doctor ? {
           id: vacation.doctor.id,
@@ -168,7 +168,7 @@ export const useEstablishmentSearch = () => {
           hourly_rate: vacation.doctor.hourly_rate
         } : null;
 
-        // TODO: Replace with logger.info('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2););
+        logger.info('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2);, {}, 'Auto', 'todo_replaced');
 
         return {
           ...vacation,
@@ -177,12 +177,12 @@ export const useEstablishmentSearch = () => {
         };
       });
 
-      // TODO: Replace with logger.info('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2););
+      logger.info('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2);, {}, 'Auto', 'todo_replaced');
 
       setVacations(vacationsWithDoctors);
       setFilteredVacations(vacationsWithDoctors);
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching vacations:', error);
+      logger.error('Error fetching vacations:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors du chargement des vacations",

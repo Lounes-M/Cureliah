@@ -36,27 +36,27 @@ const PaymentSuccess = () => {
     
     // Si on est encore en train de charger l'auth OU si pas d'utilisateur
     if (subscriptionLoading) {
-      // TODO: Replace with logger.info('[PaymentSuccess] Auth still loading, waiting...');
+      logger.info('[PaymentSuccess] Auth still loading, waiting...', {}, 'Auto', 'todo_replaced');
       setPaymentStatus({ verified: false, loading: true, error: null });
       return;
     }
     
     if (!user?.id) {
-      // TODO: Replace with logger.info('[PaymentSuccess] No user ID available, retry in 1 second...');
+      logger.info('[PaymentSuccess] No user ID available, retry in 1 second...', {}, 'Auto', 'todo_replaced');
       setPaymentStatus({ verified: false, loading: true, error: null });
       
       // Retry après 1 seconde si pas d'utilisateur
       setTimeout(() => {
         const currentUser = user; // Capturer la valeur actuelle
         if (currentUser?.id) {
-          // TODO: Replace with logger.info('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id);
+          logger.info('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id, {}, 'Auto', 'todo_replaced');
           checkPaymentStatus(sessionId, currentUser.id);
         }
       }, 1000);
       return;
     }
     
-    // TODO: Replace with logger.info('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id });
+    logger.info('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id }, {}, 'Auto', 'todo_replaced');
     checkPaymentStatus(sessionId, user.id);
   }, [searchParams, user, subscriptionLoading]);
 
@@ -70,7 +70,7 @@ const PaymentSuccess = () => {
 
       if (error) throw error;
 
-      // TODO: Replace with logger.info('Payment status check:', data);
+      logger.info('Payment status check:', data, {}, 'Auto', 'todo_replaced');
       
       if (data?.paymentStatus === 'paid') {
         setPaymentStatus({
@@ -104,7 +104,7 @@ const PaymentSuccess = () => {
         });
       }
     } catch (error) {
-      // TODO: Replace with logger.error('Error checking payment status:', error);
+      logger.error('Error checking payment status:', error, {}, 'Auto', 'todo_replaced');
       setPaymentStatus({ 
         verified: false, 
         loading: false, 

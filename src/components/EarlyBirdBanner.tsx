@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { logger } from "@/services/logger";
+import { logger } from "@/services/logger";
 import {
   X,
   Flame,
@@ -69,7 +71,7 @@ const EarlyBirdBanner = () => {
   }, [spotsLeft]);
 
   const handleCTAClick = () => {
-    // TODO: Replace with logger.info("Navigation vers inscription Early Bird");
+    logger.info("Navigation vers inscription Early Bird");
     window.location.href = "/auth?offer=early-bird&source=top-banner";
   };
 

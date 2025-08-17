@@ -40,6 +40,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { uploadProfilePicture } from "@/services/profileService";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { logger } from "@/services/logger";
 
 interface EstablishmentProfileFormProps {
   userId: string;
@@ -127,7 +128,7 @@ export default function EstablishmentProfileForm({
         description: "Votre logo a été mis à jour avec succès",
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error("Error uploading image:", error);
+      logger.error("Error uploading image:", error);
       toast({
         title: "Erreur d'upload",
         description: "Impossible de télécharger l'image. Veuillez réessayer.",
@@ -315,7 +316,7 @@ export default function EstablishmentProfileForm({
 
       onSuccess();
     } catch (error: any) {
-      // TODO: Replace with logger.error("Error saving establishment profile:", error);
+      logger.error("Error saving establishment profile:", error);
       toast({
         title: "Erreur de sauvegarde",
         description:

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { getSpecialityInfo } from '@/utils/specialities';
+import { logger } from "@/services/logger";
 
 interface StatsData {
   totalDoctors: number;
@@ -33,7 +34,7 @@ export const useRealTimeStats = () => {
         }
       }
     } catch (error) {
-      // TODO: Replace with logger.warn('Erreur lors de la lecture du cache des stats:', error);
+      logger.warn('Erreur lors de la lecture du cache des stats:', error);
     }
     return null;
   };
@@ -43,7 +44,7 @@ export const useRealTimeStats = () => {
     try {
       localStorage.setItem(STATS_CACHE_KEY, JSON.stringify(data));
     } catch (error) {
-      // TODO: Replace with logger.warn('Erreur lors de la sauvegarde du cache des stats:', error);
+      logger.warn('Erreur lors de la sauvegarde du cache des stats:', error);
     }
   };
 
@@ -109,7 +110,7 @@ export const useRealTimeStats = () => {
       setStats(freshStats);
       setCachedStats(freshStats);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des statistiques:', error);
+      logger.error('Erreur lors du chargement des statistiques:', error);
       setError('Impossible de charger les statistiques');
     } finally {
       setLoading(false);

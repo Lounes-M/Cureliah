@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
+import { logger } from "@/services/logger";
   User, 
   Building2, 
   Stethoscope, 
@@ -51,7 +52,7 @@ const SetupProfile = () => {
         navigate('/establishment/dashboard');
       }
     } catch (error) {
-      // TODO: Replace with logger.error("Erreur lors de la configuration du profil:", error);
+      logger.error("Erreur lors de la configuration du profil:", error);
       toast({
         title: "Erreur",
         description: "Impossible de configurer votre profil. Veuillez réessayer.",

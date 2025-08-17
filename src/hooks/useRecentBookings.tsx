@@ -63,7 +63,7 @@ export function useRecentBookings() {
       
       setBookings(formattedBookings || []);
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error fetching bookings:', error);
+      logger.error('Error fetching bookings:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",

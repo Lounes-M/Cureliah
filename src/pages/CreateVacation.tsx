@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import VacationForm from "@/components/vacation/VacationForm";
@@ -53,7 +53,6 @@ const CreateVacation = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const logger = useLogger();
 
   // États principaux
   const [initialLoading, setInitialLoading] = useState(isEditing);

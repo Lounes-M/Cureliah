@@ -8,6 +8,7 @@ import DateSelector from './DateSelector';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import TimeSlotSelector from './TimeSlotSelector';
+import { logger } from "@/services/logger";
 
 export interface VacationFormProps {
   vacationId?: string;
@@ -153,7 +154,7 @@ const VacationForm = ({
         status: 'available' as VacationStatus
       };
 
-      // TODO: Replace with logger.info('Submitting vacation with time slots:', finalTimeSlots);
+      logger.info('Submitting vacation with time slots:', finalTimeSlots);
       onChange(vacationPayload);
 
       toast({
@@ -161,7 +162,7 @@ const VacationForm = ({
         description: "Vacation sauvegardée avec succès",
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error saving vacation:', error);
+      logger.error('Error saving vacation:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de sauvegarder la vacation",

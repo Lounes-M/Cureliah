@@ -166,7 +166,11 @@ const UrgencySection = () => {
   }, [isVisible]);
 
   const handleDoctorSignup = () => {
-    // TODO: Replace with logger.info("Navigation vers inscription médecin avec offre spéciale");
+    logger.info("Navigation vers inscription médecin avec offre spéciale", 
+      { offer: 'early-bird', type: 'doctor' }, 
+      'UrgencySection', 
+      'doctor_signup'
+    );
     // Simulation de navigation avec paramètres d'offre
     window.location.href = "/auth?type=doctor&offer=early-bird";
   };

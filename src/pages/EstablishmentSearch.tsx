@@ -40,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client.browser";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { logger } from "@/services/logger";
 
 interface VacationWithDoctor {
   id: string;
@@ -351,7 +352,7 @@ const EstablishmentSearch = () => {
       };
       setVacationDetails(mapped);
     } catch (error) {
-      // TODO: Replace with logger.error("Error fetching vacation details:", error);
+      logger.error("Error fetching vacation details:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les détails de la vacation",
@@ -436,7 +437,7 @@ const EstablishmentSearch = () => {
 
       setVacations(vacationsWithRatings);
     } catch (error) {
-      // TODO: Replace with logger.error('Error loading vacations:', error);
+      logger.error('Error loading vacations:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les vacations",
@@ -514,7 +515,7 @@ const EstablishmentSearch = () => {
 
       setFilteredVacations(filtered);
     } catch (error) {
-      // TODO: Replace with logger.error('Error filtering vacations:', error);
+      logger.error('Error filtering vacations:', error);
       setFilteredVacations(vacations);
     }
   };
@@ -619,7 +620,7 @@ const EstablishmentSearch = () => {
       });
 
     } catch (error) {
-      // TODO: Replace with logger.error('Error submitting booking request:', error);
+      logger.error('Error submitting booking request:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande de réservation",

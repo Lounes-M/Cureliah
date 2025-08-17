@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { premiumService, PremiumStatistics } from '../services/premiumService'
+import { logger } from "@/services/logger";
 
 export const usePremiumStatistics = () => {
   const [statistics, setStatistics] = useState<PremiumStatistics | null>(null)
@@ -14,7 +15,7 @@ export const usePremiumStatistics = () => {
         const data = await premiumService.getPremiumStatistics()
         setStatistics(data)
       } catch (err) {
-        // TODO: Replace with logger.error('Erreur chargement statistiques:', err);
+        logger.error('Erreur chargement statistiques:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue')
       } finally {
         setLoading(false)

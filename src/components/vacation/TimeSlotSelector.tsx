@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface TimeSlotSelectorProps {
   timeSlots: TimeSlot[];
@@ -55,7 +56,7 @@ const TimeSlotSelector = ({ timeSlots, onChange }: TimeSlotSelectorProps) => {
       updated_at: new Date().toISOString(),
     };
 
-    // TODO: Replace with logger.info('Adding time slot:', newSlot);
+    logger.info('Adding time slot:', newSlot);
     const updatedSlots = [...timeSlots, newSlot];
     onChange(updatedSlots);
     

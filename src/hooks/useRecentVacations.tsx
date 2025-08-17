@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { VacationPost } from '@/types/database';
 
 export function useRecentVacations() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const logger = useLogger();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 

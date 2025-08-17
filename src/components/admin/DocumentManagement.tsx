@@ -29,6 +29,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Search, Plus, FileText, Download, Trash2, User, FileType, Calendar, AlertCircle } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface Document {
   id: string;
@@ -88,7 +89,7 @@ export default function DocumentManagement() {
       if (error) throw error;
       setDocuments(data || []);
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching documents:', error);
+      logger.error('Error fetching documents:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les documents",
@@ -114,7 +115,7 @@ export default function DocumentManagement() {
         type: user.user_type
       })));
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
     }
   };
 
@@ -167,7 +168,7 @@ export default function DocumentManagement() {
         description: "Document ajouté avec succès",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error uploading document:', error);
+      logger.error('Error uploading document:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le document",
@@ -193,7 +194,7 @@ export default function DocumentManagement() {
       window.document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      // TODO: Replace with logger.error('Error downloading document:', error);
+      logger.error('Error downloading document:', error);
       toast({
         title: "Erreur",
         description: "Impossible de télécharger le document",
@@ -225,7 +226,7 @@ export default function DocumentManagement() {
         description: "Document supprimé avec succès",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error deleting document:', error);
+      logger.error('Error deleting document:', error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le document",

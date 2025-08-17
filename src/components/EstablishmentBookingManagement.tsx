@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
 import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
+import { logger } from "@/services/logger";
 
 // Mapping des spécialités anglais -> français
 const specialityMapping: Record<string, string> = {
@@ -96,9 +97,9 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   });
 
   useEffect(() => {
-    // TODO: Replace with logger.info("=== DEBUG EstablishmentBookingManagement ===");
-    // TODO: Replace with logger.info("User ID:", user?.id);
-    // TODO: Replace with logger.info("Status filter:", status);
+    logger.info("=== DEBUG EstablishmentBookingManagement ===");
+    logger.info("User ID:", user?.id);
+    logger.info("Status filter:", status);
     
     if (user) {
       fetchBookings();
@@ -108,21 +109,21 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
   const fetchBookings = async () => {
     if (!user) return;
 
-    // TODO: Replace with logger.info("🔍 Fetching bookings for establishment:", user.id);
+    logger.info("🔍 Fetching bookings for establishment:", user.id);
 
     try {
       setLoading(true);
 
       // D'abord, testons une requête simple pour voir la structure
-      // TODO: Replace with logger.info("🔍 Testing simple query first...");
+      logger.info("🔍 Testing simple query first...");
       const { data: simpleTest, error: simpleError } = await supabase
         .from('bookings')
         .select('*')
         .eq('establishment_id', user.id)
         .limit(1);
       
-      // TODO: Replace with logger.info("📊 Simple test result:", simpleTest);
-      // TODO: Replace with logger.info("❌ Simple test error:", simpleError);
+      logger.info("📊 Simple test result:", simpleTest);
+      logger.info("❌ Simple test error:", simpleError);
 
       // Query corrigée pour utiliser la table "bookings" comme dans MyBookings
       let query = supabase
@@ -162,37 +163,37 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
       // Filtrer par statut si spécifié
       if (status) {
         const statusArray = status.split(',').map(s => s.trim());
-        // TODO: Replace with logger.info("🔍 Filtering by status:", statusArray);
+        logger.info("🔍 Filtering by status:", statusArray);
         query = query.in('status', statusArray);
       }
 
       const { data: bookingsData, error: bookingsError } = await query;
 
-      // TODO: Replace with logger.info("📊 Raw bookings data:", bookingsData);
-      // TODO: Replace with logger.info("❌ Bookings error:", bookingsError);
+      logger.info("📊 Raw bookings data:", bookingsData);
+      logger.info("❌ Bookings error:", bookingsError);
 
       if (bookingsError) {
-        // TODO: Replace with logger.error("Supabase query error:", bookingsError);
+        logger.error("Supabase query error:", bookingsError);
         throw bookingsError;
       }
 
       // Transform data to match our interface
       const transformedBookings = bookingsData?.map((booking, index) => {
-        // TODO: Replace with logger.info(`🔍 Processing booking ${index}:`, booking);
+        logger.info(`🔍 Processing booking ${index}:`, booking);
         
         // Vérifier si vacation_posts existe
         if (!booking.vacation_posts) {
-          // TODO: Replace with logger.warn(`⚠️ No vacation_posts data for booking ${booking.id}:`, booking);
+          logger.warn(`⚠️ No vacation_posts data for booking ${booking.id}:`, booking);
           return null;
         }
         
         // Dans tes données, vacation_posts est un objet, pas un tableau !
         const vacationPost = booking.vacation_posts as any; // Type assertion temporaire
-        // TODO: Replace with logger.info(`🔍 Vacation post for booking ${index}:`, vacationPost);
+        logger.info(`🔍 Vacation post for booking ${index}:`, vacationPost);
         
         // Vérifier si doctor_profiles existe dans vacation_posts
         if (!vacationPost.doctor_profiles) {
-          // TODO: Replace with logger.warn(`⚠️ No doctor_profiles data for vacation post ${vacationPost.id}:`, vacationPost);
+          logger.warn(`⚠️ No doctor_profiles data for vacation post ${vacationPost.id}:`, vacationPost);
           return null;
         }
         
@@ -200,7 +201,7 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         const doctorProfile = Array.isArray(vacationPost.doctor_profiles) 
           ? vacationPost.doctor_profiles[0] 
           : vacationPost.doctor_profiles as any; // Type assertion temporaire
-        // TODO: Replace with logger.info(`🔍 Doctor profile for booking ${index}:`, doctorProfile);
+        logger.info(`🔍 Doctor profile for booking ${index}:`, doctorProfile);
         
         return {
           id: booking.id,
@@ -233,12 +234,12 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         };
       }).filter(Boolean) || []; // Filtrer les éléments null
 
-      // TODO: Replace with logger.info("✅ Transformed bookings:", transformedBookings);
-      // TODO: Replace with logger.info("✅ Found", transformedBookings.length, "bookings");
+      logger.info("✅ Transformed bookings:", transformedBookings);
+      logger.info("✅ Found", transformedBookings.length, "bookings");
 
       setBookings(transformedBookings);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching bookings:', error);
+      logger.error('Error fetching bookings:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",

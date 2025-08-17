@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { logger } from "@/services/logger";
 
 interface VacationFormData {
   title: string;
@@ -122,7 +123,7 @@ const CreateVacation = () => {
 
       navigate('/doctor/manage-vacations');
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors de la création:', error);
+      logger.error('Erreur lors de la création:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer la vacation",

@@ -4,13 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { Loader2 } from 'lucide-react';
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const { user, loading, profile } = useAuth();
   const { toast } = useToast();
-  const logger = useLogger();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -21,7 +20,7 @@ const AuthCallback = () => {
         const errorDescription = urlParams.get('error_description');
 
         if (error) {
-          logger.error('OAuth error occurred', new Error(error), { errorDescription }, 'AuthCallback', 'oauth_error');
+          logger.error('OAuth error occurred', new Error(error));
           toast({
             title: "Erreur d'authentification",
             description: errorDescription || "Une erreur s'est produite lors de la connexion",
@@ -34,7 +33,7 @@ const AuthCallback = () => {
         // Attendre que l'authentification soit complète
         if (!loading) {
           if (user) {
-            logger.info('User connected via OAuth', { userEmail: user.email }, 'AuthCallback', 'oauth_success');
+            logger.info('User connected via OAuth', { userEmail: user.email });
 
             // Vérifier si c'est un utilisateur OAuth (Google/LinkedIn)
             const isOAuthUser = (user as any).app_metadata?.provider !== 'email';
@@ -64,9 +63,9 @@ const AuthCallback = () => {
                 ]);
 
               if (insertError) {
-                logger.error("Erreur lors de la création du profil", insertError, { userId: user.id, userMeta }, 'AuthCallback', 'profile_creation_error');
+                logger.error("Erreur lors de la création du profil", insertError);
               } else {
-                logger.info("Profil créé pour l'utilisateur OAuth", { userId: user.id }, 'AuthCallback', 'profile_created');
+                logger.info("Profil créé pour l'utilisateur OAuth", { userId: user.id });
               }
             }
 
@@ -87,7 +86,7 @@ const AuthCallback = () => {
               navigate('/setup-profile');
             }
           } else {
-            logger.warn('Aucun utilisateur trouvé après OAuth', {}, 'AuthCallback', 'no_user_found');
+            logger.warn('Aucun utilisateur trouvé après OAuth');
             toast({
               title: "Erreur de connexion",
               description: "La connexion a échoué. Veuillez réessayer.",
@@ -97,7 +96,7 @@ const AuthCallback = () => {
           }
         }
       } catch (error) {
-        logger.error('Erreur inattendue lors du callback OAuth', error as Error, {}, 'AuthCallback', 'unexpected_error');
+        logger.error('Erreur inattendue lors du callback OAuth', error as Error);
         toast({
           title: "Erreur",
           description: "Une erreur inattendue s'est produite",

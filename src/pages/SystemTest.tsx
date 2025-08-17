@@ -48,7 +48,7 @@ const SystemTest: React.FC = () => {
     } catch (error) {
       updateTestResult(testName, 'error');
       addLog(`❌ Test échoué: ${testName} - ${error.message}`);
-      // TODO: Replace with logger.error(`Test failed: ${testName}`, error);
+      logger.error(`Test failed: ${testName}`, error, {}, 'Auto', 'todo_replaced');
     }
   };
 

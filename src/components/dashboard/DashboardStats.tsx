@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from "@/services/logger";
 
 interface StatsData {
   totalBookings: number;
@@ -102,7 +103,7 @@ const DashboardStats = ({ userType }: DashboardStatsProps) => {
         unreadMessages: unreadMessages?.length || 0
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import type { DocumentFile } from '@/types/documents.d';
+import { logger } from "@/services/logger";
 
 interface Document {
   id: string;
@@ -70,7 +71,7 @@ const DocumentManager: React.FC = () => {
       if (error) throw error;
       setDocuments(data || []);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching documents:', error);
+      logger.error('Error fetching documents:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de charger les documents",
@@ -164,7 +165,7 @@ const DocumentManager: React.FC = () => {
       setSelectedFile(null);
       setUploadCategory('other');
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error uploading document:', error);
+      logger.error('Error uploading document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors du téléversement du document",
@@ -204,7 +205,7 @@ const DocumentManager: React.FC = () => {
 
       fetchDocuments();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error deleting document:', error);
+      logger.error('Error deleting document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors de la suppression du document",
@@ -233,7 +234,7 @@ const DocumentManager: React.FC = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error downloading document:', error);
+      logger.error('Error downloading document:', error);
       toast({
         title: "Erreur",
         description: error.message || "Erreur lors du téléchargement du document",

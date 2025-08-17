@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { logger } from "@/services/logger";
+import { logger } from "@/services/logger";
 import {
   ArrowRight,
   Rocket,
@@ -107,22 +109,22 @@ const FinalCTASection = () => {
   };
 
   const handleDoctorSignup = () => {
-    // TODO: Replace with logger.info("Navigation finale vers inscription médecin");
+    logger.info("Navigation finale vers inscription médecin");
     window.location.href = "/auth?type=doctor&source=final-cta";
   };
 
   const handleEstablishmentSignup = () => {
-    // TODO: Replace with logger.info("Navigation finale vers inscription établissement");
+    logger.info("Navigation finale vers inscription établissement");
     window.location.href = "/auth?type=establishment&source=final-cta";
   };
 
   const handleCallSales = () => {
-    // TODO: Replace with logger.info("Appel équipe commerciale");
+    logger.info("Appel équipe commerciale");
     window.location.href = "tel:+33123456789";
   };
 
   const handleDownloadBrochure = () => {
-    // TODO: Replace with logger.info("Téléchargement brochure");
+    logger.info("Téléchargement brochure");
     window.location.href = "/download-brochure";
   };
 

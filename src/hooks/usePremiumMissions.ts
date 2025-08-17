@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { premiumService } from '../services/premiumService'
 import type { PremiumMission } from '../types/premium'
+import { logger } from "@/services/logger";
 
 export const usePremiumMissions = () => {
   const [missions, setMissions] = useState<PremiumMission[]>([])
@@ -14,7 +15,7 @@ export const usePremiumMissions = () => {
       const data = await premiumService.getPremiumMissions()
       setMissions(data)
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur chargement missions:', err);
+      logger.error('Erreur chargement missions:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -31,7 +32,7 @@ export const usePremiumMissions = () => {
       // Recharger les missions après candidature
       await loadMissions()
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur candidature mission:', err);
+      logger.error('Erreur candidature mission:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la candidature')
     }
   }

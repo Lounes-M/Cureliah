@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { logger } from "@/services/logger";
+import { logger } from "@/services/logger";
 import {
   ArrowLeft,
   Calendar,
@@ -142,7 +144,7 @@ const DoctorCalendar = () => {
 
       setEvents(formattedEvents);
     } catch (error) {
-      // TODO: Replace with logger.error("Error fetching events:", error);
+      logger.error("Error fetching events:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger le calendrier",
@@ -334,7 +336,7 @@ const DoctorCalendar = () => {
       closeEventModal();
       fetchEvents();
     } catch (error) {
-      // TODO: Replace with logger.error("Error saving event:", error);
+      logger.error("Error saving event:", error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder l'événement",
@@ -363,7 +365,7 @@ const DoctorCalendar = () => {
 
       fetchEvents();
     } catch (error) {
-      // TODO: Replace with logger.error("Error deleting event:", error);
+      logger.error("Error deleting event:", error);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer l'événement",

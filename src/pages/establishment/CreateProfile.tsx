@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import Header from '@/components/Header';
+import { logger } from "@/services/logger";
 
 const CreateProfile = () => {
   const navigate = useNavigate();
@@ -92,7 +93,7 @@ const CreateProfile = () => {
         ]);
 
       if (profileError) {
-        // TODO: Replace with logger.error('Error creating base profile:', profileError);
+        logger.error('Error creating base profile:', profileError);
         throw profileError;
       }
 
@@ -118,7 +119,7 @@ const CreateProfile = () => {
         ]);
 
       if (establishmentError) {
-        // TODO: Replace with logger.error('Error creating establishment profile:', establishmentError);
+        logger.error('Error creating establishment profile:', establishmentError);
         throw establishmentError;
       }
 
@@ -130,7 +131,7 @@ const CreateProfile = () => {
       // Rediriger vers le tableau de bord
       navigate('/establishment/dashboard');
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error creating profile:', error);
+      logger.error('Error creating profile:', error);
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la création du profil.",

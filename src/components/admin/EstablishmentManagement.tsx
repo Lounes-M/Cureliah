@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Search, Building2, MoreHorizontal, Mail, Phone, MapPin, Shield, Ban, Check } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface Establishment {
   id: string;
@@ -109,7 +110,7 @@ export default function EstablishmentManagement() {
       
       setEstablishments(formattedEstablishments);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching establishments:', error);
+      logger.error('Error fetching establishments:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les établissements",
@@ -186,7 +187,7 @@ export default function EstablishmentManagement() {
         fetchEstablishments();
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error adding establishment:', error);
+      logger.error('Error adding establishment:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'ajouter l'établissement",
@@ -211,7 +212,7 @@ export default function EstablishmentManagement() {
 
       fetchEstablishments();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error toggling establishment status:', error);
+      logger.error('Error toggling establishment status:', error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut",
@@ -236,7 +237,7 @@ export default function EstablishmentManagement() {
 
       fetchEstablishments();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error verifying establishment:', error);
+      logger.error('Error verifying establishment:', error);
       toast({
         title: "Erreur",
         description: "Impossible de vérifier l'établissement",

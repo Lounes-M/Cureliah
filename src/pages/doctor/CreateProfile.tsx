@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { SPECIALITIES } from '@/utils/specialities';
 import Header from '@/components/Header';
+import { logger } from "@/services/logger";
 
 const CreateProfile = () => {
   const navigate = useNavigate();
@@ -72,7 +73,7 @@ const CreateProfile = () => {
       // Rediriger vers le tableau de bord
       navigate('/doctor/dashboard');
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error creating profile:', error);
+      logger.error('Error creating profile:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de la création du profil.",

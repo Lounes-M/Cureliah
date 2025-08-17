@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { VacationPost } from "@/types/database";
 import { useGeolocation, LocationCoords } from "@/hooks/useGeolocation";
@@ -22,7 +22,6 @@ const useVacationSearch = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const logger = useLogger();
   const [vacations, setVacations] = useState<VacationPost[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchLoading, setSearchLoading] = useState<boolean>(false);

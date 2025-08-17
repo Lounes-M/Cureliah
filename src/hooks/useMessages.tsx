@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface Message {
   id: string;
@@ -89,7 +90,7 @@ export function useMessages(bookingId?: string) {
     if (!bookingId) return;
 
     try {
-      // TODO: Replace with logger.info('🔍 Fetching messages for booking:', bookingId);
+      logger.info('🔍 Fetching messages for booking:', bookingId);
       
       // Requête simple sans jointures problématiques
       const { data: messagesData, error } = await supabase
@@ -99,11 +100,11 @@ export function useMessages(bookingId?: string) {
         .order('created_at', { ascending: true });
 
       if (error) {
-        // TODO: Replace with logger.error('❌ Error fetching messages:', error);
+        logger.error('❌ Error fetching messages:', error);
         throw error;
       }
 
-      // TODO: Replace with logger.info('📨 Raw messages found:', messagesData?.length || 0);
+      logger.info('📨 Raw messages found:', messagesData?.length || 0);
 
       // Si on a des messages, récupérer les profils séparément
       let messagesWithProfiles: MessageWithSender[] = [];
@@ -111,7 +112,7 @@ export function useMessages(bookingId?: string) {
       if (messagesData && messagesData.length > 0) {
         // Récupérer les IDs uniques des expéditeurs
         const senderIds = [...new Set(messagesData.map(msg => msg.sender_id))];
-        // TODO: Replace with logger.info('👤 Fetching profiles for sender IDs:', senderIds);
+        logger.info('👤 Fetching profiles for sender IDs:', senderIds);
         
         // Récupérer les profils des expéditeurs
         const { data: profiles, error: profilesError } = await supabase
@@ -120,10 +121,10 @@ export function useMessages(bookingId?: string) {
           .in('id', senderIds);
 
         if (profilesError) {
-          // TODO: Replace with logger.warn('⚠️ Error fetching profiles (continuing anyway);:', profilesError);
+          logger.warn('⚠️ Error fetching profiles (continuing anyway);:', profilesError);
         }
 
-        // TODO: Replace with logger.info('👥 Sender profiles found:', profiles?.length || 0);
+        logger.info('👥 Sender profiles found:', profiles?.length || 0);
 
         // Combiner les messages avec les profils
         messagesWithProfiles = messagesData.map(message => {
@@ -141,7 +142,7 @@ export function useMessages(bookingId?: string) {
 
       setMessages(messagesWithProfiles);
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error fetching messages:', error);
+      logger.error('Error fetching messages:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les messages",
@@ -161,10 +162,10 @@ export function useMessages(bookingId?: string) {
     if (!bookingId || !user || !content.trim()) return false;
 
     try {
-      // TODO: Replace with logger.info('📤 Sending message...');
-      // TODO: Replace with logger.info('📋 Booking ID:', bookingId);
-      // TODO: Replace with logger.info('👤 Receiver ID:', receiverId);
-      // TODO: Replace with logger.info('✉️ Content:', content);
+      logger.info('📤 Sending message...');
+      logger.info('📋 Booking ID:', bookingId);
+      logger.info('👤 Receiver ID:', receiverId);
+      logger.info('✉️ Content:', content);
       
       // Vérifier d'abord que la réservation existe
       const { data: bookingExists, error: bookingError } = await supabase
@@ -174,7 +175,7 @@ export function useMessages(bookingId?: string) {
         .single();
 
       if (bookingError || !bookingExists) {
-        // TODO: Replace with logger.error('❌ Booking not found:', bookingId, bookingError);
+        logger.error('❌ Booking not found:', bookingId, bookingError);
         toast({
           title: "Erreur",
           description: `La réservation ${bookingId} n'existe pas dans la base de données`,
@@ -183,7 +184,7 @@ export function useMessages(bookingId?: string) {
         return false;
       }
 
-      // TODO: Replace with logger.info('✅ Booking exists, proceeding with message insertion...');
+      logger.info('✅ Booking exists, proceeding with message insertion...');
 
       const messageData: any = {
         booking_id: bookingId,
@@ -207,11 +208,11 @@ export function useMessages(bookingId?: string) {
         .single();
 
       if (error) {
-        // TODO: Replace with logger.error('❌ Error inserting message:', error);
+        logger.error('❌ Error inserting message:', error);
         throw error;
       }
 
-      // TODO: Replace with logger.info('✅ Message inserted successfully:', data);
+      logger.info('✅ Message inserted successfully:', data);
 
       // Récupérer le profil de l'expéditeur pour l'affichage immédiat
       const { data: senderProfile } = await supabase
@@ -232,10 +233,10 @@ export function useMessages(bookingId?: string) {
 
       setMessages(prev => [...prev, messageWithProfile]);
       
-      // TODO: Replace with logger.info('✅ Message sent and added to local state');
+      logger.info('✅ Message sent and added to local state');
       return true;
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('💥 Error sending message:', error);
+      logger.error('💥 Error sending message:', error);
       let errorMessage = "Impossible d'envoyer le message";
       if (typeof error === 'object' && error !== null) {
         if ('code' in error && error.code === '23503') {
@@ -263,7 +264,7 @@ export function useMessages(bookingId?: string) {
         .eq('id', messageId);
 
       if (error) {
-        // TODO: Replace with logger.warn('⚠️ Error marking message as read:', error);
+        logger.warn('⚠️ Error marking message as read:', error);
         return;
       }
 
@@ -276,7 +277,7 @@ export function useMessages(bookingId?: string) {
         )
       );
     } catch (error: unknown) {
-      // TODO: Replace with logger.warn('Error marking message as read:', error);
+      logger.warn('Error marking message as read:', error);
     }
   };
 

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client.browser';
 import config from '@/config';
+import { logger } from "@/services/logger";
 
 export interface HealthCheckResult {
   service: string;
@@ -287,26 +288,26 @@ export class HealthMonitor {
         
         // Log critical issues
         if (health.overall === 'unhealthy') {
-          // TODO: Replace with logger.error('🚨 System health critical:', health);
+          logger.error('🚨 System health critical:', health);
         } else if (health.overall === 'degraded') {
-          // TODO: Replace with logger.warn('⚠️ System health degraded:', health);
+          logger.warn('⚠️ System health degraded:', health);
         }
 
         // Emit health check event
         window.dispatchEvent(new CustomEvent('healthCheck', { detail: health }));
       } catch (error) {
-        // TODO: Replace with logger.error('Health check failed:', error);
+        logger.error('Health check failed:', error);
       }
     }, intervalMs);
 
-    // TODO: Replace with logger.info('🔍 Health monitoring started');
+    logger.info('🔍 Health monitoring started');
   }
 
   stopMonitoring() {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
-      // TODO: Replace with logger.info('🔍 Health monitoring stopped');
+      logger.info('🔍 Health monitoring stopped');
     }
   }
 

@@ -33,6 +33,7 @@ import { UrgentRequest, UrgentRequestResponse } from '@/types/premium';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { logger } from "@/services/logger";
 
 interface PremiumDashboardUrgentRequestsProps {
   doctorId: string;
@@ -105,7 +106,7 @@ export const PremiumDashboardUrgentRequests: React.FC<PremiumDashboardUrgentRequ
       setUrgentRequests(requests);
       setMyResponses(responses);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des données:', error);
+      logger.error('Erreur lors du chargement des données:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données",

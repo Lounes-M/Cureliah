@@ -24,6 +24,7 @@ import EstablishmentBookingManagement from "@/components/EstablishmentBookingMan
 import Header from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/services/logger";
 
 interface BookingStats {
   active: number;
@@ -74,11 +75,11 @@ const MyBookings = () => {
       const { data: bookings, error } = await query;
 
       if (error) {
-        // TODO: Replace with logger.error("Supabase error:", error);
+        logger.error("Supabase error:", error);
         throw error;
       }
 
-      // TODO: Replace with logger.info("Bookings data:", bookings);
+      logger.info("Bookings data:", bookings);
 
       // Calculer les statistiques
       const now = new Date();
@@ -123,7 +124,7 @@ const MyBookings = () => {
           .eq("doctor_id", user.id);
 
         if (reviewError) {
-          // TODO: Replace with logger.error("Error fetching reviews:", reviewError);
+          logger.error("Error fetching reviews:", reviewError);
         } else if (reviews && reviews.length > 0) {
           averageRating =
             reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
@@ -140,7 +141,7 @@ const MyBookings = () => {
         averageRating,
       });
     } catch (error) {
-      // TODO: Replace with logger.error("Error loading booking stats:", error);
+      logger.error("Error loading booking stats:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",

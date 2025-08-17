@@ -1,10 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 
 const NotFound = () => {
   const location = useLocation();
-  const logger = useLogger();
 
   useEffect(() => {
     logger.warn(

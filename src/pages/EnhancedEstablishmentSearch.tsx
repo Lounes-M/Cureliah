@@ -31,6 +31,7 @@ import {
   X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from "@/services/logger";
 
 interface VacationWithDoctor {
   id: string;
@@ -270,7 +271,7 @@ export default function EnhancedEstablishmentSearch() {
         hasMore: filteredData.length === pageSize
       };
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching vacations:', error);
+      logger.error('Error fetching vacations:', error);
       throw error;
     }
   };

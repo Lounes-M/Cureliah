@@ -30,6 +30,7 @@ import { fr } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface TimeSlot {
   id: string;
@@ -129,7 +130,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
         fetchTimeSlots()
       ]);
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching data:', error);
+      logger.error('Error fetching data:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du calendrier",
@@ -312,7 +313,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
         availabilityGaps: availabilityGaps
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error generating smart suggestions:', error);
+      logger.error('Error generating smart suggestions:', error);
     }
   };
 
@@ -374,7 +375,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
       });
       fetchData();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error creating event:', error);
+      logger.error('Error creating event:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de créer l'événement",
@@ -399,7 +400,7 @@ export default function SmartScheduling({ userId, userType }: SmartSchedulingPro
 
       fetchData();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error deleting event:', error);
+      logger.error('Error deleting event:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de supprimer l'événement",

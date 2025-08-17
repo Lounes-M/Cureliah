@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import { PlanningMedecin } from "@/components/vacation/PlanningMedecin";
@@ -36,7 +36,6 @@ const ManageVacations = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const logger = useLogger();
   const [stats, setStats] = useState<VacationStats>({
     totalVacations: 0,
     availableSlots: 0,

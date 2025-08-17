@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { logger } from "@/services/logger";
 
 const PremiumMissions: React.FC = () => {
   const { user } = useAuth();
@@ -45,7 +46,7 @@ const PremiumMissions: React.FC = () => {
       const data = await PremiumMissionService.getPremiumMissions(user.id, filters);
       setMissions(data);
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des missions Premium:', error);
+      logger.error('Erreur lors du chargement des missions Premium:', error);
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ const PremiumMissions: React.FC = () => {
       // Recharger les missions pour mettre à jour les statuts
       loadMissions();
     } catch (error) {
-      // TODO: Replace with logger.error('Erreur lors de la candidature:', error);
+      logger.error('Erreur lors de la candidature:', error);
       alert('Erreur lors de la candidature. Vérifiez votre abonnement Premium.');
     } finally {
       setApplyingTo(null);

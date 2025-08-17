@@ -27,6 +27,7 @@ import {
   Area
 } from 'recharts';
 import { 
+import { logger } from "@/services/logger";
   TrendingUp, 
   TrendingDown, 
   Users, 
@@ -220,7 +221,7 @@ export default function AnalyticsDashboard({ userType }: AnalyticsDashboardProps
         geographicDistribution
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching analytics:', error);
+      logger.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

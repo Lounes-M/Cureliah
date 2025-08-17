@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Users, Building2, Calendar as CalendarIcon, FileText, AlertCircle, DollarSign } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface ReportData {
   totalUsers: number;
@@ -106,7 +107,7 @@ export default function Reports() {
         revenueGrowth
       });
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching report data:', error);
+      logger.error('Error fetching report data:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du rapport",

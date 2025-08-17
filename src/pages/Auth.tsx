@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth"; // ✅ Import absolu au lieu de relatif
 import { useToast } from "@/components/ui/use-toast"; // ✅ Import absolu
-import { useLogger } from "@/utils/logger";
-import Logger from "@/utils/logger";
+import { logger } from "@/services/logger";
 import { announceToScreenReader } from "@/utils/accessibility";
 import { supabase } from "@/integrations/supabase/client.browser";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -359,7 +358,6 @@ const Auth = () => {
   // Hooks d'authentification
   const { signIn, signUp, loading: authLoading, user } = useAuth();
   const { toast } = useToast();
-  const logger = useLogger();
   const location = useLocation();
   const navigate = useNavigate();
   // Récupération des paramètres depuis l'URL
@@ -380,7 +378,7 @@ const Auth = () => {
   // Monitor auth state changes
   useEffect(() => {
     // Auth state monitoring - can be enabled for debugging if needed
-    // // TODO: Replace with logger.info("Auth State:", { user, authLoading, isVisible });
+    // logger.info("Auth State:", { user, authLoading, isVisible });
   }, [user, authLoading, isVisible]);
 
   // Données de formulaire - initialise le userType depuis l'URL si disponible
@@ -761,7 +759,7 @@ const Auth = () => {
       setResetEmail("");
       setErrors({});
     } catch (error) {
-      // TODO: Replace with logger.error("Erreur lors de la réinitialisation:", error);
+      logger.error("Erreur lors de la réinitialisation:", error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'envoi de l'email",

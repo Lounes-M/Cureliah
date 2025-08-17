@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from "@/services/logger";
 
 // WebSocket connection states
 type ConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error';
@@ -147,10 +148,10 @@ class RealtimeService {
       this.connectionState = 'connected';
       this.reconnectAttempts = 0;
       
-      // TODO: Replace with logger.info('Realtime service initialized successfully');
+      logger.info('Realtime service initialized successfully');
       
     } catch (error) {
-      // TODO: Replace with logger.error('Failed to initialize realtime service:', error);
+      logger.error('Failed to initialize realtime service:', error);
       this.connectionState = 'error';
       this.scheduleReconnect();
     }
@@ -293,7 +294,7 @@ class RealtimeService {
       try {
         callback(event);
       } catch (error) {
-        // TODO: Replace with logger.error('Error in realtime event callback:', error);
+        logger.error('Error in realtime event callback:', error);
       }
     });
 
@@ -303,7 +304,7 @@ class RealtimeService {
         try {
           subscription.callback(event);
         } catch (error) {
-          // TODO: Replace with logger.error('Error in subscription callback:', error);
+          logger.error('Error in subscription callback:', error);
         }
       }
     });
@@ -375,7 +376,7 @@ class RealtimeService {
         payload
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Failed to send realtime message:', error);
+      logger.error('Failed to send realtime message:', error);
     }
   }
 
@@ -393,7 +394,7 @@ class RealtimeService {
       // Simple ping to keep connection alive
       await this.sendMessage('heartbeat', 'ping', { timestamp: Date.now() });
     } catch (error) {
-      // TODO: Replace with logger.warn('Heartbeat failed:', error);
+      logger.warn('Heartbeat failed:', error);
       this.connectionState = 'error';
       this.scheduleReconnect();
     }
@@ -401,7 +402,7 @@ class RealtimeService {
 
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      // TODO: Replace with logger.error('Max reconnection attempts reached');
+      logger.error('Max reconnection attempts reached');
       return;
     }
 
@@ -409,7 +410,7 @@ class RealtimeService {
     
     setTimeout(() => {
       this.reconnectAttempts++;
-      // TODO: Replace with logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts});`);
+      logger.info(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts});`);
       this.initialize();
     }, delay);
   }

@@ -98,13 +98,13 @@ const MonitoringDashboard: React.FC = () => {
         .rpc('get_system_health_report', { time_filter: timeFilter });
 
       if (healthError) {
-        // TODO: Replace with logger.error('Error loading system health:', healthError);
+        logger.error('Error loading system health:', healthError, {}, 'Auto', 'todo_replaced');
       } else {
         setSystemHealth(healthData || []);
       }
 
     } catch (error) {
-      // TODO: Replace with logger.error('Error loading monitoring data:', error);
+      logger.error('Error loading monitoring data:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les données de monitoring",
@@ -157,7 +157,7 @@ const MonitoringDashboard: React.FC = () => {
         description: "Erreur marquée comme résolue",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error resolving error:', error);
+      logger.error('Error resolving error:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de marquer l'erreur comme résolue",
@@ -192,7 +192,7 @@ const MonitoringDashboard: React.FC = () => {
         description: "Alerte marquée comme résolue",
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error resolving alert:', error);
+      logger.error('Error resolving alert:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de marquer l'alerte comme résolue",

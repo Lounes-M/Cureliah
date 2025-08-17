@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useToast } from '@/components/ui/use-toast';
 import { Users, Building2, Calendar, FileText, AlertCircle, Euro, TrendingUp, TrendingDown } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface StatsData {
   totalUsers: number;
@@ -108,7 +109,7 @@ export default function AdminStats() {
         revenueGrowth
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",

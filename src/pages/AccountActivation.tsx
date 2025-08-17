@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useToast } from "../hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client.browser";
+import { logger } from "@/services/logger";
+import { logger } from "@/services/logger";
 import {
   Clock,
   CheckCircle,
@@ -116,7 +118,7 @@ const AccountActivation = () => {
         window.location.reload(); // Force refresh pour mettre à jour le contexte auth
       }
     } catch (error) {
-      // TODO: Replace with logger.error("Erreur lors de la vérification du statut:", error);
+      logger.error("Erreur lors de la vérification du statut:", error);
     } finally {
       setIsCheckingStatus(false);
     }
@@ -158,7 +160,7 @@ const AccountActivation = () => {
         ]);
 
       if (notificationError) {
-        // TODO: Replace with logger.info("Notification envoyée (simulation);");
+        logger.info("Notification envoyée (simulation);");
       }
 
       setSupportTicketSent(true);
@@ -171,7 +173,7 @@ const AccountActivation = () => {
         variant: "default",
       });
     } catch (error) {
-      // TODO: Replace with logger.error("Erreur lors de la demande d'activation:", error);
+      logger.error("Erreur lors de la demande d'activation:", error);
       toast({
         title: "Erreur",
         description:

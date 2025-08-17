@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { UrgentRequestNotification } from '@/types/premium';
 import { UrgentNotificationService } from '@/services/urgentNotificationService';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface UseUrgentNotificationsOptions {
   userId: string;
@@ -78,7 +79,7 @@ export const useUrgentNotifications = (
       setUnreadCount(unreadCountData);
 
     } catch (error: any) {
-      // TODO: Replace with logger.error('Erreur lors du chargement des notifications:', error);
+      logger.error('Erreur lors du chargement des notifications:', error);
       setError(error.message || 'Erreur lors du chargement des notifications');
     } finally {
       setLoading(false);
@@ -133,7 +134,7 @@ export const useUrgentNotifications = (
       
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error: any) {
-      // TODO: Replace with logger.error('Erreur lors du marquage comme lue:', error);
+      logger.error('Erreur lors du marquage comme lue:', error);
     }
   }, []);
 
@@ -148,7 +149,7 @@ export const useUrgentNotifications = (
       
       setUnreadCount(0);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
+      logger.error('Erreur lors du marquage de toutes les notifications comme lues:', error);
     }
   }, [userId, userType]);
 
@@ -165,7 +166,7 @@ export const useUrgentNotifications = (
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Erreur lors de la suppression de la notification:', error);
+      logger.error('Erreur lors de la suppression de la notification:', error);
     }
   }, [notifications]);
 

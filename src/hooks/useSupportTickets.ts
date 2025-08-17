@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { premiumService } from '../services/premiumService'
+import { logger } from "@/services/logger";
 
 interface SupportTicket {
   id: string
@@ -25,7 +26,7 @@ export const useSupportTickets = () => {
       const data = await premiumService.getSupportTickets()
       setTickets(data)
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur chargement tickets:', err);
+      logger.error('Erreur chargement tickets:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
       setTickets([]) // Fallback vers tableau vide
     } finally {
@@ -48,7 +49,7 @@ export const useSupportTickets = () => {
       // Recharger les tickets après création
       await loadTickets()
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur création ticket:', err);
+      logger.error('Erreur création ticket:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
     }
   }

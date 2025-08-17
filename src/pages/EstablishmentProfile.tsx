@@ -99,7 +99,7 @@ const EstablishmentProfile = () => {
         });
       }
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching establishment profile:', error);
+      logger.error('Error fetching establishment profile:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger le profil",
@@ -133,7 +133,7 @@ const EstablishmentProfile = () => {
 
       setStats(stats);
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -163,7 +163,7 @@ const EstablishmentProfile = () => {
 
       await fetchEstablishmentProfile();
     } catch (error: any) {
-      // TODO: Replace with logger.error('Error saving profile:', error);
+      logger.error('Error saving profile:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder le profil",

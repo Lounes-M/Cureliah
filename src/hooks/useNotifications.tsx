@@ -71,13 +71,13 @@ export function useNotifications() {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          // TODO: Replace with logger.info('🗑️ DELETE event received:', payload);
+          logger.info('🗑️ DELETE event received:', payload, {}, 'Auto', 'todo_replaced');
           const deletedNotification = payload.old as Notification;
           
           setNotifications(prev => {
-            // TODO: Replace with logger.info('Before filter:', prev.length);
+            logger.info('Before filter:', prev.length, {}, 'Auto', 'todo_replaced');
             const filtered = prev.filter(n => n.id !== deletedNotification.id);
-            // TODO: Replace with logger.info('After filter:', filtered.length);
+            logger.info('After filter:', filtered.length, {}, 'Auto', 'todo_replaced');
             return filtered;
           });
           
@@ -85,7 +85,7 @@ export function useNotifications() {
           if (!deletedNotification.read_at) {
             setUnreadCount(prev => {
               const newCount = Math.max(0, prev - 1);
-              // TODO: Replace with logger.info('Unread count updated:', prev, '->', newCount);
+              logger.info('Unread count updated:', prev, '->', newCount, {}, 'Auto', 'todo_replaced');
               return newCount;
             });
           }
@@ -114,7 +114,7 @@ export function useNotifications() {
       setNotifications(data || []);
       setUnreadCount(data?.filter(n => !n.read_at).length || 0);
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les notifications",
@@ -136,7 +136,7 @@ export function useNotifications() {
 
       // Note: Real-time subscription will handle the state update
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de marquer la notification comme lue",
@@ -159,7 +159,7 @@ export function useNotifications() {
 
       // Note: Real-time subscription will handle the state updates
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de marquer toutes les notifications comme lues",
@@ -208,7 +208,7 @@ export function useNotifications() {
         description: "La notification a été supprimée avec succès"
       });
     } catch (error: unknown) {
-      // TODO: Replace with logger.error('Error deleting notification:', error);
+      logger.error('Error deleting notification:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de supprimer la notification",

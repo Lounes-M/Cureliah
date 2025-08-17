@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client.browser';
 import { UrgentRequest, UrgentRequestResponse, UrgentRequestNotification } from '@/types/premium';
+import { logger } from "@/services/logger";
 
 export class UrgentRequestService {
   
@@ -413,7 +414,7 @@ export class UrgentRequestService {
   // Notifier les médecins qualifiés
   private static async notifyQualifiedDoctors(request: UrgentRequest): Promise<void> {
     // Logique de notification sera implémentée avec le système de notifications temps réel
-    // TODO: Replace with logger.info(`Notification envoyée pour la demande ${request.id}`);
+    logger.info(`Notification envoyée pour la demande ${request.id}`);
   }
 
   // Notifier l'établissement d'une nouvelle réponse

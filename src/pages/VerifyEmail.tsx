@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { useLogger } from '@/utils/logger';
+import { logger } from "@/services/logger";
 import { supabase } from "@/integrations/supabase/client.browser";
 import {
   Mail,
@@ -60,7 +60,6 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const { user, redirectToDashboard } = useAuth();
   const { toast } = useToast();
-  const logger = useLogger();
 
   const [verificationStatus, setVerificationStatus] = useState("pending");
   const [isResending, setIsResending] = useState(false);

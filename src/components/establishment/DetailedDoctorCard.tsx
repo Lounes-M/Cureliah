@@ -26,6 +26,7 @@ import {
   Activity
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from "@/services/logger";
 
 interface DoctorProfile {
   id: string;
@@ -123,7 +124,7 @@ export const DetailedDoctorCard: React.FC<DetailedDoctorCardProps> = ({
         isNewProvider: reviewCount < 5
       });
     } catch (error) {
-      // TODO: Replace with logger.error('Error loading doctor stats:', error);
+      logger.error('Error loading doctor stats:', error);
     } finally {
       setLoading(false);
     }

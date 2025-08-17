@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, X, Smartphone, Monitor, Wifi, Bell } from 'lucide-react';
+import { logger } from "@/services/logger";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -66,14 +67,14 @@ export const PWAInstallPrompt: React.FC<PWAInstallPromptProps> = ({ onInstall, o
       const choiceResult = await deferredPrompt.userChoice;
       
       if (choiceResult.outcome === 'accepted') {
-        // TODO: Replace with logger.info('PWA installation accepted');
+        logger.info('PWA installation accepted');
         setShowPrompt(false);
         onInstall?.();
       } else {
-        // TODO: Replace with logger.info('PWA installation dismissed');
+        logger.info('PWA installation dismissed');
       }
     } catch (error) {
-      // TODO: Replace with logger.error('Error during PWA installation:', error);
+      logger.error('Error during PWA installation:', error);
     }
     
     setDeferredPrompt(null);
@@ -189,7 +190,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
         scope: '/',
       });
 
-      // TODO: Replace with logger.info('Service Worker registered successfully:', registration.scope);
+      logger.info('Service Worker registered successfully:', registration.scope);
 
       // Handle service worker updates
       registration.addEventListener('updatefound', () => {
@@ -198,7 +199,7 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               // New version available
-              // TODO: Replace with logger.info('New version of the app is available!');
+              logger.info('New version of the app is available!');
               
               // Optionally show update notification
               if (window.confirm('Une nouvelle version est disponible. Actualiser maintenant ?')) {
@@ -211,11 +212,11 @@ export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration
 
       return registration;
     } catch (error) {
-      // TODO: Replace with logger.error('Service Worker registration failed:', error);
+      logger.error('Service Worker registration failed:', error);
       return null;
     }
   } else {
-    // TODO: Replace with logger.info('Service Workers not supported');
+    logger.info('Service Workers not supported');
     return null;
   }
 };
@@ -229,7 +230,7 @@ export const subscribeToPushNotifications = async (
     const permission = await Notification.requestPermission();
     
     if (permission !== 'granted') {
-      // TODO: Replace with logger.info('Notification permission denied');
+      logger.info('Notification permission denied');
       return null;
     }
 
@@ -239,7 +240,7 @@ export const subscribeToPushNotifications = async (
       applicationServerKey: process.env.REACT_APP_VAPID_PUBLIC_KEY, // Add VAPID key
     });
 
-    // TODO: Replace with logger.info('Push notification subscription:', subscription);
+    logger.info('Push notification subscription:', subscription);
     
     // Send subscription to your server
     await fetch('/api/notifications/subscribe', {
@@ -250,7 +251,7 @@ export const subscribeToPushNotifications = async (
 
     return subscription;
   } catch (error) {
-    // TODO: Replace with logger.error('Push notification subscription failed:', error);
+    logger.error('Push notification subscription failed:', error);
     return null;
   }
 };

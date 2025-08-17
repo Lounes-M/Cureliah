@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 export interface LocationCoords {
   latitude: number;
@@ -145,7 +146,7 @@ export function useGeolocation(options: UseGeolocationOptions = {}) {
       
       return null;
     } catch (error) {
-      // TODO: Replace with logger.error('Geocoding error:', error);
+      logger.error('Geocoding error:', error);
       return null;
     }
   };

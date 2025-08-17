@@ -1,4 +1,5 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { logger } from "@/services/logger";
 
 // Types pour les tests A/B
 interface ABTestConfig {
@@ -131,7 +132,7 @@ export const ABTestProvider: React.FC<ABTestProviderProps> = ({
 
   // Fonction pour définir les propriétés utilisateur
   const setUserProperty = (property: string, value: any) => {
-    // TODO: Replace with logger.info(`[A/B Test] User Property: ${property} = ${value}`, { userId });
+    logger.info(`[A/B Test] User Property: ${property} = ${value}`, { userId });
     
     // En production, synchroniser avec votre service d'analytics
     if (typeof window !== 'undefined' && (window as any).mixpanel) {
@@ -208,7 +209,7 @@ export const withABTest = (
     const Component = variants[variant] || variants.control || variants.default;
     
     if (!Component) {
-      // TODO: Replace with logger.warn(`[A/B Test] No component found for variant "${variant}" in test "${testName}"`);
+      logger.warn(`[A/B Test] No component found for variant "${variant}" in test "${testName}"`);
       return null;
     }
     
@@ -234,13 +235,11 @@ export const BusinessIntelligence = {
   },
 
   // Métriques clés
-  trackConversion: (conversionType: string, value?: number) => {
-    // TODO: Replace with logger.info(`[BI] Conversion: ${conversionType}`, { value, timestamp: new Date(); });
-  },
-
-  // Analyse des fonctionnalités
+    trackConversion: (conversionType: string, value?: number) => {
+      logger.info(`[BI] Conversion: ${conversionType}`, { value, timestamp: new Date() });
+    },  // Analyse des fonctionnalités
   trackFeatureUsage: (featureName: string, userId: string) => {
-    // TODO: Replace with logger.info(`[BI] Feature Usage: ${featureName}`, { userId, timestamp: new Date(); });
+    logger.info(`[BI] Feature Usage: ${featureName}`, { userId, timestamp: new Date() });
   }
 };
 

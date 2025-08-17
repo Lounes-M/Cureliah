@@ -30,6 +30,7 @@ import {
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from "@/services/logger";
 
 interface VacationWithDoctor {
   id: string;
@@ -229,7 +230,7 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
       resetModal();
 
     } catch (error) {
-      // TODO: Replace with logger.error('Error submitting booking:', error);
+      logger.error('Error submitting booking:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande. Veuillez réessayer.",

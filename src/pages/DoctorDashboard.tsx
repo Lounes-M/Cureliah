@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy } from "react";
-import { useLogger } from '@/utils/logger';
+import { logger } from '@/services/logger';
 import { translateSpeciality } from '@/utils/specialities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -104,7 +104,6 @@ const DoctorDashboard = () => {
   const doctorProfile = profile as DoctorProfile;
   const { vacations, loading: vacationsLoading } = useRecentVacations();
   const { toast } = useToast();
-  const logger = useLogger();
   
   // Gérer l'onglet actif depuis l'URL
   const tabFromUrl = searchParams.get('tab');
@@ -133,15 +132,15 @@ const DoctorDashboard = () => {
       doctorProfile_specialty: doctorProfile?.specialty,
       doctorProfile_speciality: doctorProfile?.speciality,
       specialty_final: specialty
-    }, 'DoctorDashboard', 'debug_speciality');
+  });
     
     if (!specialty) {
-      logger.debug("Aucune spécialité trouvée, retour du message par défaut", {}, 'DoctorDashboard', 'no_speciality');
+  logger.debug("Aucune spécialité trouvée, retour du message par défaut");
       return "Spécialité pas encore ajoutée";
     }
     
     const translated = translateSpeciality(specialty);
-    logger.debug("Spécialité traduite", { translated }, 'DoctorDashboard', 'translated_speciality');
+  logger.debug("Spécialité traduite", { translated });
     
     return translated;
   };
@@ -172,7 +171,7 @@ const DoctorDashboard = () => {
 
   // Debug: surveiller les changements du profil
   useEffect(() => {
-    logger.debug("doctorProfileFromDB a changé", { doctorProfileFromDB }, 'DoctorDashboard', 'profile_change');
+  logger.debug("doctorProfileFromDB a changé", { doctorProfileFromDB });
   }, [doctorProfileFromDB]);
 
   // Vérification du statut d'abonnement
@@ -215,9 +214,9 @@ const DoctorDashboard = () => {
       logger.info("Toutes les données chargées", {
         statsData,
         profileData
-      }, 'DoctorDashboard', 'data_loaded');
+  });
     } catch (error) {
-      logger.error("Error loading dashboard data", error as Error, { userId: user?.id }, 'DoctorDashboard', 'load_data_error');
+  logger.error("Error loading dashboard data", error as Error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les données du tableau de bord",
@@ -230,7 +229,7 @@ const DoctorDashboard = () => {
 
   const loadDoctorProfile = async (): Promise<DoctorProfileFromDB | null> => {
     try {
-      logger.debug("Chargement du profil médecin", { userId: user.id }, 'DoctorDashboard', 'load_profile_start');
+  logger.debug("Chargement du profil médecin", { userId: user.id });
       
       const { data, error } = await supabase
         .from("doctor_profiles")
@@ -238,16 +237,16 @@ const DoctorDashboard = () => {
         .eq("id", user.id)
         .single();
 
-      logger.debug("Données profil récupérées", { data, error }, 'DoctorDashboard', 'profile_data_retrieved');
+  logger.debug("Données profil récupérées", { data, error });
 
       if (error) {
-        logger.error("Error loading doctor profile", error, { userId: user.id }, 'DoctorDashboard', 'profile_load_error');
+  logger.error("Error loading doctor profile", error);
         return null;
       }
 
       return data;
     } catch (error) {
-      logger.error("Error in loadDoctorProfile", error as Error, { userId: user.id }, 'DoctorDashboard', 'profile_load_unexpected_error');
+  logger.error("Error in loadDoctorProfile", error as Error);
       return null;
     }
   };
@@ -652,7 +651,7 @@ const DoctorDashboard = () => {
                   {(() => {
                     const specialty = getTranslatedSpecialty();
                     const isNotSet = specialty === "Spécialité pas encore ajoutée";
-                    logger.debug("Spécialité affichée dans le rendu", { specialty }, 'DoctorDashboard', 'render_speciality');
+                    logger.debug("Spécialité affichée dans le rendu", { specialty });
                     
                     return isNotSet ? (
                       <Button

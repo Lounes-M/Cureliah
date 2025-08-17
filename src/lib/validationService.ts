@@ -4,7 +4,7 @@
 
 import { z } from 'zod';
 import { createError, handleError } from './errorManager';
-import { logger } from './logger';
+import { logger } from "@/services/logger";
 
 // ===================================
 // TYPES DE BASE POUR LA VALIDATION

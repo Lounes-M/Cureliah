@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { premiumService, ApiKey } from '../services/premiumService'
+import { logger } from "@/services/logger";
 
 export const useApiKeys = () => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
@@ -13,7 +14,7 @@ export const useApiKeys = () => {
       const data = await premiumService.getApiKeys()
       setApiKeys(data)
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur chargement clés API:', err);
+      logger.error('Erreur chargement clés API:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue')
     } finally {
       setLoading(false)
@@ -30,7 +31,7 @@ export const useApiKeys = () => {
       setApiKeys(prev => [result.apiKey, ...prev])
       return result
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur création clé API:', err);
+      logger.error('Erreur création clé API:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la création')
       throw err
     }
@@ -43,7 +44,7 @@ export const useApiKeys = () => {
         key.id === keyId ? { ...key, is_active: false } : key
       ))
     } catch (err) {
-      // TODO: Replace with logger.error('Erreur désactivation clé API:', err);
+      logger.error('Erreur désactivation clé API:', err);
       setError(err instanceof Error ? err.message : 'Erreur lors de la désactivation')
     }
   }

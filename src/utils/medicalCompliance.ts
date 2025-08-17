@@ -64,7 +64,7 @@ class MedicalComplianceService {
 
     try {
       // Log to secure audit database
-      // TODO: Replace with logger.info('Medical Data Access Audit:', auditEntry);
+      logger.info('Medical Data Access Audit:', auditEntry);
       
       // In production, this would send to a secure audit logging service
       await this.sendToAuditService(auditEntry);
@@ -73,7 +73,7 @@ class MedicalComplianceService {
       await this.detectAnomalousAccess(auditEntry);
       
     } catch (error) {
-      // TODO: Replace with logger.error('Failed to log medical data access:', error);
+      logger.error('Failed to log medical data access:', error);
       // Critical: audit logging failure should trigger alerts
       this.triggerComplianceAlert('audit_logging_failure', { error, entry: auditEntry });
     }
@@ -109,7 +109,7 @@ class MedicalComplianceService {
 
         resolve(hasPermission);
       } catch (error) {
-        // TODO: Replace with logger.error('Permission validation failed:', error);
+        logger.error('Permission validation failed:', error);
         resolve(false);
       }
     });
@@ -124,7 +124,7 @@ class MedicalComplianceService {
 
     try {
       // Store consent record securely
-      // TODO: Replace with logger.info('Consent recorded:', consentRecord);
+      logger.info('Consent recorded:', consentRecord);
       
       // In production: save to consent management database
       await this.saveConsentRecord(consentRecord);
@@ -143,7 +143,7 @@ class MedicalComplianceService {
       });
 
     } catch (error) {
-      // TODO: Replace with logger.error('Failed to record consent:', error);
+      logger.error('Failed to record consent:', error);
       this.triggerComplianceAlert('consent_recording_failure', { error, consent });
     }
   }
@@ -283,7 +283,7 @@ class MedicalComplianceService {
   }
 
   private triggerComplianceAlert(type: string, data: any): void {
-    // TODO: Replace with logger.error('COMPLIANCE ALERT:', type, data);
+    logger.error('COMPLIANCE ALERT:', type, data);
     // In production: send immediate alerts to compliance team
   }
 

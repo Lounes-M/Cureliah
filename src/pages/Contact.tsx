@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client.browser";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { 
+import { logger } from "@/services/logger";
   Mail, 
   Phone, 
   MapPin, 
@@ -163,7 +164,7 @@ const Contact = () => {
         .insert([contactData]);
 
       if (error) {
-        // TODO: Replace with logger.error('Error saving contact request:', error);
+        logger.error('Error saving contact request:', error);
         // Continue anyway to show user success message
       }
       

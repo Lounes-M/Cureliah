@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Gift, Copy, Check } from 'lucide-react';
 import { promoService } from '@/services/promoService';
+import { logger } from "@/services/logger";
 
 interface PromoHeaderBannerProps {
   onClose?: () => void;
@@ -23,7 +24,7 @@ export const PromoHeaderBanner: React.FC<PromoHeaderBannerProps> = ({
       
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      // TODO: Replace with logger.error('Failed to copy promo code:', err);
+      logger.error('Failed to copy promo code:', err);
     }
   };
 

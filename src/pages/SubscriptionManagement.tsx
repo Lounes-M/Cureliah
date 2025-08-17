@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from "@/services/logger";
 
 const SubscriptionManagement: React.FC = () => {
   const { user, subscriptionStatus, subscriptionLoading } = useAuth();
@@ -25,7 +26,7 @@ const SubscriptionManagement: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('create-customer-portal');
       
       if (error) {
-        // TODO: Replace with logger.error('Portal creation error:', error);
+        logger.error('Portal creation error:', error);
         throw error;
       }
       
@@ -37,7 +38,7 @@ const SubscriptionManagement: React.FC = () => {
       window.open(data.url, '_blank');
       
     } catch (err) {
-      // TODO: Replace with logger.error('Portal error:', err);
+      logger.error('Portal error:', err);
       toast({
         title: 'Erreur',
         description: `Impossible d'accéder au portail: ${err?.message || 'Erreur inconnue'}`,

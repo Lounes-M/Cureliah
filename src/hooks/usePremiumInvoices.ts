@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { premiumService, PremiumInvoice } from '../services/premiumService'
+import { logger } from "@/services/logger";
 
 export const usePremiumInvoices = () => {
   const [invoices, setInvoices] = useState<PremiumInvoice[]>([])
@@ -14,7 +15,7 @@ export const usePremiumInvoices = () => {
         const data = await premiumService.getPremiumInvoices()
         setInvoices(data)
       } catch (err) {
-        // TODO: Replace with logger.error('Erreur chargement factures:', err);
+        logger.error('Erreur chargement factures:', err);
         setError(err instanceof Error ? err.message : 'Erreur inconnue')
       } finally {
         setLoading(false)

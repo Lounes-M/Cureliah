@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { logger } from "@/services/logger";
+import { logger } from "@/services/logger";
 import {
   ArrowLeft,
   Calendar,
@@ -167,7 +169,7 @@ const DoctorBookings = () => {
       setBookings(formattedBookings);
       calculateStats(formattedBookings);
     } catch (error) {
-      // TODO: Replace with logger.error("Error fetching bookings:", error);
+      logger.error("Error fetching bookings:", error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",
@@ -254,7 +256,7 @@ const DoctorBookings = () => {
       setSelectedBooking(null);
       setActionType(null);
     } catch (error) {
-      // TODO: Replace with logger.error("Error updating booking:", error);
+      logger.error("Error updating booking:", error);
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour la réservation",

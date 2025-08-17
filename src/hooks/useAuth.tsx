@@ -12,6 +12,7 @@ import { log } from "@/utils/logging";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { logger } from "@/services/logger";
 
 // Type guard pour vérifier si les données correspondent à un UserProfile
 function isUserProfile(data: unknown): data is UserProfile {
@@ -142,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fetch user profile function avec timeout
   const fetchUserProfile = useCallback(
     async (authUser: FetchableUser) => {
-      // TODO: Replace with logger.info("🔍 fetchUserProfile started for:", authUser.email);
+      logger.info("🔍 fetchUserProfile started for:", authUser.email);
 
       try {
         console.log(
@@ -165,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .eq("id", authUser.id)
           .single();
 
-        // TODO: Replace with logger.info("📡 Querying profiles table...");
+        logger.info("📡 Querying profiles table...");
 
         let profile: Record<string, unknown> | null = null;
         let profileError: { code?: string; message?: string } | null = null;
@@ -187,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           profileError &&
           (profileError.code === "PGRST116" || profileError.code === "TIMEOUT")
         ) {
-          // TODO: Replace with logger.info("Profile not found or timeout, using auth user metadata");
+          logger.info("Profile not found or timeout, using auth user metadata");
           const userType = (authUser as User).user_type || authUser.user_metadata?.user_type || "doctor";
           const userData: User = {
             id: authUser.id,
@@ -202,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             },
           };
 
-          // TODO: Replace with logger.info("✅ Setting fallback user data:", userData);
+          logger.info("✅ Setting fallback user data:", userData);
           setUser(userData);
           setLoading(false);
           setInitialLoad(false);
@@ -210,15 +211,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (profileError) {
-          // TODO: Replace with logger.error("❌ Database error:", profileError);
+          logger.error("❌ Database error:", profileError);
           throw profileError;
         }
 
-        // TODO: Replace with logger.info("✅ Profile data received:", profile);
+        logger.info("✅ Profile data received:", profile);
 
         // Vérifier que le profil est valide
         if (!isUserProfile(profile)) {
-          // TODO: Replace with logger.error("❌ Invalid profile data:", profile);
+          logger.error("❌ Invalid profile data:", profile);
           throw new Error("Invalid profile data received from database");
         }
 
@@ -241,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         // Get specialized profile avec timeout aussi
-        // TODO: Replace with logger.info("📡 Querying specialized profile for:", validProfile.user_type);
+        logger.info("📡 Querying specialized profile for:", validProfile.user_type);
 
         if (profile.user_type === "doctor") {
           try {
@@ -265,11 +266,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   speciality: doctorProfile.speciality as string | undefined,
                   avatar_url: doctorProfile.avatar_url as string | undefined,
                 };
-                // TODO: Replace with logger.info("✅ Doctor profile loaded with avatar:", doctorProfile.avatar_url);
+                logger.info("✅ Doctor profile loaded with avatar:", doctorProfile.avatar_url);
               }
             }
           } catch (error) {
-            // TODO: Replace with logger.info("⏰ Doctor profile query timeout, continuing without it");
+            logger.info("⏰ Doctor profile query timeout, continuing without it");
           }
         } else if (profile.user_type === "establishment") {
           try {
@@ -295,7 +296,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   establishment_name: establishmentProfile.name as string | undefined,
                   avatar_url: establishmentProfile.avatar_url as string | undefined,
                 };
-                // TODO: Replace with logger.info("✅ Establishment profile loaded with avatar:", establishmentProfile.avatar_url);
+                logger.info("✅ Establishment profile loaded with avatar:", establishmentProfile.avatar_url);
               }
             }
           } catch (error) {
@@ -314,7 +315,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(userData);
       } catch (error) {
-        // TODO: Replace with logger.error("❌ Error fetching user profile:", error);
+        logger.error("❌ Error fetching user profile:", error);
 
         const userType = (authUser as User).user_type || authUser.user_metadata?.user_type || "doctor";
         const fallbackUser: User = {
@@ -330,10 +331,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           },
         };
 
-        // TODO: Replace with logger.info("⚠️ Using fallback user:", fallbackUser);
+        logger.info("⚠️ Using fallback user:", fallbackUser);
         setUser(fallbackUser);
       } finally {
-        // TODO: Replace with logger.info("🏁 fetchUserProfile finished, setting loading to false");
+        logger.info("🏁 fetchUserProfile finished, setting loading to false");
         setLoading(false);
         setInitialLoad(false);
       }
@@ -343,30 +344,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth session
   useEffect(() => {
-    // TODO: Replace with logger.info("🚀 Auth initialization started");
+    logger.info("🚀 Auth initialization started");
     let mounted = true;
 
     const initAuth = async () => {
       try {
-        // TODO: Replace with logger.info("📡 Getting Supabase session...");
+        logger.info("📡 Getting Supabase session...");
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
-        // TODO: Replace with logger.info("📡 Session result:", session ? "Found" : "None");
+        logger.info("📡 Session result:", session ? "Found" : "None");
 
         if (mounted) {
           if (session) {
-            // TODO: Replace with logger.info("👤 User found in session, fetching profile...");
+            logger.info("👤 User found in session, fetching profile...");
             await fetchUserProfile(session.user);
           } else {
-            // TODO: Replace with logger.info("👤 No user in session, setting loading to false");
+            logger.info("👤 No user in session, setting loading to false");
             setLoading(false);
             setInitialLoad(false);
           }
         }
       } catch (error) {
-        // TODO: Replace with logger.error("❌ Auth initialization error:", error);
+        logger.error("❌ Auth initialization error:", error);
         if (mounted) {
           setLoading(false);
           setInitialLoad(false);
@@ -377,7 +378,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initAuth();
 
     // Listen for auth state changes
-    // TODO: Replace with logger.info("👂 Setting up auth state listener...");
+    logger.info("👂 Setting up auth state listener...");
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -389,13 +390,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             case 'SIGNED_IN':
             case 'TOKEN_REFRESHED':
               if (session?.user) {
-                console.log('[useAuth] Processing sign-in/refresh for:', session.user.email);
+                logger.info('[useAuth] Processing sign-in/refresh for:', session.user.email);
                 await fetchUserProfile(session.user);
               }
               break;
               
             case 'SIGNED_OUT':
-              console.log('[useAuth] Processing sign-out');
+              logger.info('[useAuth] Processing sign-out');
               setUser(null);
               setSubscriptionStatus(null);
               setSubscriptionPlan(null);
@@ -419,7 +420,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
           }
         } catch (error) {
-          console.error(`[useAuth] Error handling auth event ${event}:`, error);
+          logger.error(`[useAuth] Error handling auth event ${event}:`, error);
           setLoading(false);
           setInitialLoad(false);
         }
@@ -427,7 +428,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      // TODO: Replace with logger.info("🧹 Cleaning up auth initialization");
+      logger.info("🧹 Cleaning up auth initialization");
       mounted = false;
       subscription.unsubscribe();
     };
@@ -453,7 +454,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const redirectToDashboard = useCallback(() => {
     const dashboardRoute = getDashboardRoute();
-    // TODO: Replace with logger.info("🚀 Redirecting to dashboard:", dashboardRoute);
+    logger.info("🚀 Redirecting to dashboard:", dashboardRoute);
     navigate(dashboardRoute);
   }, [getDashboardRoute, navigate]);
 
@@ -463,7 +464,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: string
     ): Promise<{ data: unknown; error: Error | null }> => {
       try {
-        // TODO: Replace with logger.info("🔐 Signing in user:", email);
+        logger.info("🔐 Signing in user:", email);
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -519,7 +520,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileData: Record<string, unknown>
     ): Promise<{ data: unknown; error: Error | null }> => {
       try {
-        // TODO: Replace with logger.info("📝 Signing up user:", email, userType);
+        logger.info("📝 Signing up user:", email, userType);
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -565,7 +566,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async (): Promise<void> => {
     try {
-      // TODO: Replace with logger.info("🚪 Signing out user");
+      logger.info("🚪 Signing out user");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -640,23 +641,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.warn('[useAuth] Session error, attempting to refresh:', sessionError.message);
+          logger.warn('[useAuth] Session error, attempting to refresh:', sessionError.message);
           
           // Tenter de renouveler la session
           const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
           
           if (refreshError || !refreshedSession) {
-            console.error('[useAuth] Session refresh failed:', refreshError?.message);
+            logger.error('[useAuth] Session refresh failed:', refreshError?.message);
             // Session expirée - déconnecter l'utilisateur
             await signOut();
             return;
           }
           
-          console.log('[useAuth] Session refreshed successfully');
+          logger.info('[useAuth] Session refreshed successfully');
         }
         
         if (!session?.access_token) {
-          console.warn('[useAuth] No valid session token available');
+          logger.warn('[useAuth] No valid session token available');
           if (retryCount < 2) {
             // Retry après un court délai
             setTimeout(() => fetchSubscription(retryCount + 1), 1000);
@@ -669,11 +670,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.functions.invoke('get-subscription-status');
         
         if (error) {
-          console.warn('[useAuth] Subscription status error:', error);
+          logger.warn('[useAuth] Subscription status error:', error);
           
           // Si erreur d'authentification et on n'a pas encore retry
           if (error.message?.includes('401') && retryCount < 2) {
-            console.log('[useAuth] Retrying subscription fetch after auth error');
+            logger.info('[useAuth] Retrying subscription fetch after auth error');
             setTimeout(() => fetchSubscription(retryCount + 1), 1000);
             return;
           }
@@ -692,15 +693,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           setSubscriptionPlan(plan);
-          console.log('[useAuth] Subscription loaded:', { status: data.status, plan });
+          logger.info('[useAuth] Subscription loaded:', { status: data.status, plan });
         } else {
-          console.log('[useAuth] No active subscription found');
+          logger.info('[useAuth] No active subscription found');
           setSubscriptionStatus('inactive');
           setSubscriptionPlan(null);
         }
         
       } catch (error) {
-        console.error('[useAuth] Failed to fetch subscription:', error);
+        logger.error('[useAuth] Failed to fetch subscription:', error);
         
         // En cas d'erreur, ne pas immédiatement rediriger vers subscribe
         // Garder le dernier statut connu pendant quelques minutes
@@ -708,7 +709,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const now = Date.now();
         
         if (lastSuccessfulCheck && (now - parseInt(lastSuccessfulCheck)) < 5 * 60 * 1000) {
-          console.log('[useAuth] Using cached subscription status due to recent success');
+          logger.info('[useAuth] Using cached subscription status due to recent success');
           // Garder le statut actuel et ne pas changer
           return;
         }
@@ -747,7 +748,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Écouter l'événement de refresh manuel
     const handleSubscriptionRefresh = () => {
       if (user?.id && user.user_type === 'doctor') {
-        console.log('[useAuth] Manual subscription refresh triggered');
+        logger.info('[useAuth] Manual subscription refresh triggered');
         fetchSubscription();
       }
     };
@@ -797,7 +798,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const timeSince = Date.now() - parseInt(lastSuccessfulCheck);
         // Grâce de 30 minutes pour les problèmes techniques
         if (timeSince < 30 * 60 * 1000) {
-          console.log('[useAuth] Using grace period for subscription check');
+          logger.info('[useAuth] Using grace period for subscription check');
           return true;
         }
       }
@@ -810,7 +811,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Fonction pour forcer un refresh de l'abonnement
   const refreshSubscription = useCallback(() => {
     if (user?.id && user.user_type === 'doctor') {
-      console.log('[useAuth] Manual subscription refresh requested');
+      logger.info('[useAuth] Manual subscription refresh requested');
       const event = new CustomEvent('subscription-refresh');
       window.dispatchEvent(event);
     }
@@ -889,7 +890,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     "user:",
     user?.email || "none"
   );
-  // TODO: Replace with logger.info("[useAuth] contextValue:", contextValue);
+  logger.info("[useAuth] contextValue:", contextValue);
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
