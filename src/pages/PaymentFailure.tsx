@@ -22,7 +22,7 @@ const PaymentFailure = () => {
               Réessayer
             </button>
             <a
-              href="mailto:support@cureliah.fr"
+              href="mailto:contact@cureliah.com"
               className="px-6 py-3 bg-gray-100 text-red-700 rounded-lg font-semibold shadow hover:bg-gray-200 transition text-base flex items-center justify-center gap-2"
             >
               <LifeBuoy className="w-5 h-5" />

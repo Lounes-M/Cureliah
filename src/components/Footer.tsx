@@ -416,10 +416,10 @@ const Footer = () => {
               <div>
                 <div className="text-gray-400 text-xs">Email</div>
                 <a
-                  href="mailto:contact@cureliah.fr"
+                  href="mailto:contact@cureliah.com"
                   className="text-white hover:text-blue-400 transition-colors"
                 >
-                  contact@cureliah.fr
+                  contact@cureliah.com
                 </a>
               </div>
             </div>
@@ -434,7 +434,7 @@ const Footer = () => {
                   href="tel:0123456789"
                   className="text-white hover:text-emerald-400 transition-colors"
                 >
-                  01 23 45 67 89
+                  06 81 04 80 54
                 </a>
               </div>
             </div>

@@ -520,7 +520,7 @@ export default function EstablishmentProfileForm({
                           phone: e.target.value,
                         }))
                       }
-                      placeholder="01 23 45 67 89"
+                      placeholder="06 81 04 80 54"
                       className="pl-10 transition-all focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

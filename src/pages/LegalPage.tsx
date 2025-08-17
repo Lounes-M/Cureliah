@@ -126,11 +126,11 @@ const LegalPage = () => {
             <h4 className="font-semibold text-blue-800 mb-2">Contact</h4>
             <p className="flex items-center mb-1">
               <Mail className="w-4 h-4 mr-2" />
-              contact@cureliah.fr
+              contact@cureliah.com
             </p>
             <p className="flex items-center mb-1">
               <Phone className="w-4 h-4 mr-2" />
-              01 23 45 67 89
+              06 81 04 80 54
             </p>
             <p className="flex items-center">
               <MapPin className="w-4 h-4 mr-2" />
@@ -437,7 +437,7 @@ const LegalPage = () => {
             <Mail className="w-5 h-5 text-medical-blue mr-3 mt-0.5" />
             <div>
               <p className="font-medium text-gray-900">Par email</p>
-              <p className="text-gray-600">dpo@cureliah.fr</p>
+              <p className="text-gray-600">contact@cureliah.com</p>
             </div>
           </div>
           <div className="flex items-start">
@@ -652,7 +652,7 @@ const LegalPage = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="mailto:legal@cureliah.fr"
+                href="mailto:contact@cureliah.com"
                 className="inline-flex items-center px-6 py-3 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark transition-colors"
               >
                 <Mail className="w-4 h-4 mr-2" />
@@ -663,7 +663,7 @@ const LegalPage = () => {
                 className="inline-flex items-center px-6 py-3 border border-gray-600 text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
                 <Phone className="w-4 h-4 mr-2" />
-                01 23 45 67 89
+                06 81 04 80 54
               </a>
             </div>
           </div>

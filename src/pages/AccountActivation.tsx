@@ -464,7 +464,7 @@ const AccountActivation = () => {
                   className="flex items-center text-medical-blue hover:text-medical-blue-dark transition-colors"
                 >
                   <Phone className="w-4 h-4 mr-1" />
-                  01 23 45 67 89
+                  06 81 04 80 54
                 </a>
               </div>
             </div>
