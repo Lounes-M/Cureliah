@@ -519,7 +519,7 @@ const DoctorDashboard = () => {
       color: "bg-gradient-to-r from-blue-500 to-blue-600",
       action: () => navigate("/doctor/manage-vacations"),
     },
-    {
+        {
       title: "Mon calendrier",
       description: "Vue calendrier de mes vacations",
       icon: Calendar,
@@ -540,14 +540,6 @@ const DoctorDashboard = () => {
       color: "bg-gradient-to-r from-orange-500 to-orange-600",
       action: () => setActiveTab("messages"),
     },
-    {
-      title: "Demandes urgentes",
-      description: "Consulter les missions urgentes premium",
-      icon: AlertCircle,
-      color: "bg-gradient-to-r from-red-500 to-red-600",
-      action: () => setActiveTab("premium_missions"),
-      premium: true,
-    },
   ];
 
   // État pour gérer le sous-onglet du premium
@@ -567,11 +559,11 @@ const DoctorDashboard = () => {
   // Actions premium (affichées seulement pour les utilisateurs premium)
   const premiumActions = [
     {
-      title: "Rapports & Facturation",
-      description: "Analyses financières détaillées",
-      icon: FileText,
-      color: "bg-gradient-to-r from-amber-500 to-yellow-600",
-      action: () => navigateToPremiumTab('invoices'),
+      title: "Demandes urgentes",
+      description: "Consulter les missions urgentes premium",
+      icon: AlertCircle,
+      color: "bg-gradient-to-r from-red-500 to-red-700",
+      action: () => navigateToPremiumTab('urgent-missions'),
       premium: true,
     },
     {

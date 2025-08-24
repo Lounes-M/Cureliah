@@ -220,19 +220,19 @@ const ManageVacations = () => {
 
             <div className="flex gap-3">
               <Button
-                variant="outline"
-                onClick={() => navigate("/doctor/vacation/reports")}
-                className="border-gray-300 hover:bg-gray-50"
+                variant="destructive"
+                onClick={() => navigate("/premium-missions-urgentes")}
+                className="border-red-500 bg-red-50 text-red-700 hover:bg-red-100 font-bold"
               >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Rapports
+                URGENT
               </Button>
+              <span className="text-xs text-red-700 font-semibold ml-2">Consulter les missions urgentes premium</span>
             </div>
           </div>
         </div>
 
         {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -281,21 +281,6 @@ const ManageVacations = () => {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">
-                  Revenus totaux
-                </CardTitle>
-                <Euro className="w-4 h-4 text-medical-green" />
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="text-2xl font-bold text-medical-green">
-                {loading ? "..." : `${stats.totalEarnings}€`}
-              </div>
-            </CardContent>
-          </Card>
 
           <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
