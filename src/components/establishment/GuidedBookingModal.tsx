@@ -198,7 +198,8 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
         return;
       }
 
-      const estimatedAmount = vacation.hourly_rate * bookingData.duration_hours;
+  // const estimatedAmount = vacation.hourly_rate * bookingData.duration_hours; // Removed for compliance
+  const estimatedAmount = 0; // Or show compliance message in UI
 
       const { error } = await supabase
         .from('vacation_bookings')
@@ -359,7 +360,24 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
 
                     <div className="text-right">
                       <div className="text-3xl font-bold text-medical-green">
-                        {vacation.hourly_rate}€/h
+                        <a
+                          href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                          title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                        >
+                          Tarif: voir règlementation
+                        </a>
+<a
+  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+>
+  Tarif: voir règlementation
+</a>
                       </div>
                     </div>
                   </div>
@@ -443,11 +461,11 @@ export const GuidedBookingModal: React.FC<GuidedBookingModalProps> = ({
                     <div>
                       <h4 className="font-semibold text-green-800">Estimation du coût</h4>
                       <p className="text-sm text-medical-green">
-                        {vacation.hourly_rate}€/h × {bookingData.duration_hours}h
+                        <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                       </p>
                     </div>
                     <div className="text-2xl font-bold text-green-700">
-                      {(vacation.hourly_rate * bookingData.duration_hours).toFixed(2)}€
+                      <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                     </div>
                   </div>
                 </CardContent>

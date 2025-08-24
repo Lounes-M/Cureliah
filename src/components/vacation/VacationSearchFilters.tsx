@@ -32,11 +32,7 @@ export const VacationSearchFilters = ({
   const [showFilters, setShowFilters] = useState(false);
 
   const updateFilter = (key: keyof SearchFilters, value: string) => {
-    // Validation des valeurs numériques
-    if (key === "minRate" || key === "maxRate") {
-      const numValue = parseFloat(value);
-      if (isNaN(numValue) || numValue < 0) return;
-    }
+  // Suppression des filtres de prix pour les médecins
 
     // Validation des dates
     if (key === "startDate" || key === "endDate") {

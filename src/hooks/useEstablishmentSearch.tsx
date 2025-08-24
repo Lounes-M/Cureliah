@@ -31,7 +31,7 @@ interface DoctorInfo {
   sub_specialties?: string[];
   is_verified?: boolean;
   is_active?: boolean;
-  hourly_rate?: string;
+  // hourly_rate?: string; // Removed for compliance
   user_type?: string;
 }
 
@@ -45,8 +45,6 @@ interface FilterState {
   speciality: string;
   startDate: string;
   endDate: string;
-  minRate: string;
-  maxRate: string;
 }
 
 export const useEstablishmentSearch = () => {
@@ -62,10 +60,47 @@ export const useEstablishmentSearch = () => {
     location: '',
     speciality: '',
     startDate: '',
-    endDate: '',
-    minRate: '',
-    maxRate: ''
+    endDate: ''
   });
+  const applyFilters = () => {
+    let filtered = [...vacations];
+    // Filtre par terme de recherche
+    if (searchTerm) {
+      filtered = filtered.filter(vacation =>
+        vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (vacation.speciality?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (`${vacation.doctor_info?.first_name} ${vacation.doctor_info?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    // Filtres avancés
+    if (filters.location) {
+      filtered = filtered.filter(vacation =>
+        vacation.location?.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+
+    if (filters.speciality) {
+      filtered = filtered.filter(vacation =>
+        vacation.speciality === filters.speciality
+      );
+    }
+
+    if (filters.startDate) {
+      filtered = filtered.filter(vacation =>
+        new Date(vacation.start_date) >= new Date(filters.startDate)
+      );
+    }
+
+    if (filters.endDate) {
+      filtered = filtered.filter(vacation =>
+        new Date(vacation.end_date) <= new Date(filters.endDate)
+      );
+    }
+
+    setFilteredVacations(filtered);
+  };
 
   useEffect(() => {
     if (!user || !profile) {
@@ -97,7 +132,6 @@ export const useEstablishmentSearch = () => {
             id,
             license_number,
             experience_years,
-            hourly_rate,
             bio,
             avatar_url,
             is_verified,
@@ -125,11 +159,8 @@ export const useEstablishmentSearch = () => {
         .order('created_at', { ascending: false });
 
       if (vacationsError) {
-        logger.error('Error fetching vacations:', vacationsError, {}, 'Auto', 'todo_replaced');
         throw vacationsError;
       }
-
-      logger.info('Raw vacations data:', JSON.stringify(vacationsData, null, 2);, {}, 'Auto', 'todo_replaced');
 
       if (!vacationsData || vacationsData.length === 0) {
         setVacations([]);
@@ -139,50 +170,47 @@ export const useEstablishmentSearch = () => {
 
       // Transformer les données
       const vacationsWithDoctors = vacationsData.map(vacation => {
-        logger.info('Processing vacation:', vacation.id, {}, 'Auto', 'todo_replaced');
-        logger.info('Raw doctor data:', JSON.stringify(vacation.doctor, null, 2);, {}, 'Auto', 'todo_replaced');
-        logger.info('Doctor profiles data:', JSON.stringify(vacation.doctor?.profiles, null, 2);, {}, 'Auto', 'todo_replaced');
-        logger.info('Doctor profiles first_name:', vacation.doctor?.profiles?.first_name, {}, 'Auto', 'todo_replaced');
-        logger.info('Doctor profiles last_name:', vacation.doctor?.profiles?.last_name, {}, 'Auto', 'todo_replaced');
-
-        const doctorInfo = vacation.doctor ? {
-          id: vacation.doctor.id,
-          first_name: vacation.doctor.profiles?.first_name || '',
-          last_name: vacation.doctor.profiles?.last_name || '',
-          email: vacation.doctor.profiles?.email,
-          phone: vacation.doctor.profiles?.phone,
-          experience_years: vacation.doctor.experience_years,
-          avatar_url: vacation.doctor.avatar_url,
-          bio: vacation.doctor.bio,
-          education: vacation.doctor.education,
-          languages: vacation.doctor.languages,
-          license_number: vacation.doctor.license_number,
-          created_at: vacation.doctor.profiles?.created_at,
-          updated_at: vacation.doctor.profiles?.updated_at,
-          speciality: vacation.doctor.speciality,
-          availability: vacation.doctor.availability,
-          sub_specialties: vacation.doctor.sub_specialties,
-          is_verified: vacation.doctor.is_verified,
-          is_active: vacation.doctor.profiles?.is_active,
-          user_type: vacation.doctor.profiles?.user_type,
-          hourly_rate: vacation.doctor.hourly_rate
-        } : null;
-
-        logger.info('Transformed doctor info:', JSON.stringify(doctorInfo, null, 2);, {}, 'Auto', 'todo_replaced');
-
+        // Flatten doctor profile info
+        const doctor = vacation.doctor;
+        const doctorProfile = doctor?.profiles || {};
         return {
           ...vacation,
-          doctor_info: doctorInfo,
-          doctor: doctorInfo
+          doctor_info: doctor ? {
+            id: doctor.id,
+            first_name: doctorProfile.first_name || '',
+            last_name: doctorProfile.last_name || '',
+            email: doctorProfile.email,
+            phone: doctorProfile.phone,
+            experience_years: doctor.experience_years,
+            avatar_url: doctor.avatar_url,
+            bio: doctor.bio,
+            availability: doctor.availability,
+            sub_specialties: doctor.sub_specialties,
+            is_verified: doctor.is_verified,
+            is_active: doctorProfile.is_active,
+            user_type: doctorProfile.user_type,
+          } : null,
+          doctor: doctor ? {
+            id: doctor.id,
+            first_name: doctorProfile.first_name || '',
+            last_name: doctorProfile.last_name || '',
+            email: doctorProfile.email,
+            phone: doctorProfile.phone,
+            experience_years: doctor.experience_years,
+            avatar_url: doctor.avatar_url,
+            bio: doctor.bio,
+            availability: doctor.availability,
+            sub_specialties: doctor.sub_specialties,
+            is_verified: doctor.is_verified,
+            is_active: doctorProfile.is_active,
+            user_type: doctorProfile.user_type,
+          } : null
         };
       });
-
-      logger.info('Final transformed data:', JSON.stringify(vacationsWithDoctors, null, 2);, {}, 'Auto', 'todo_replaced');
 
       setVacations(vacationsWithDoctors);
       setFilteredVacations(vacationsWithDoctors);
     } catch (error) {
-      logger.error('Error fetching vacations:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors du chargement des vacations",
@@ -192,19 +220,16 @@ export const useEstablishmentSearch = () => {
       setFilteredVacations([]);
     } finally {
       setLoading(false);
-    }
-  };
 
   const applyFilters = () => {
     let filtered = [...vacations];
-
     // Filtre par terme de recherche
     if (searchTerm) {
       filtered = filtered.filter(vacation =>
         vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vacation.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vacation.speciality?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${vacation.doctor_info?.first_name} ${vacation.doctor_info?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
+        (vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (vacation.speciality?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (`${vacation.doctor_info?.first_name} ${vacation.doctor_info?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -233,17 +258,7 @@ export const useEstablishmentSearch = () => {
       );
     }
 
-    if (filters.minRate) {
-      filtered = filtered.filter(vacation =>
-        vacation.hourly_rate >= parseFloat(filters.minRate)
-      );
-    }
-
-    if (filters.maxRate) {
-      filtered = filtered.filter(vacation =>
-        vacation.hourly_rate <= parseFloat(filters.maxRate)
-      );
-    }
+    // Removed minRate and maxRate filters for compliance
 
     setFilteredVacations(filtered);
   };

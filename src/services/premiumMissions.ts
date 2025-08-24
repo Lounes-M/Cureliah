@@ -27,7 +27,7 @@ export class PremiumMissionService {
     }
     
     if (filters?.salary_min) {
-      query = query.gte('salary_min', filters.salary_min);
+  // Suppression du filtre salaire_min pour les médecins
     }
 
     if (filters?.urgency) {

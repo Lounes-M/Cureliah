@@ -790,7 +790,24 @@ const EstablishmentSearch = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
-                    💰 Tarif minimum (€/h)
+                    <a
+                      href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                      title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                    >
+                      Tarif: voir règlementation
+                    </a>
+<a
+  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+>
+  Tarif: voir règlementation
+</a>
                   </Label>
                   <Input
                     type="number"
@@ -803,7 +820,7 @@ const EstablishmentSearch = () => {
 
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-gray-700">
-                    💰 Tarif maximum (€/h)
+                    <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                   </Label>
                   <Input
                     type="number"
@@ -1023,7 +1040,7 @@ const EstablishmentSearch = () => {
                       {selectedVacation.location}
                     </span>
                     <span className="font-bold text-medical-green text-lg">
-                      {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h
+                      <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                     </span>
                   </div>
                 </div>
@@ -1119,7 +1136,7 @@ const EstablishmentSearch = () => {
                           {(parseFloat(selectedVacation.hourly_rate.toString()) * bookingRequest.duration_hours).toFixed(2)}€
                         </div>
                         <div className="text-xs text-medical-green">
-                          {parseFloat(selectedVacation.hourly_rate.toString()).toFixed(0)}€/h × {bookingRequest.duration_hours}h
+                          <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                         </div>
                       </div>
                     </div>
@@ -1327,7 +1344,7 @@ const EstablishmentSearch = () => {
                         <span className="font-semibold text-gray-700">Tarif horaire</span>
                       </div>
                       <p className="text-2xl font-bold text-amber-600">
-                        {vacationDetails.hourly_rate}€/h
+                        <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                       </p>
                     </div>
                     

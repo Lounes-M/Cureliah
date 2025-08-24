@@ -119,7 +119,7 @@ const VacationFilters = ({ filters, onFiltersChange, onReset }: VacationFiltersP
 
           {/* Tarif minimum */}
           <div className="space-y-2">
-            <Label htmlFor="minRate">Tarif minimum (€/h)</Label>
+            <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
             <Input
               id="minRate"
               type="number"
@@ -131,7 +131,7 @@ const VacationFilters = ({ filters, onFiltersChange, onReset }: VacationFiltersP
 
           {/* Tarif maximum */}
           <div className="space-y-2">
-            <Label htmlFor="maxRate">Tarif maximum (€/h)</Label>
+            <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
             <Input
               id="maxRate"
               type="number"

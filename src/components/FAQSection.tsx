@@ -52,8 +52,8 @@ const FAQSection = () => {
       category: "pricing",
       question: "Comment fonctionne l'abonnement médecin ?",
       answer:
-        "L'abonnement médecin est de 49€/mois. Il vous donne accès à toutes les fonctionnalités : publication de créneaux illimitée, réception de demandes, messagerie, génération de contrats et facturation automatique. Aucune commission sur vos revenus.",
-      tags: ["abonnement", "médecin", "tarif", "commission"],
+        "L'abonnement médecin est de 49€/mois. Il vous donne accès à toutes les fonctionnalités : publication de créneaux illimitée, réception de demandes, messagerie, génération de contrats et facturation automatique. Les prix des vacations sont fixés par les établissements ou la plateforme, jamais par le médecin.",
+      tags: ["abonnement", "médecin", "forfait"],
       popular: true,
     },
     {

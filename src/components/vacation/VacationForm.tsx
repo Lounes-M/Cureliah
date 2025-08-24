@@ -80,19 +80,10 @@ const VacationForm = ({
           return false;
         }
         break;
-      case 'hourly_rate':
-        if (!value) {
-          setErrors(prev => ({ ...prev, [field]: 'Le tarif horaire est requis' }));
-          return false;
-        }
-        if (isNaN(value) || value <= 0) {
-          setErrors(prev => ({ ...prev, [field]: 'Le tarif horaire doit être un nombre positif' }));
-          return false;
-        }
-        break;
     }
     return true;
   };
+  // Suppression de la gestion et de la validation du tarif horaire
 
   const handleBlur = (field: keyof VacationPost) => {
     const error = validateField(field, vacationData[field]);
@@ -116,9 +107,9 @@ const VacationForm = ({
     // Validate all required fields
     const isTitleValid = validateField('title', vacationData.title);
     const isSpecialityValid = validateField('speciality', vacationData.speciality);
-    const isHourlyRateValid = validateField('hourly_rate', vacationData.hourly_rate);
     const isStartDateValid = validateField('start_date', vacationData.start_date);
     const isEndDateValid = validateField('end_date', vacationData.end_date);
+  // Suppression de la validation du tarif horaire
 
     // Validate time slots
     if (!timeSlots || timeSlots.length === 0) {
@@ -131,7 +122,7 @@ const VacationForm = ({
       return;
     }
 
-    if (!isTitleValid || !isSpecialityValid || !isHourlyRateValid || !isStartDateValid || !isEndDateValid) {
+  if (!isTitleValid || !isSpecialityValid || !isStartDateValid || !isEndDateValid) {
       toast({
         title: "Erreur de validation",
         description: "Veuillez corriger les erreurs dans le formulaire",
@@ -236,19 +227,7 @@ const VacationForm = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="hourly_rate">Tarif horaire (€)</Label>
-        <Input
-          id="hourly_rate"
-          type="number"
-          value={vacationData.hourly_rate || ''}
-          onChange={(e) => handleChange('hourly_rate', parseFloat(e.target.value))}
-          onBlur={() => handleBlur('hourly_rate')}
-          placeholder="Ex: 150"
-          className={errors.hourly_rate ? 'border-red-500' : ''}
-        />
-        {errors.hourly_rate && (
-          <p className="text-sm text-red-500">{errors.hourly_rate}</p>
-        )}
+  {/* Champ tarif horaire supprimé pour conformité réglementaire */}
       </div>
 
       <div className="space-y-2">

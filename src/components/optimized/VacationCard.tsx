@@ -13,7 +13,7 @@ interface VacationCardProps {
     start_date: string;
     end_date: string;
     location: string;
-    price: number;
+  // ...le champ price est supprimé pour les médecins
     rating?: number;
     reviews_count?: number;
     image_url?: string;
@@ -51,12 +51,7 @@ const VacationCardSkeleton = memo(() => (
 VacationCardSkeleton.displayName = 'VacationCardSkeleton';
 
 const VacationCard = memo(({ vacation, onView, onBook, loading = false }: VacationCardProps) => {
-  const formatPrice = useCallback((price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(price);
-  }, []);
+  // ...la logique d'affichage du prix est supprimée pour les médecins
 
   const formatDate = useCallback((date: string) => {
     return new Intl.DateTimeFormat('fr-FR', {
@@ -132,7 +127,7 @@ const VacationCard = memo(({ vacation, onView, onBook, loading = false }: Vacati
         <div className="flex justify-between items-center pt-2">
           <div className="flex items-center">
             <Euro className="h-4 w-4 text-medical-green mr-1" />
-            <span className="font-semibold text-lg">{formatPrice(vacation.price)}</span>
+            {/* Prix supprimé pour conformité réglementaire */}
           </div>
           
           <div className="flex space-x-2">

@@ -91,7 +91,7 @@ export interface UrgentRequest {
   location: string;
   latitude?: number;
   longitude?: number;
-  hourly_rate: number;
+  // hourly_rate: number; // Removed for compliance
   total_budget?: number;
   min_experience_years: number;
   required_certifications: string[];

@@ -228,8 +228,19 @@ const VacationDetails = () => {
                   <div className="flex items-center text-gray-600">
                     <Euro className="w-5 h-5 mr-3" />
                     <div>
-                      <div className="font-medium">Tarif horaire</div>
-                      <div className="text-sm font-semibold">{vacation.hourly_rate}€/heure</div>
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded w-full mt-2">
+                        <span className="text-yellow-800 text-sm">
+                      <a
+                        href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                        title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                      >
+                        Tarif: voir règlementation
+                      </a>
+                        </span>
+                      </div>
                     </div>
                   </div>
 

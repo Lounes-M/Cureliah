@@ -67,7 +67,7 @@ export const doctorProfileSchema = z.object({
   speciality: z.string().min(1, 'Spécialité requise'),
   licenseNumber: licenseNumberSchema,
   experienceYears: z.number().min(0, 'Expérience invalide').max(50, 'Expérience trop élevée'),
-  hourlyRate: z.number().min(10, 'Tarif horaire minimum: 10€').max(500, 'Tarif horaire maximum: 500€'),
+  // Suppression de la validation du tarif horaire pour les médecins
   education: z.array(z.string()).optional(),
   languages: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
@@ -115,7 +115,7 @@ export const vacationPostSchema = z.object({
   endDate: z.string().refine(val => !isNaN(Date.parse(val)), {
     message: 'Date de fin invalide'
   }),
-  hourlyRate: z.number().min(10, 'Tarif horaire minimum: 10€').max(500, 'Tarif horaire maximum: 500€'),
+  // Suppression de la validation du tarif horaire pour les vacations
   actType: z.enum(['full_time', 'part_time', 'emergency', 'consultation'], {
     required_error: 'Type d\'activité requis'
   }),
@@ -146,7 +146,7 @@ export const messageSchema = z.object({
 
 // Payment validation schemas
 export const paymentSchema = z.object({
-  amount: z.number().min(1, 'Montant minimum: 1€').max(10000, 'Montant maximum: 10000€'),
+  // Suppression de la validation du montant pour les vacations
   bookingId: z.string().uuid('ID de réservation invalide'),
   paymentMethod: z.enum(['card', 'sepa', 'paypal'], {
     required_error: 'Méthode de paiement requise'

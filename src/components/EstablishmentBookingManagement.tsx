@@ -482,7 +482,24 @@ const BookingCard = ({
             </div>
             <div className="flex items-center text-sm">
               <Euro className="w-4 h-4 text-gray-400 mr-2" />
-              <span>{booking.vacation_posts.hourly_rate}€/h</span>
+              <a
+                href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+              >
+                Tarif: voir règlementation
+              </a>
+<a
+  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+>
+  Tarif: voir règlementation
+</a>
             </div>
           </div>
           

@@ -11,7 +11,7 @@ CREATE TABLE doctor_profiles (
     education JSONB[] DEFAULT '{}',
     languages TEXT[] DEFAULT '{}',
     bio TEXT,
-    consultation_fee INTEGER DEFAULT 0,
+    -- consultation_fee INTEGER DEFAULT 0, -- Removed for compliance
     availability JSONB DEFAULT '{"days": [], "hours": ""}',
     license_number TEXT,
     avatar_url TEXT,

@@ -368,7 +368,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                   
                   <div className="flex-shrink-0 text-right lg:text-right">
                     <div className="text-2xl font-bold text-medical-green mb-1">
-                      {request.hourly_rate}€/h
+                      <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                     </div>
                     <div className="text-sm text-red-600 font-medium bg-red-50 px-2 py-1 rounded-md">
                       {getExpiresInText(request.expires_at)}
@@ -490,7 +490,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                   
                   <div className="flex-shrink-0 text-right">
                     <div className="text-3xl font-bold text-medical-green">
-                      {selectedRequest.hourly_rate}€/h
+                      <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                     </div>
                     <div className="text-sm text-red-600 font-medium bg-red-100 px-3 py-1 rounded-full mt-1">
                       {getExpiresInText(selectedRequest.expires_at)}
@@ -628,7 +628,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                               </div>
 
                               {/* Négociation de tarif */}
-                              {response.requested_rate && response.requested_rate !== selectedRequest.hourly_rate && (
+                              {response.requested_rate && (
                                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
                                   <div className="flex items-center gap-2 mb-2">
                                     <Euro className="w-4 h-4 text-amber-600" />
@@ -636,7 +636,7 @@ export const EstablishmentUrgentRequests: React.FC<EstablishmentUrgentRequestsPr
                                   </div>
                                   <p className="text-sm text-amber-700">
                                     Tarif demandé: <span className="font-bold">{response.requested_rate}€/h</span> 
-                                    (vs {selectedRequest.hourly_rate}€/h proposé)
+                                    (tarif proposé par l'établissement ou la plateforme)
                                   </p>
                                 </div>
                               )}

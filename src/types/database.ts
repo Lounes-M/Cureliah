@@ -108,7 +108,7 @@ export interface VacationPost {
   speciality: string;
   start_date: string;
   end_date: string;
-  hourly_rate: number;
+  // hourly_rate field removed for compliance
   location?: string;
   requirements?: string;
   doctor_id: string;

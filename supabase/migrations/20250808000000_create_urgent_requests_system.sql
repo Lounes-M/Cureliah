@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS urgent_requests (
     location TEXT NOT NULL,
     latitude DECIMAL,
     longitude DECIMAL,
-    hourly_rate DECIMAL NOT NULL,
+    -- hourly_rate DECIMAL NOT NULL, -- Removed for compliance
     total_budget DECIMAL,
     min_experience_years INTEGER DEFAULT 0,
     required_certifications TEXT[] DEFAULT '{}',

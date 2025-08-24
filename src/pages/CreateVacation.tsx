@@ -43,7 +43,7 @@ interface ValidationErrors {
   start_date?: string;
   end_date?: string;
   location?: string;
-  hourly_rate?: string;
+  // Le champ de validation du tarif horaire est supprimé
   time_slots?: string;
 }
 
@@ -167,7 +167,7 @@ const CreateVacation = () => {
       }
 
       if (!data.hourly_rate || data.hourly_rate <= 0) {
-        errors.hourly_rate = "Le taux horaire doit être supérieur à 0";
+  // Suppression de la gestion du taux horaire
       }
 
       if (!data.time_slots || data.time_slots.length === 0) {
@@ -646,9 +646,23 @@ const CreateVacation = () => {
 
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-gray-500" />
-                  <div className="text-sm">
-                    <div className="font-medium">Lieu</div>
-                    <div className="text-gray-600">
+                  <div className="flex flex-col w-full">
+                    <div className="flex flex-col items-center justify-center w-full">
+                      <div className="flex items-center gap-4">
+                        <span className="font-medium">Zone géographique&nbsp;*</span>
+                        <span className="text-gray-400 italic">ex&nbsp;: Paris 11ème</span>
+                      </div>
+                      <a
+                        href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative',marginTop:'8px',display:'inline-block'}}
+                        title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                      >
+                        Tarif: voir règlementation
+                      </a>
+                    </div>
+                    <div className="text-gray-600 text-center w-full mt-1">
                       {formData.location || "Non défini"}
                     </div>
                   </div>
@@ -659,7 +673,7 @@ const CreateVacation = () => {
                   <div className="text-sm">
                     <div className="font-medium">Taux horaire</div>
                     <div className="text-gray-600">
-                      {formData.hourly_rate || 0}€/h
+                      {/* ...taux horaire affichage... */}
                     </div>
                   </div>
                 </div>

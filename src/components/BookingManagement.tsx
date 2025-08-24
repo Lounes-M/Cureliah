@@ -713,7 +713,24 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                             <p className="text-sm text-yellow-800 font-semibold">
                               {booking.total_amount}€ pour {booking.duration_hours}h
                               <span className="text-xs text-yellow-600 ml-2">
-                                ({(booking.total_amount / booking.duration_hours).toFixed(0)}€/h)
+                                <a
+                                  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                                  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                                >
+                                  Tarif: voir règlementation
+                                </a>
+<a
+  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+>
+  Tarif: voir règlementation
+</a>
                               </span>
                             </p>
                           </div>

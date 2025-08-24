@@ -109,7 +109,7 @@ export class UrgentRequestService {
     }
     
     if (filters?.min_rate) {
-      query = query.gte('hourly_rate', filters.min_rate);
+  // query = query.gte('hourly_rate', filters.min_rate); // Removed for compliance
     }
 
     if (filters?.location) {
@@ -119,7 +119,7 @@ export class UrgentRequestService {
     // Ordonner par urgence, puis par créé récemment, puis par rémunération
     query = query.order('urgency_level', { ascending: false })
                 .order('priority_boost', { ascending: false })
-                .order('hourly_rate', { ascending: false })
+                // .order('hourly_rate', { ascending: false }) // Removed for compliance
                 .order('created_at', { ascending: false });
 
     const { data, error } = await query.limit(50);

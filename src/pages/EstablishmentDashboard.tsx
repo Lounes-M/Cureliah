@@ -1542,7 +1542,24 @@ const EstablishmentDashboard = () => {
                             </div>
                             {doctor.hourly_rate && (
                               <div className="mt-2 text-sm font-medium text-medical-green">
-                                {doctor.hourly_rate}€/h
+                                <a
+                                  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                                  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                                >
+                                  Tarif: voir règlementation
+                                </a>
+<a
+  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+  target="_blank"
+  rel="noopener noreferrer"
+  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+>
+  Tarif: voir règlementation
+</a>
                               </div>
                             )}
                           </div>
@@ -1647,12 +1664,17 @@ const EstablishmentDashboard = () => {
                               </div>
 
                               {doctor.hourly_rate && (
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">
-                                    Tarif horaire :
-                                  </span>
-                                  <span className="font-medium text-medical-green">
-                                    {doctor.hourly_rate}€/h
+                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded w-full mt-2">
+                                  <span className="text-yellow-800 text-sm">
+                                <a
+                                  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                                  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                                >
+                                  Tarif: voir règlementation
+                                </a>
                                   </span>
                                 </div>
                               )}
@@ -1908,7 +1930,15 @@ const EstablishmentDashboard = () => {
                         <span className="font-semibold text-gray-700">Tarif horaire</span>
                       </div>
                       <p className="text-2xl font-bold text-amber-600">
-                        {vacation.vacation_posts.hourly_rate}€/h
+                        <a
+                          href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                          title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                        >
+                          Tarif: voir règlementation
+                        </a>
                       </p>
                     </div>
                     

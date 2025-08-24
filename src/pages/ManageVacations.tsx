@@ -1,3 +1,4 @@
+import { formatDateFr } from "@/utils/date";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,30 +13,30 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
   Calendar,
-  Plus,
   BarChart3,
-  Clock,
-  TrendingUp,
-  Users,
-  MapPin,
-  Euro,
-  AlertCircle,
   CheckCircle2,
+  Users,
+  Euro,
+  Clock,
+  AlertCircle,
+  MapPin,
+  Plus
 } from "lucide-react";
 
-interface VacationStats {
-  totalVacations: number;
-  availableSlots: number;
-  bookedSlots: number;
-  totalEarnings: number;
-  upcomingVacations: number;
-  pendingRequests: number;
-}
+// ...existing code...
 
 const ManageVacations = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  type VacationStats = {
+    totalVacations: number;
+    availableSlots: number;
+    bookedSlots: number;
+    totalEarnings: number;
+    upcomingVacations: number;
+    pendingRequests: number;
+  };
   const [stats, setStats] = useState<VacationStats>({
     totalVacations: 0,
     availableSlots: 0,
@@ -142,7 +143,7 @@ const ManageVacations = () => {
         });
       }
     } catch (error) {
-      logger.error("Error fetching stats", error as Error, { userId: user?.id }, 'ManageVacations', 'fetch_stats_error');
+  logger.error("Error fetching stats", error as Error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les statistiques",
@@ -475,8 +476,9 @@ const ManageVacations = () => {
                               <div className="flex items-center gap-4 text-sm text-gray-600">
                                 <div className="flex items-center gap-1">
                                   <Calendar className="w-4 h-4" />
-                                  <span>{vacation.start_date} → {vacation.end_date}</span>
+                                  <span>{formatDateFr(vacation.start_date)} → {formatDateFr(vacation.end_date)}</span>
                                 </div>
+
                                 {vacation.location && (
                                   <div className="flex items-center gap-1">
                                     <MapPin className="w-4 h-4" />
@@ -486,7 +488,24 @@ const ManageVacations = () => {
                                 {vacation.hourly_rate && (
                                   <div className="flex items-center gap-1">
                                     <Euro className="w-4 h-4" />
-                                    <span>{vacation.hourly_rate}€/h</span>
+                                    <a
+                                      href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{
+                                        background: '#fffbe6',
+                                        color: '#ad8b00',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        fontWeight: 'bold',
+                                        textDecoration: 'underline',
+                                        cursor: 'pointer',
+                                        position: 'relative'
+                                      }}
+                                      title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                                    >
+                                      Tarif: voir règlementation
+                                    </a>
                                   </div>
                                 )}
                               </div>
@@ -557,4 +576,7 @@ const ManageVacations = () => {
   );
 };
 
+
 export default ManageVacations;
+
+// Ajout de la fonction utilitaire pour le format français

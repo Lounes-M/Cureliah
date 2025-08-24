@@ -10,12 +10,11 @@ import { useGeolocation, LocationCoords } from "@/hooks/useGeolocation";
 export interface SearchFilters {
   speciality: string;
   location: string;
-  minRate: string;
-  maxRate: string;
+  // Suppression des filtres de prix pour les médecins
   startDate: string;
   endDate: string;
   radius: string; // Rayon de recherche en km
-  sortBy: 'date' | 'price' | 'distance' | 'rating';
+  sortBy: 'date' | 'distance' | 'rating'; // Suppression du tri par prix
 }
 
 const useVacationSearch = () => {
@@ -30,8 +29,7 @@ const useVacationSearch = () => {
   const [filters, setFilters] = useState<SearchFilters>({
     speciality: "",
     location: "",
-    minRate: "",
-    maxRate: "",
+  // Suppression des valeurs de filtre de prix
     startDate: "",
     endDate: "",
     radius: "50", // 50km par défaut
@@ -65,13 +63,9 @@ const useVacationSearch = () => {
         query = query.ilike("location", `%${filters.location}%`);
       }
 
-      if (filters.minRate) {
-        query = query.gte("hourly_rate", parseFloat(filters.minRate));
-      }
+  // Suppression du filtre minRate
 
-      if (filters.maxRate) {
-        query = query.lte("hourly_rate", parseFloat(filters.maxRate));
-      }
+  // Suppression du filtre maxRate
 
       if (filters.startDate) {
         query = query.gte("start_date", filters.startDate);
@@ -158,8 +152,8 @@ const useVacationSearch = () => {
     setFilters({
       speciality: "",
       location: "",
-      minRate: "",
-      maxRate: "",
+  // Suppression de la valeur minRate
+  // Suppression de la valeur maxRate
       startDate: "",
       endDate: "",
       radius: "50",

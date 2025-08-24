@@ -14,6 +14,7 @@ Cureliah simplifie la gestion des vacations médicales en connectant directement
 - **Messagerie intégrée** : Communication directe entre professionnels
 - **Tableau de bord** : Analytics et suivi des performances
 - **Documents** : Gestion des contrats et pièces justificatives
+- **Abonnement médecin** : Les médecins paient un abonnement pour accéder à la plateforme, mais ne fixent pas le prix des vacations. Les tarifs sont définis par les établissements ou la plateforme.
 
 ## 🔐 Sécurité
 

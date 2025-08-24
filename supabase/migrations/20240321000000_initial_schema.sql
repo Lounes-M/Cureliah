@@ -59,7 +59,7 @@ CREATE TABLE vacation_posts (
     speciality TEXT,
     start_date TIMESTAMP WITH TIME ZONE NOT NULL,
     end_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    hourly_rate DECIMAL(10,2) NOT NULL,
+    -- hourly_rate DECIMAL(10,2) NOT NULL, -- Removed for compliance
     location TEXT,
     requirements TEXT,
     status TEXT NOT NULL DEFAULT 'available' CHECK (status IN ('available', 'booked', 'completed', 'cancelled', 'pending')),

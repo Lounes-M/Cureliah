@@ -132,7 +132,8 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
   // Calculer le coût total
   const calculateTotalAmount = (): number => {
     const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
-    return totalHours * vacation.hourly_rate;
+  // return totalHours * vacation.hourly_rate; // Removed for compliance
+  return 0; // Or show compliance message in UI
   };
 
   // Vérifier si un créneau est sélectionné
@@ -259,7 +260,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
               <div className="space-y-2">
                 <div className="flex items-center text-sm">
                   <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                  <span>{vacation.hourly_rate}€/heure</span>
+                  <span style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold'}}>Le tarif de la vacation est fixé par l'établissement ou la plateforme. Vous ne pouvez pas le modifier.</span>
                 </div>
                 {vacation.speciality && (
                   <Badge variant="secondary" className="bg-medical-blue/10 text-medical-blue">
@@ -325,7 +326,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
                             <div className="flex justify-between items-center">
                               <span>{formatTimeSlot(slot)}</span>
                               <span className="text-sm text-gray-500">
-                                {calculateSlotHours(slot)}h - {calculateSlotHours(slot) * vacation.hourly_rate}€
+                                {calculateSlotHours(slot)}h
                               </span>
                             </div>
                           </Label>
@@ -348,7 +349,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
                     <span>
                       {format(parseISO(slot.date), 'dd/MM', { locale: fr })} - {formatTimeSlot(slot.timeSlot)}
                     </span>
-                    <span>{slot.hours}h - {slot.hours * vacation.hourly_rate}€</span>
+                    <span>{slot.hours}h</span>
                   </div>
                 ))}
                 <div className="border-t pt-2 flex justify-between font-semibold">

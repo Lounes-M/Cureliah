@@ -53,8 +53,7 @@ interface DashboardStats {
   completedVacations: number;
   totalBookings: number;
   todayBookings: number;
-  weeklyRevenue: number;
-  monthlyRevenue: number;
+  // Suppression des indicateurs de revenus
   averageRating: number;
   totalReviews: number;
   profileCompleteness: number;
@@ -254,9 +253,9 @@ const DoctorDashboard = () => {
   const loadStats = async (): Promise<DashboardStats> => {
     // 1. Statistiques des vacations
     const { data: vacationStats } = await supabase
-      .from("vacation_posts")
-      .select("status, hourly_rate")
-      .eq("doctor_id", user.id);
+  .from("vacation_posts")
+  .select("status")
+  .eq("doctor_id", user.id);
 
     // 2. Statistiques des réservations
     const { data: bookingStats } = await supabase
@@ -264,7 +263,7 @@ const DoctorDashboard = () => {
       .select(
         `
         status,
-        total_amount,
+  // Suppression du montant total
         created_at,
         vacation_posts!inner(doctor_id)
       `
@@ -307,17 +306,7 @@ const DoctorDashboard = () => {
     const todayBookings =
       bookingStats?.filter((b) => b.created_at.startsWith(today)).length || 0;
 
-    const weeklyRevenue =
-      bookingStats
-        ?.filter((b) => b.created_at >= startOfWeek && b.status === "confirmed")
-        .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
 
-    const monthlyRevenue =
-      bookingStats
-        ?.filter(
-          (b) => b.created_at >= startOfMonth && b.status === "confirmed"
-        )
-        .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
 
     const averageRating = reviewStats?.length
       ? reviewStats.reduce((sum, r) => sum + r.rating, 0) / reviewStats.length
@@ -327,14 +316,14 @@ const DoctorDashboard = () => {
 
     // Calculer la complétude du profil
     const profileFields = [
-      "first_name",
-      "last_name",
-      "speciality",
-      "license_number",
-      "bio",
-      "avatar_url",
-      "experience_years",
-      "hourly_rate",
+  "first_name",
+  "last_name",
+  "speciality",
+  "license_number",
+  "bio",
+  "avatar_url",
+  "experience_years",
+  // Suppression du champ hourly_rate
     ];
     const filledFields = profileFields.filter(
       (field) => doctorProfile?.[field] && doctorProfile[field] !== ""
@@ -350,8 +339,7 @@ const DoctorDashboard = () => {
       completedVacations,
       totalBookings,
       todayBookings,
-      weeklyRevenue,
-      monthlyRevenue,
+  // Suppression des indicateurs de revenus
       averageRating,
       totalReviews,
       profileCompleteness,
@@ -771,8 +759,8 @@ const DoctorDashboard = () => {
             ) : (
               <>
                 {/* KPI Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-shadow col-span-1 md:col-span-1 lg:col-span-1 w-full">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -793,29 +781,9 @@ const DoctorDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-medical-green text-sm font-medium mb-1">
-                            Revenus du mois
-                          </p>
-                          <p className="text-2xl font-bold text-green-900">
-                            {dashboardStats?.monthlyRevenue?.toFixed(0) || 0}€
-                          </p>
-                          <p className="text-xs text-green-700">
-                            Semaine:{" "}
-                            {dashboardStats?.weeklyRevenue?.toFixed(0) || 0}€
-                          </p>
-                        </div>
-                        <div className="bg-medical-green p-3 rounded-xl">
-                          <DollarSign className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  {/* KPI financier supprimé pour conformité réglementaire */}
 
-                  <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 shadow-sm hover:shadow-md transition-shadow col-span-1 md:col-span-1 lg:col-span-1 w-full">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -837,7 +805,7 @@ const DoctorDashboard = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+                  <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 shadow-sm hover:shadow-md transition-shadow col-span-1 md:col-span-1 lg:col-span-1 w-full">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div>
@@ -1091,7 +1059,7 @@ const DoctorDashboard = () => {
                       <div className="text-center py-4">
                         <div className="text-red-600 text-2xl mb-2">🚨</div>
                         <p className="text-sm text-red-800 mb-3">
-                          Consultez les demandes urgentes des établissements et répondez rapidement pour maximiser vos revenus.
+                          Consultez les demandes urgentes des établissements et répondez rapidement pour aider les établissements.
                         </p>
                         <Button
                           onClick={() => setActiveTab("premium_missions")}

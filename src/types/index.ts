@@ -53,7 +53,7 @@ export interface DoctorProfile extends BaseEntity {
   }>;
   languages: string[];
   bio: string | null;
-  consultation_fee: number; // en centimes
+  // Suppression du champ consultation_fee pour les médecins
   availability: {
     days: string[];
     hours: string;
@@ -276,7 +276,7 @@ export interface DoctorProfileForm {
   }>;
   languages: string[];
   bio: string;
-  consultation_fee: number;
+  // consultation_fee: number; // Removed for compliance
   availability: {
     days: string[];
     hours: string;
@@ -412,7 +412,7 @@ export const doctorProfileSchema = z.object({
   })),
   languages: z.array(z.string()),
   bio: z.string().max(1000).nullable(),
-  consultation_fee: z.number().int().nonnegative(),
+  // consultation_fee: z.number().int().nonnegative(), // Removed for compliance
   availability: z.object({
     days: z.array(z.string()),
     hours: z.string(),

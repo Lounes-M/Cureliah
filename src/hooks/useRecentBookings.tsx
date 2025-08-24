@@ -12,7 +12,7 @@ interface BookingWithVacation {
     title: string;
     speciality: string;
     start_date: string;
-    hourly_rate: number;
+  // hourly_rate: number; // Removed for compliance
     location: string;
   };
 }
@@ -44,7 +44,7 @@ export function useRecentBookings() {
             title,
             speciality,
             start_date,
-            hourly_rate,
+            // hourly_rate, // Removed for compliance
             location
           )
         `)
@@ -53,17 +53,17 @@ export function useRecentBookings() {
         .limit(5);
 
       if (error) throw error;
-      
+
       const formattedBookings = data?.map(booking => ({
-        ...booking,
-        vacation_post: Array.isArray(booking.vacation_post) 
-          ? booking.vacation_post[0] 
-          : booking.vacation_post
+        id: booking.id,
+        status: booking.status,
+        created_at: booking.created_at,
+        total_amount: booking.total_amount,
+        vacation_post: booking.vacation_post
       })) as BookingWithVacation[];
-      
+
       setBookings(formattedBookings || []);
     } catch (error: unknown) {
-      logger.error('Error fetching bookings:', error, {}, 'Auto', 'todo_replaced');
       toast({
         title: "Erreur",
         description: "Impossible de charger les réservations",

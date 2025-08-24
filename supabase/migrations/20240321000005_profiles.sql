@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS doctor_profiles (
   education JSONB[] DEFAULT '{}',
   languages TEXT[] DEFAULT '{}',
   bio TEXT,
-  consultation_fee INTEGER DEFAULT 0,
+  -- consultation_fee INTEGER DEFAULT 0, -- Removed for compliance
   availability JSONB DEFAULT '{"days": [], "hours": ""}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL

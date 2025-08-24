@@ -1113,13 +1113,19 @@ export const PlanningMedecin = ({
                   </div>
                   
                   <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Euro className="w-5 h-5 text-amber-500" />
-                      <span className="font-semibold text-gray-700">Tarif horaire</span>
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded w-full">
+                      <span className="text-yellow-800 text-sm">
+                        <a
+                          href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                          title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                        >
+                          Tarif: voir règlementation
+                        </a>
+                      </span>
                     </div>
-                    <p className="text-2xl font-bold text-amber-600">
-                      {selectedEvent?.extendedProps.rate || 0}€
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1290,27 +1296,18 @@ export const PlanningMedecin = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="rate" className="text-sm font-semibold text-gray-700">
-                      Tarif horaire (€) <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        id="rate"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={selectedSlot.rate}
-                        onChange={(e) =>
-                          setSelectedSlot({
-                            ...selectedSlot,
-                            rate: parseFloat(e.target.value),
-                          })
-                        }
-                        placeholder="50"
-                        required
-                        className="pl-10 bg-white/80 border-white/50 focus:border-blue-400 transition-all duration-300"
-                      />
+                    <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                      <span className="text-yellow-800 text-sm">
+                        <a
+                          href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
+                          title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
+                        >
+                          Tarif: voir règlementation
+                        </a>
+                      </span>
                     </div>
                   </div>
 
