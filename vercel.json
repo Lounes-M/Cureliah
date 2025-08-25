@@ -16,6 +16,17 @@
     "APP_BASE_URL": "https://cureliah.com",
     "NODE_ENV": "production"
   },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-eval' 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; media-src 'self' https://rlfghipdzxfnwijsylac.supabase.co; connect-src 'self' https://rlfghipdzxfnwijsylac.supabase.co;"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",

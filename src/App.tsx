@@ -15,6 +15,7 @@ import { useMonitoring } from "@/services/monitoring";
 import { PromoBanner } from "@/components/PromoBanner";
 import { usePromoBanner } from "@/hooks/usePromoBanner";
 import { performanceMonitor } from "@/utils/performanceMonitor";
+import VideoIntroPopup from "@/components/VideoIntroPopup";
 import { useEffect, useState } from "react";
 import Logger from '@/utils/logger';
 
@@ -114,6 +115,7 @@ const EnhancedAppContent = () => {
 
   return (
     <ABTestProvider userId={user?.id || ''} userSegment={userSegment?.userType || 'establishment'}>
+      <VideoIntroPopup />
       {/* Promo Banner - Affiché en haut pour maximum de visibilité */}
       {showPromoBanner && (
         <PromoBanner 
@@ -122,7 +124,6 @@ const EnhancedAppContent = () => {
           user={user}
         />
       )}
-      
       <AppRoutes />
       <Toaster />
       <PWAInstallPrompt 
