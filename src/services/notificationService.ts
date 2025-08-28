@@ -28,6 +28,17 @@ export class NotificationService {
         }]);
 
       if (error) throw error;
+        if (error) {
+          // Improved error logging
+          console.error('Supabase error (createNotification):', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+            error
+          });
+          throw error;
+        }
       return data;
     } catch (error) {
       ErrorHandler.handleUnexpectedError(error as Error, { userId: params.user_id, type: params.type });
@@ -51,6 +62,17 @@ export class NotificationService {
         })));
 
       if (error) throw error;
+        if (error) {
+          // Improved error logging
+          console.error('Supabase error (createBulkNotifications):', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+            error
+          });
+          throw error;
+        }
       return data;
     } catch (error) {
       ErrorHandler.handleUnexpectedError(error as Error, { notificationCount: notifications.length });

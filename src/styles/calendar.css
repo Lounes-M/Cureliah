@@ -1,3 +1,55 @@
+/* Style des boutons custom FullCalendar */
+.fc-button.customPrev, .fc-button.customNext {
+  font-size: 2rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.12);
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+}
+.fc-button.customPrev:hover, .fc-button.customNext:hover {
+  background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+  transform: scale(1.1);
+}
+/* Patch ASCII pour forcer l'affichage des flèches FullCalendar */
+.fc-prev-button .fc-icon:before {
+  content: '<' !important;
+  font-size: 2em !important;
+  color: #333 !important;
+}
+.fc-next-button .fc-icon:before {
+  content: '>' !important;
+  font-size: 2em !important;
+  color: #333 !important;
+}
+/* Forcer l'affichage des flèches FullCalendar à côté du bouton Aujourd'hui */
+.fc-prev-button .fc-icon,
+.fc-next-button .fc-icon {
+  font-family: inherit !important;
+  font-size: 1.5em !important;
+}
+.fc-prev-button .fc-icon:before {
+  content: "\2039" !important;
+}
+.fc-next-button .fc-icon:before {
+  content: "\203A" !important;
+}
+/* Forcer l'affichage des flèches FullCalendar */
+.fc-icon-left-single-arrow:before {
+  content: "\2039" !important;
+  font-size: 1.5em;
+}
+.fc-icon-right-single-arrow:before {
+  content: "\203A" !important;
+  font-size: 1.5em;
+}
 /* Styles pour le calendrier moderne custom */
 .calendar-grid {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

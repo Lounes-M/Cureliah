@@ -74,13 +74,22 @@ class Logger {
   error(message: string, error?: Error, context?: LogContext): void {
     if (!this.shouldLog('error')) return;
     
+    let errorDetails = undefined;
+    if (error) {
+      // If error is a Supabase error, include all properties
+      errorDetails = {
+        name: (error as any).name,
+        message: (error as any).message,
+        stack: (error as any).stack,
+        details: (error as any).details,
+        hint: (error as any).hint,
+        code: (error as any).code,
+        ...error
+      };
+    }
     const fullContext = {
       ...context,
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      } : undefined
+      error: errorDetails
     };
     
     const entry = this.createLogEntry('error', message, fullContext);

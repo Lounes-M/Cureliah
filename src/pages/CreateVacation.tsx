@@ -225,6 +225,17 @@ const CreateVacation = () => {
         .single();
 
       if (vacationError) throw vacationError;
+      if (vacationError) {
+        // Improved error logging
+        console.error('Supabase error (vacationData):', {
+          message: vacationError.message,
+          details: vacationError.details,
+          hint: vacationError.hint,
+          code: vacationError.code,
+          error: vacationError
+        });
+        throw vacationError;
+      }
 
       const { data: timeSlotsData, error: timeSlotsError } = await supabase
         .from("time_slots")
@@ -232,6 +243,28 @@ const CreateVacation = () => {
         .eq("vacation_id", vacationId);
 
       if (timeSlotsError) throw timeSlotsError;
+      if (timeSlotsError) {
+        // Improved error logging
+        console.error('Supabase error (timeSlotsData):', {
+          message: timeSlotsError.message,
+          details: timeSlotsError.details,
+          hint: timeSlotsError.hint,
+          code: timeSlotsError.code,
+          error: timeSlotsError
+        });
+        throw timeSlotsError;
+      }
+    if (timeSlotsError) {
+      // Improved error logging
+      console.error('Supabase error (insert timeSlots):', {
+        message: timeSlotsError.message,
+        details: timeSlotsError.details,
+        hint: timeSlotsError.hint,
+        code: timeSlotsError.code,
+        error: timeSlotsError
+      });
+      throw timeSlotsError;
+    }
 
       setFormData({
         ...vacationData,

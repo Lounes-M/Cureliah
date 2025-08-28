@@ -1,3 +1,6 @@
+import '@fullcalendar/common/main.css';
+import '@fullcalendar/timegrid/main.css';
+import '@fullcalendar/daygrid/main.css';
 import { useState, useEffect, useCallback, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -11,6 +14,7 @@ import { fr } from "date-fns/locale";
 import "@/styles/calendar.css";
 import "@/styles/planningMedecin.css";
 import { logger } from '@/services/logger';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import {
   Dialog,
   DialogContent,
@@ -141,7 +145,7 @@ export const PlanningMedecin = ({
       type: "none",
       endType: "never",
     });
-  const calendarRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<any>(null);
   const [selectedDate, setSelectedDate] = useState<{
     start: Date;
     end: Date;
@@ -683,12 +687,27 @@ export const PlanningMedecin = ({
           )}
           
           <FullCalendar
+            ref={calendarRef}
             plugins={[timeGridPlugin, interactionPlugin]}
             initialView="timeGridWeek"
+            customButtons={{
+              customPrev: {
+                text: '‹',
+                click: () => {
+                  calendarRef.current?.getApi().prev();
+                },
+              },
+              customNext: {
+                text: '›',
+                click: () => {
+                  calendarRef.current?.getApi().next();
+                },
+              },
+            }}
             headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "timeGridWeek,timeGridDay",
+              left: 'customPrev,customNext today',
+              center: 'title',
+              right: 'timeGridWeek,timeGridDay',
             }}
             locale="fr"
             selectable={true}
