@@ -5,7 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import React from 'react';
-import { log } from '@/utils/logging';
+import { logger } from '@/services/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL!;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY!;
@@ -23,7 +23,7 @@ class SecureSupabaseStorage {
   private keyPrefix = 'sb-auth-token';
 
   constructor() {
-    log.info('Initializing secure Supabase storage', { 
+    logger.info('Initializing secure Supabase storage', {
       isProduction: this.isProduction,
       storageType: this.isProduction ? 'secure-cookies' : 'localStorage'
     });
@@ -42,7 +42,7 @@ class SecureSupabaseStorage {
         return localStorage.getItem(key);
       }
     } catch (error) {
-      log.error('Error retrieving auth token', error, { key });
+      logger.error('Error retrieving auth token', error as Error, { key });
       return null;
     }
   }
@@ -55,14 +55,14 @@ class SecureSupabaseStorage {
       if (this.isProduction && typeof document !== 'undefined') {
         // En production : cookies sécurisés
         this.setSecureCookie(`${this.keyPrefix}-${key}`, value);
-        log.security('Auth token stored in secure cookie', { key });
+        logger.warn('Auth token stored in secure cookie', { key, type: 'security' });
       } else {
         // En développement : localStorage
         localStorage.setItem(key, value);
-        log.debug('Auth token stored in localStorage', { key });
+        logger.debug('Auth token stored in localStorage', { key });
       }
     } catch (error) {
-      log.error('Error storing auth token', error, { key });
+      logger.error('Error storing auth token', error as Error, { key });
     }
   }
 
@@ -73,13 +73,13 @@ class SecureSupabaseStorage {
     try {
       if (this.isProduction && typeof document !== 'undefined') {
         this.deleteSecureCookie(`${this.keyPrefix}-${key}`);
-        log.security('Auth token removed from secure cookie', { key });
+        logger.warn('Auth token removed from secure cookie', { key, type: 'security' });
       } else {
         localStorage.removeItem(key);
-        log.debug('Auth token removed from localStorage', { key });
+        logger.debug('Auth token removed from localStorage', { key });
       }
     } catch (error) {
-      log.error('Error removing auth token', error, { key });
+      logger.error('Error removing auth token', error as Error, { key });
     }
   }
 

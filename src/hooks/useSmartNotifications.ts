@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client.browser';
-import { log } from '@/utils/logging';
+import { logger } from '@/services/logger';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface NotificationCount {
@@ -65,7 +65,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
     if (!userId) return;
 
     try {
-      log.debug('Fetching notifications', { userId, userType });
+      logger.debug('Fetching notifications', { userId, userType });
 
       const { count: unreadCount, error: unreadError } = await supabase
         .from('notifications')
@@ -95,7 +95,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
       // Reset des erreurs en cas de succès
       errorCountRef.current = 0;
       
-      log.debug('Notifications fetched successfully', { 
+      logger.debug('Notifications fetched successfully', {
         unread: newCount.unread, 
         urgent: newCount.urgent,
         lastUpdated: newCount.lastUpdated.toISOString()
@@ -103,7 +103,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
 
     } catch (error) {
       errorCountRef.current += 1;
-      log.error('Error fetching notifications', error, { userId, errorCount: errorCountRef.current });
+      logger.error('Error fetching notifications', error as Error, { userId, errorCount: errorCountRef.current });
       
       // Escalade progressive : augmenter l'intervalle après plusieurs erreurs
       if (errorCountRef.current >= 3) {
@@ -118,7 +118,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
   const setupRealTimeSubscription = useCallback(() => {
     if (!userId || !enableRealtime) return;
 
-    log.info('Setting up real-time notifications subscription', { userId });
+    logger.info('Setting up real-time notifications subscription', { userId });
 
     const channel = supabase
       .channel(`notifications_${userId}`)
@@ -131,7 +131,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
           filter: `user_id=eq.${userId}`
         },
         (payload) => {
-          log.info('Real-time notification received', { 
+          logger.info('Real-time notification received', {
             eventType: payload.eventType,
             userId 
           });
@@ -143,13 +143,13 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           setIsRealTimeConnected(true);
-          log.success('Real-time notifications connected', { userId });
+          logger.info('Real-time notifications connected', { userId });
         } else if (status === 'CLOSED') {
           setIsRealTimeConnected(false);
-          log.warn('Real-time notifications disconnected', { userId, error: err });
+          logger.warn('Real-time notifications disconnected', { userId, error: err });
         } else if (status === 'CHANNEL_ERROR') {
           setIsRealTimeConnected(false);
-          log.error('Real-time notifications error', err, { userId });
+          logger.error('Real-time notifications error', err as Error, { userId });
         }
       });
 
@@ -173,7 +173,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
 
     // Si temps réel connecté ET utilisateur inactif, réduire le polling
     if (isRealTimeConnected && !isUserActive) {
-      log.debug('Real-time connected and user inactive, skipping polling');
+      logger.debug('Real-time connected and user inactive, skipping polling');
       return;
     }
 
@@ -182,7 +182,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
       Math.max(currentPollingInterval / 2, minPollingInterval) : 
       Math.min(currentPollingInterval * 2, maxPollingInterval);
 
-    log.debug('Setting up smart polling', { 
+    logger.debug('Setting up smart polling', {
       interval, 
       isUserActive, 
       isRealTimeConnected 
@@ -212,7 +212,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
     // Considérer l'utilisateur inactif après 5 minutes
     userActivityTimeoutRef.current = setTimeout(() => {
       setIsUserActive(false);
-      log.debug('User marked as inactive');
+      logger.debug('User marked as inactive');
     }, 300000); // 5 minutes
   }, []);
 
@@ -270,7 +270,7 @@ export function useSmartNotifications(options: UseSmartNotificationsOptions = {}
     
     // Méthodes de contrôle
     forceRefresh: () => {
-      log.userAction('notifications_force_refresh', userId);
+      logger.userAction('notifications_force_refresh', userId || '');
       fetchNotifications();
     },
     

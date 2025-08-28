@@ -1,11 +1,18 @@
 import { useState, useEffect } from 'react';
 import { logger } from "@/services/logger";
 
+interface UserLike {
+  user_metadata?: {
+    user_type?: 'doctor' | 'establishment';
+  };
+  [key: string]: unknown;
+}
+
 interface UsePromoBannerOptions {
   storageKey?: string;
   autoHideDays?: number;
   showForNewUsers?: boolean;
-  user?: any; // Utilisateur connecté
+  user?: UserLike; // Utilisateur connecté
   intendedUserType?: 'doctor' | 'establishment' | null; // Type d'utilisateur prévu (pour inscription)
   subscriptionStatus?: "active" | "inactive" | "canceled" | "trialing" | "past_due" | null;
 }

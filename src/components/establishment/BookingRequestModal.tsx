@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
-import { Calendar, MapPin, Euro, User, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, User, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -129,12 +129,6 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
     }
   };
 
-  // Calculer le coût total
-  const calculateTotalAmount = (): number => {
-    const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
-  // return totalHours * vacation.hourly_rate; // Removed for compliance
-  return 0; // Or show compliance message in UI
-  };
 
   // Vérifier si un créneau est sélectionné
   const isSlotSelected = (date: string, slotId: string): boolean => {
@@ -162,7 +156,6 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
 
     setLoading(true);
     try {
-      const totalAmount = calculateTotalAmount();
       const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
 
       // Créer la demande de réservation avec les détails des créneaux
@@ -171,9 +164,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
         doctor_id: vacation.doctor_id,
         establishment_id: user.id,
         message: message || null,
-        total_amount: totalAmount,
         status: 'pending' as const,
-        payment_status: 'pending' as const,
         selected_slots: selectedSlots.map(slot => ({
           date: slot.date,
           time_slot_id: slot.timeSlotId,
@@ -221,7 +212,6 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
     }
   };
 
-  const totalAmount = calculateTotalAmount();
   const totalHours = selectedSlots.reduce((sum, slot) => sum + slot.hours, 0);
 
   return (
@@ -354,7 +344,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
                 ))}
                 <div className="border-t pt-2 flex justify-between font-semibold">
                   <span>Total: {totalHours}h</span>
-                  <span>{totalAmount}€</span>
+                  <span>-</span>
                 </div>
               </div>
             </div>
@@ -386,7 +376,7 @@ const BookingRequestModal = ({ isOpen, onClose, vacation, onSuccess }: BookingRe
             disabled={loading || selectedSlots.length === 0}
             className="bg-medical-green hover:bg-medical-green-dark"
           >
-            {loading ? 'Envoi en cours...' : `Envoyer la demande (${totalHours}h - ${totalAmount}€)`}
+            {loading ? 'Envoi en cours...' : `Envoyer la demande (${totalHours}h)`}
           </Button>
         </DialogFooter>
       </DialogContent>

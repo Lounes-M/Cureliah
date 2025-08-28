@@ -10,10 +10,8 @@ interface ExtendedProfile {
 interface VacationDetails {
   id: string;
   status: string;
-  total_amount: number;
   start_date: string;
   end_date: string;
-  payment_status?: string;
   vacation_posts: {
     id: string;
     title: string;
@@ -79,7 +77,6 @@ import {
   Phone,
   Mail,
   Filter,
-  Euro,
   Stethoscope,
   Sparkles,
   X,
@@ -91,7 +88,6 @@ import NotificationCenter from "@/components/notifications/NotificationCenter";
 import DocumentManager from "@/components/documents/DocumentManager";
 import ReviewsRatings from "@/components/ReviewsRatings";
 import MessagingCenter from "@/components/messaging/MessagingCenter";
-import PaymentButton from "@/components/PaymentButton"; // Import du PaymentButton
 import { useAuth } from "@/hooks/useAuth";
 import EstablishmentUrgentRequests from "@/components/establishment/EstablishmentUrgentRequests";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -176,10 +172,8 @@ interface RecentBooking {
   start_date: string;
   end_date: string;
   status: string;
-  total_amount: number;
   location: string;
   doctor_avatar: string;
-  payment_status?: string;
 }
 
 interface PartnerDoctor {
@@ -300,45 +294,7 @@ const EstablishmentDashboard = () => {
   };
 
   // Fonctions utilitaires pour les badges de paiement
-  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Si la réservation n'est pas confirmée, pas de badge de paiement
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'pending':
-      default: return 'bg-orange-100 text-orange-800 border-orange-200';
-    }
-  };
-
-  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Si la réservation n'est pas confirmée, pas de texte de paiement
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return '✅ Réglée';
-      case 'failed': return '❌ Échec paiement';
-      case 'pending':
-      default: return '💳 En attente de règlement';
-    }
-  };
-
-  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Afficher le badge seulement pour les réservations confirmées, payées ou terminées
-    return ['confirmed', 'paid', 'completed'].includes(bookingStatus);
-  };
-
   // Fonction pour vérifier si le bouton de paiement doit être affiché
-  const shouldShowPaymentButton = (status: string, paymentStatus: string | undefined, totalAmount: number) => {
-    return status === 'confirmed' && 
-           paymentStatus !== 'paid' && 
-           totalAmount > 0;
-  };
 
   // Fonction pour charger les détails de la vacation
   const fetchVacationDetails = async (bookingId: string) => {
@@ -351,10 +307,8 @@ const EstablishmentDashboard = () => {
         .select(`
           id,
           status,
-          total_amount,
           start_date,
           end_date,
-          payment_status,
           vacation_posts!inner (
             id,
             title,
@@ -427,10 +381,8 @@ const EstablishmentDashboard = () => {
       const transformedData: VacationDetails = {
         id: data.id,
         status: data.status,
-        total_amount: data.total_amount,
         start_date: data.start_date,
         end_date: data.end_date,
-        payment_status: data.payment_status,
         vacation_posts: {
           id: vacationPost.id,
           title: vacationPost.title || "Vacation sans titre",
@@ -642,7 +594,6 @@ const EstablishmentDashboard = () => {
       .select(
         `
       status,
-      total_amount,
       created_at,
       start_date,
       vacation_posts!inner(doctor_id)
@@ -699,22 +650,11 @@ const EstablishmentDashboard = () => {
         (b) => b.status === "confirmed" && b.start_date >= today
       ).length || 0;
 
-    const totalSpent =
-      bookingStats
-        ?.filter((b) => b.status === "completed")
-        .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+    const totalSpent = 0;
 
-    const weeklySpent =
-      bookingStats
-        ?.filter((b) => b.created_at >= startOfWeek && b.status === "completed")
-        .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+    const weeklySpent = 0;
 
-    const monthlySpent =
-      bookingStats
-        ?.filter(
-          (b) => b.created_at >= startOfMonth && b.status === "completed"
-        )
-        .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+    const monthlySpent = 0;
 
     const averageRating = reviewStats?.length
       ? reviewStats.reduce((sum, r) => sum + r.rating, 0) / reviewStats.length
@@ -770,10 +710,8 @@ const EstablishmentDashboard = () => {
         `
       id,
       status,
-      total_amount,
       start_date,
       end_date,
-      payment_status,
       vacation_posts!inner(
         title,
         location,
@@ -800,9 +738,7 @@ const EstablishmentDashboard = () => {
         start_date: booking.start_date,
         end_date: booking.end_date,
         status: booking.status,
-        total_amount: booking.total_amount,
         location: booking.vacation_posts.location,
-        payment_status: booking.payment_status,
       })) || []
     );
   };
@@ -824,7 +760,6 @@ const EstablishmentDashboard = () => {
           hourly_rate
         )
       ),
-      total_amount,
       status
     `
       )
@@ -846,7 +781,6 @@ const EstablishmentDashboard = () => {
           avatar_url: doctor.avatar_url,
           hourly_rate: doctor.hourly_rate,
           total_bookings: 0,
-          total_amount: 0,
           average_rating: 0,
           total_reviews: 0,
         });
@@ -854,9 +788,7 @@ const EstablishmentDashboard = () => {
 
       const stats = doctorStats.get(doctorId);
       stats.total_bookings += 1;
-      if (booking.status === "completed") {
-        stats.total_amount += booking.total_amount || 0;
-      }
+      // Les montants des vacations ne sont pas suivis
     });
 
     // Récupérer les avis pour chaque docteur
@@ -1400,15 +1332,9 @@ const EstablishmentDashboard = () => {
                                   >
                                     {getStatusLabel(booking.status)}
                                   </Badge>
-                                  {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-                                    <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
-                                      {getPaymentStatusText(booking.payment_status, booking.status)}
-                                    </Badge>
-                                  )}
+                                  {/* Paiement géré hors plateforme */}
                                 </div>
-                                <p className="text-sm font-medium text-gray-900 mt-1">
-                                  {booking.total_amount}€
-                                </p>
+                                {/* Aucun montant affiché */}
                                 <p className="text-xs text-gray-500">
                                   {new Date(
                                     booking.start_date
@@ -1788,12 +1714,7 @@ const EstablishmentDashboard = () => {
                             <span className="ml-2">{getStatusLabel(vacation.status)}</span>
                           </Badge>
                           
-                          {/* Badge de statut de paiement */}
-                          {shouldShowPaymentBadge(vacation.payment_status, vacation.status) && (
-                            <Badge className={`${getPaymentStatusColor(vacation.payment_status, vacation.status)} border font-medium`}>
-                              {getPaymentStatusText(vacation.payment_status, vacation.status)}
-                            </Badge>
-                          )}
+                          {/* Paiement géré directement entre les parties */}
                           
                           <div className="flex items-center gap-2 text-gray-600">
                             <Calendar className="w-4 h-4" />
@@ -1812,9 +1733,7 @@ const EstablishmentDashboard = () => {
                     </div>
                     
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-emerald-600 mb-1">
-                        {vacation.total_amount}€
-                      </div>
+                      {/* Montant non géré par la plateforme */}
                       <div className="text-sm text-gray-600">Montant total</div>
                     </div>
                   </div>
@@ -1924,22 +1843,8 @@ const EstablishmentDashboard = () => {
                   
                   {/* Informations financières et pratiques */}
                   <div className="space-y-4">
-                    <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Euro className="w-5 h-5 text-amber-500" />
-                        <span className="font-semibold text-gray-700">Tarif horaire</span>
-                      </div>
-                      <p className="text-2xl font-bold text-amber-600">
-                        <a
-                          href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
-                          title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
-                        >
-                          Tarif: voir règlementation
-                        </a>
-                      </p>
+                    <div className="bg-white/80 rounded-xl p-4 border border-white/50">
+                      <span className="font-semibold text-gray-700">Tarif fixé directement entre les parties</span>
                     </div>
                     
                     <div className="bg-white/80 rounded-xl p-4 border border-white/50 hover:shadow-md transition-all duration-300">
@@ -2022,18 +1927,7 @@ const EstablishmentDashboard = () => {
                         Contacter le médecin
                       </Button>
                       
-                      {/* Bouton de paiement - NOUVEAU */}
-                      {shouldShowPaymentButton(vacation.status, vacation.payment_status, vacation.total_amount) && (
-                        <PaymentButton
-                          bookingId={vacation.id}
-                          amount={vacation.total_amount}
-                          onSuccess={handlePaymentSuccess}
-                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg hover:shadow-green-200 transition-all duration-300"
-                        >
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Payer {vacation.total_amount}€
-                        </PaymentButton>
-                      )}
+                      {/* Paiement géré directement entre établissements et médecins */}
                     </div>
                   )}
                 </div>

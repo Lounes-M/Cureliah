@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '@/services/logger';
 
 // Production Supabase configuration
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -6,10 +7,10 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Log configuration status in development
 if (import.meta.env.DEV) {
-  console.log('� Supabase Configuration:', {
+  logger.debug('Supabase Configuration', {
     url: supabaseUrl,
     hasValidCredentials: !!(supabaseUrl && supabaseAnonKey),
-    isProduction: true
+    isProduction: import.meta.env.PROD
   });
 }
 

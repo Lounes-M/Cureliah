@@ -15,12 +15,13 @@ interface LogEntry {
 
 class Logger {
   private isDevelopment = import.meta.env.DEV;
+  private userId?: string;
   
   private createLogEntry(level: LogEntry['level'], message: string, context?: LogContext): LogEntry {
     return {
       level,
       message,
-      context,
+      context: { userId: this.userId, ...context },
       timestamp: new Date().toISOString()
     };
   }
@@ -101,6 +102,10 @@ class Logger {
     } else {
       console.debug(this.formatLogMessage(entry));
     }
+  }
+
+  setUserId(userId?: string): void {
+    this.userId = userId;
   }
 
   // Performance logging

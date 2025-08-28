@@ -20,9 +20,7 @@ import {
   UserPlus,
   Building2,
 } from "lucide-react";
-import Logger from '@/utils/logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 const UrgencySection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -166,20 +164,16 @@ const UrgencySection = () => {
   }, [isVisible]);
 
   const handleDoctorSignup = () => {
-    logger.info("Navigation vers inscription médecin avec offre spéciale", 
-      { offer: 'early-bird', type: 'doctor' }, 
-      'UrgencySection', 
-      'doctor_signup'
+    logger.info("Navigation vers inscription médecin avec offre spéciale",
+      { offer: 'early-bird', type: 'doctor', component: 'UrgencySection', action: 'doctor_signup' }
     );
     // Simulation de navigation avec paramètres d'offre
     window.location.href = "/auth?type=doctor&offer=early-bird";
   };
 
   const handleEstablishmentSignup = () => {
-    logger.info("Navigation vers inscription établissement avec offre spéciale", 
-      { offer: 'early-bird', type: 'establishment' }, 
-      'UrgencySection', 
-      'establishment_signup'
+    logger.info("Navigation vers inscription établissement avec offre spéciale",
+      { offer: 'early-bird', type: 'establishment', component: 'UrgencySection', action: 'establishment_signup' }
     );
     window.location.href = "/auth?type=establishment&offer=early-bird";
   };

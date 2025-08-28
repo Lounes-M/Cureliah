@@ -24,7 +24,7 @@ import {
   Building,
   Stethoscope
 } from 'lucide-react';
-import { log } from '@/utils/logging';
+import { logger } from '@/services/logger';
 
 interface UserProfile {
   id: string;
@@ -53,7 +53,7 @@ export function UserMenu({
   const navigate = useNavigate();
 
   const handleSignOut = () => {
-    log.userAction('sign_out', user.id);
+    logger.userAction('sign_out', user.id);
     onSignOut();
   };
 

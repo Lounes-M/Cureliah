@@ -116,7 +116,7 @@ const EstablishmentProfile = () => {
     try {
       const { data: bookingsData, error } = await supabase
         .from('vacation_bookings')
-        .select('id, status, total_amount, start_date, end_date, payment_status, vacation_title')
+        .select('id, status, start_date, end_date, vacation_title')
         .eq('establishment_id', user.id)
         .order('start_date', { ascending: false });
 
@@ -128,7 +128,7 @@ const EstablishmentProfile = () => {
         totalBookings: bookingsData?.length || 0,
         activeBookings: bookingsData?.filter(b => b.status === 'booked').length || 0,
         completedBookings: bookingsData?.filter(b => b.status === 'completed').length || 0,
-        totalSpent: bookingsData?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0
+        totalSpent: 0
       };
 
       setStats(stats);
@@ -451,18 +451,7 @@ const EstablishmentProfile = () => {
                            booking.status === 'cancelled' ? 'Annulée' :
                            booking.status}
                         </Badge>
-                        {['booked','completed'].includes(booking.status) && (
-                          <Badge className={
-                            booking.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                            booking.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }>
-                            {booking.payment_status === 'paid' ? 'Payé' :
-                             booking.payment_status === 'pending' ? 'En attente paiement' :
-                             'Non payé'}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-gray-500">{booking.total_amount}€</span>
+                        {/* Paiement géré en dehors de Cureliah */}
                       </div>
                     </div>
                   ))}

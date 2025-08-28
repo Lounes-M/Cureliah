@@ -5,6 +5,7 @@ import { CheckCircle2, CalendarCheck2, AlertCircle, Clock } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from '@/services/logger';
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -22,9 +23,9 @@ const PaymentSuccess = () => {
   React.useEffect(() => {
     const sessionId = searchParams.get('session_id');
     
-    console.log('[PaymentSuccess] Effect triggered:', { 
-      sessionId, 
-      userId: user?.id, 
+    logger.debug('[PaymentSuccess] Effect triggered', {
+      sessionId,
+      userId: user?.id,
       subscriptionLoading,
       user: user ? 'loaded' : 'null'
     });
@@ -36,27 +37,27 @@ const PaymentSuccess = () => {
     
     // Si on est encore en train de charger l'auth OU si pas d'utilisateur
     if (subscriptionLoading) {
-      logger.info('[PaymentSuccess] Auth still loading, waiting...', {}, 'Auto', 'todo_replaced');
+      logger.info('[PaymentSuccess] Auth still loading, waiting...');
       setPaymentStatus({ verified: false, loading: true, error: null });
       return;
     }
     
     if (!user?.id) {
-      logger.info('[PaymentSuccess] No user ID available, retry in 1 second...', {}, 'Auto', 'todo_replaced');
+      logger.info('[PaymentSuccess] No user ID available, retry in 1 second...');
       setPaymentStatus({ verified: false, loading: true, error: null });
       
       // Retry après 1 seconde si pas d'utilisateur
       setTimeout(() => {
         const currentUser = user; // Capturer la valeur actuelle
         if (currentUser?.id) {
-          logger.info('[PaymentSuccess] User loaded on retry, starting verification:', currentUser.id, {}, 'Auto', 'todo_replaced');
+          logger.info('[PaymentSuccess] User loaded on retry, starting verification', { userId: currentUser.id });
           checkPaymentStatus(sessionId, currentUser.id);
         }
       }, 1000);
       return;
     }
     
-    logger.info('[PaymentSuccess] Starting payment verification for:', { sessionId, userId: user.id }, {}, 'Auto', 'todo_replaced');
+    logger.info('[PaymentSuccess] Starting payment verification', { sessionId, userId: user.id });
     checkPaymentStatus(sessionId, user.id);
   }, [searchParams, user, subscriptionLoading]);
 
@@ -70,7 +71,7 @@ const PaymentSuccess = () => {
 
       if (error) throw error;
 
-      logger.info('Payment status check:', data, {}, 'Auto', 'todo_replaced');
+      logger.info('Payment status check', { data });
       
       if (data?.paymentStatus === 'paid') {
         setPaymentStatus({

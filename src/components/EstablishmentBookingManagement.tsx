@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, MapPin, User, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MessagingModal from './MessagingModal';
-import PaymentButton from './PaymentButton';
 import BookingTimeline from './BookingTimeline';
 import { logger } from "@/services/logger";
 
@@ -62,12 +61,10 @@ interface VacationPostInfo {
 interface BookingWithDetails {
   id: string;
   status: string;
-  total_amount?: number;
   created_at: string;
   updated_at: string;
   start_date: string;
   end_date: string;
-  payment_status?: string;
   vacation_posts: VacationPostInfo;
   doctor_profiles: DoctorInfo;
 }
@@ -131,12 +128,10 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         .select(`
           id,
           status,
-          total_amount,
           created_at,
           updated_at,
           start_date,
           end_date,
-          payment_status,
           vacation_posts!inner (
             id,
             title,
@@ -206,12 +201,10 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
         return {
           id: booking.id,
           status: booking.status,
-          total_amount: booking.total_amount,
           created_at: booking.created_at,
           updated_at: booking.updated_at,
           start_date: booking.start_date,
           end_date: booking.end_date,
-          payment_status: booking.payment_status,
           vacation_posts: {
             id: vacationPost.id,
             title: vacationPost.title,
@@ -272,39 +265,6 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
       case 'completed': return 'Terminée';
       default: return status;
     }
-  };
-
-  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Si la réservation n'est pas confirmée, pas de badge de paiement
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'pending':
-      default: return 'bg-orange-100 text-orange-800 border-orange-200';
-    }
-  };
-
-  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Si la réservation n'est pas confirmée, pas de texte de paiement
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'paid' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return '✅ Réglée';
-      case 'failed': return '❌ Échec paiement';
-      case 'pending':
-      default: return '💳 En attente de règlement';
-    }
-  };
-
-  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
-    // Afficher le badge seulement pour les réservations confirmées, payées ou terminées
-    return ['confirmed', 'paid', 'completed'].includes(bookingStatus);
   };
 
   const openMessaging = (booking: BookingWithDetails) => {
@@ -389,9 +349,6 @@ const EstablishmentBookingManagement = ({ status }: EstablishmentBookingManageme
               onStatusUpdate={fetchBookings}
               getStatusColor={getStatusColor}
               getStatusText={getStatusText}
-              getPaymentStatusColor={getPaymentStatusColor}
-              getPaymentStatusText={getPaymentStatusText}
-              shouldShowPaymentBadge={shouldShowPaymentBadge}
             />
           ))}
         </div>
@@ -417,9 +374,6 @@ interface BookingCardProps {
   onStatusUpdate: () => void;
   getStatusColor: (status: string) => string;
   getStatusText: (status: string) => string;
-  getPaymentStatusColor: (paymentStatus: string | undefined, bookingStatus: string) => string;
-  getPaymentStatusText: (paymentStatus: string | undefined, bookingStatus: string) => string;
-  shouldShowPaymentBadge: (paymentStatus: string | undefined, bookingStatus: string) => boolean;
 }
 
 const BookingCard = ({
@@ -429,10 +383,7 @@ const BookingCard = ({
   onOpenMessaging,
   onStatusUpdate,
   getStatusColor,
-  getStatusText,
-  getPaymentStatusColor,
-  getPaymentStatusText,
-  shouldShowPaymentBadge
+  getStatusText
 }: BookingCardProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -459,11 +410,7 @@ const BookingCard = ({
             <Badge className={getStatusColor(booking.status)}>
               {getStatusText(booking.status)}
             </Badge>
-            {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-              <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium`}>
-                {getPaymentStatusText(booking.payment_status, booking.status)}
-              </Badge>
-            )}
+            {/* Les paiements sont gérés directement entre établissements et médecins */}
           </div>
         </div>
       </CardHeader>
@@ -480,27 +427,6 @@ const BookingCard = ({
               <MapPin className="w-4 h-4 text-gray-400 mr-2" />
               <span>{booking.vacation_posts.location || 'Non spécifié'}</span>
             </div>
-            <div className="flex items-center text-sm">
-              <Euro className="w-4 h-4 text-gray-400 mr-2" />
-              <a
-                href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
-                title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
-              >
-                Tarif: voir règlementation
-              </a>
-<a
-  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
-  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
->
-  Tarif: voir règlementation
-</a>
-            </div>
           </div>
           
           <div className="space-y-2">
@@ -513,22 +439,9 @@ const BookingCard = ({
                 }
               </span>
             </div>
-            {booking.total_amount && (
-              <div className="flex items-center text-sm font-medium text-medical-green">
-                <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                <span>Total: {booking.total_amount}€</span>
-              </div>
-            )}
+            {/* Aucun prix n'est géré par Cureliah */}
           </div>
         </div>
-
-        {booking.total_amount && (
-          <div className="bg-gray-50 p-3 rounded-lg mb-4">
-            <p className="text-sm text-gray-700">
-              <strong>Montant total:</strong> {booking.total_amount}€
-            </p>
-          </div>
-        )}
 
         <div className="flex justify-between items-center">
           <div className="flex space-x-2">
@@ -536,17 +449,6 @@ const BookingCard = ({
               <MessageCircle className="w-4 h-4 mr-2" />
               Contacter le médecin
             </Button>
-            
-            {booking.status === 'confirmed' && 
-             booking.payment_status !== 'paid' && 
-             booking.total_amount && (
-              <PaymentButton
-                bookingId={booking.id}
-                amount={booking.total_amount}
-                className="bg-medical-green hover:bg-medical-green-dark"
-                onSuccess={onStatusUpdate}
-              />
-            )}
           </div>
           <Button variant="ghost" size="sm" onClick={onToggleExpanded}>
             {isExpanded ? (

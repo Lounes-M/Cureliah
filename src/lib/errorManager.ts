@@ -3,6 +3,7 @@
 // ===================================
 
 import { toast } from 'sonner';
+import { logger } from '@/services/logger';
 
 // ===================================
 // TYPES D'ERREURS STRICTS
@@ -233,9 +234,8 @@ class ErrorManager {
 
     // Logger dans la console en développement
     if (process.env.NODE_ENV === 'development') {
-      console.error('🚨 Cureliah Error:', {
+      logger.error('Cureliah Error', new Error(error.message), {
         code: error.code,
-        message: error.message,
         level: error.level,
         context: error.context,
         stack: error.stack,

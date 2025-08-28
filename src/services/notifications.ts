@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
-import { ErrorHandler } from '@/utils/logger';
+import { ErrorHandler } from '@/utils/errorHandler';
 
 export type NotificationType = 'message' | 'payment' | 'booking' | 'document' | 'system';
 

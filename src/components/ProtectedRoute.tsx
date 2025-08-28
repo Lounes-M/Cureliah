@@ -4,9 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Logger from '@/utils/logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 interface ProtectedRouteProps {
   requiredUserType?: "doctor" | "establishment" | "admin";
@@ -37,15 +35,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
   }
 
   if (!user) {
-    logger.info('Pas d\'utilisateur, redirection vers /auth', { from: location.pathname }, 'ProtectedRoute', 'redirect_auth');
+    logger.info('Pas d\'utilisateur, redirection vers /auth', { from: location.pathname, component: 'ProtectedRoute', action: 'redirect_auth' });
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   if (requiredUserType && user.user_type !== requiredUserType) {
-    logger.warn('Type utilisateur incorrect, redirection vers /', { 
-      userType: user.user_type, 
-      requiredType: requiredUserType 
-    }, 'ProtectedRoute', 'redirect_home');
+    logger.warn('Type utilisateur incorrect, redirection vers /', {
+      userType: user.user_type,
+      requiredType: requiredUserType,
+      component: 'ProtectedRoute',
+      action: 'redirect_home'
+    });
     return <Navigate to="/" replace />;
   }
 
@@ -55,8 +55,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
       subscriptionStatus,
       isSubscribed: isSubscribed(),
       subscriptionLoading,
-      userEmail: user.email
-    }, 'ProtectedRoute', 'subscription_check');
+      userEmail: user.email,
+      component: 'ProtectedRoute',
+      action: 'subscription_check'
+    });
 
     // Afficher une interface de diagnostic avant redirection
     return (
@@ -112,7 +114,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredUserType, child
     );
   }
 
-  logger.debug('Accès autorisé', { userType: user.user_type, requiredType: requiredUserType }, 'ProtectedRoute', 'access_granted');
+  logger.debug('Accès autorisé', { userType: user.user_type, requiredType: requiredUserType, component: 'ProtectedRoute', action: 'access_granted' });
   return <>{children}</>;
 };
 

@@ -20,7 +20,6 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Euro,
   Users,
   MessageSquare,
   CheckCircle2,
@@ -47,8 +46,6 @@ interface Booking {
   created_at: string;
   start_date: string;
   end_date: string;
-  total_amount: number;
-  payment_status: "pending" | "paid" | "failed" | "refunded";
   establishment_name: string;
   establishment_avatar: string;
   establishment_email: string;
@@ -66,8 +63,6 @@ interface BookingStats {
   confirmed: number;
   completed: number;
   cancelled: number;
-  monthlyRevenue: number;
-  weeklyRevenue: number;
   averageRating: number;
   responseTime: string;
 }
@@ -85,8 +80,6 @@ const DoctorBookings = () => {
     confirmed: 0,
     completed: 0,
     cancelled: 0,
-    monthlyRevenue: 0,
-    weeklyRevenue: 0,
     averageRating: 0,
     responseTime: "2h",
   });
@@ -125,8 +118,6 @@ const DoctorBookings = () => {
           created_at,
           start_date,
           end_date,
-          total_amount,
-          payment_status,
           notes,
           vacation_posts!inner (
             title,
@@ -153,8 +144,6 @@ const DoctorBookings = () => {
         created_at: booking.created_at,
         start_date: booking.start_date,
         end_date: booking.end_date,
-        total_amount: booking.total_amount,
-        payment_status: booking.payment_status,
         establishment_name: booking.establishment_profiles.name,
         establishment_avatar: booking.establishment_profiles.avatar_url,
         establishment_email: booking.establishment_profiles.email,
@@ -191,12 +180,8 @@ const DoctorBookings = () => {
       confirmed: bookingsData.filter(b => b.status === "confirmed").length,
       completed: bookingsData.filter(b => b.status === "completed").length,
       cancelled: bookingsData.filter(b => b.status === "cancelled").length,
-      weeklyRevenue: bookingsData
-        .filter(b => new Date(b.created_at) >= weekAgo && b.payment_status === "paid")
-        .reduce((sum, b) => sum + b.total_amount, 0),
-      monthlyRevenue: bookingsData
-        .filter(b => new Date(b.created_at) >= monthAgo && b.payment_status === "paid")
-        .reduce((sum, b) => sum + b.total_amount, 0),
+      weeklyRevenue: 0,
+      monthlyRevenue: 0,
       averageRating: 4.8, // À calculer depuis les reviews
       responseTime: "2h",
     };
@@ -323,21 +308,6 @@ const DoctorBookings = () => {
     }
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "failed":
-        return "bg-red-100 text-red-800";
-      case "refunded":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   if (!user || profile?.user_type !== "doctor") {
     return null;
   }
@@ -452,12 +422,12 @@ const DoctorBookings = () => {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   Revenus (mois)
                 </CardTitle>
-                <Euro className="w-4 h-4 text-medical-green" />
+                
               </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold text-medical-green">
-                {loading ? "..." : `${stats.monthlyRevenue}€`}
+                {loading ? "..." : "-"}
               </div>
             </CardContent>
           </Card>
@@ -473,7 +443,7 @@ const DoctorBookings = () => {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl font-bold text-medical-green">
-                {loading ? "..." : `${stats.weeklyRevenue}€`}
+                {loading ? "..." : "-"}
               </div>
             </CardContent>
           </Card>
@@ -602,9 +572,6 @@ const DoctorBookings = () => {
                                   <Badge className={getStatusColor(booking.status)}>
                                     {getStatusLabel(booking.status)}
                                   </Badge>
-                                  <Badge variant="outline" className={getPaymentStatusColor(booking.payment_status)}>
-                                    💳 {booking.payment_status === "paid" ? "Payé" : booking.payment_status === "pending" ? "En attente" : booking.payment_status === "failed" ? "Échec" : "Remboursé"}
-                                  </Badge>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
                                   <div className="flex items-center gap-1">
@@ -615,10 +582,7 @@ const DoctorBookings = () => {
                                     <MapPin className="w-4 h-4" />
                                     <span>{booking.vacation_location}</span>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <Euro className="w-4 h-4" />
-                                    <span>{booking.total_amount}€</span>
-                                  </div>
+                                  {/* Aucun tarif affiché */}
                                   <div className="flex items-center gap-1">
                                     <Clock className="w-4 h-4" />
                                     <span>Demandé le {formatDateTime(booking.created_at)}</span>
@@ -759,11 +723,9 @@ const DoctorBookings = () => {
                   Informations financières
                 </h4>
                 <div className="space-y-2">
-                  <p><span className="font-medium">Montant total:</span> {selectedBooking.total_amount}€</p>
+                  {/* Montant géré en dehors de la plateforme */}
                   <p><span className="font-medium">Statut paiement:</span> 
-                    <Badge className={`ml-2 ${getPaymentStatusColor(selectedBooking.payment_status)}`}>
-                      {selectedBooking.payment_status === "paid" ? "Payé" : selectedBooking.payment_status === "pending" ? "En attente" : selectedBooking.payment_status === "failed" ? "Échec" : "Remboursé"}
-                    </Badge>
+                    {/* Statut de paiement non géré */}
                   </p>
                 </div>
               </div>

@@ -1,18 +1,18 @@
 import { supabase } from '@/integrations/supabase/client.browser';
-import { ErrorHandler } from '@/utils/logger';
+import { ErrorHandler } from '@/utils/errorHandler';
 
-export interface CreateNotificationParams {
+export interface CreateNotificationParams<TData = Record<string, unknown>> {
   user_id: string;
   type: 'booking' | 'payment' | 'review' | 'message' | 'system' | 'reminder' | 'document';
   title: string;
   message: string;
-  data?: any;
+  data?: TData;
   priority?: 'low' | 'medium' | 'high';
   scheduled_for?: string;
 }
 
 export class NotificationService {
-  static async createNotification(params: CreateNotificationParams) {
+  static async createNotification<TData = Record<string, unknown>>(params: CreateNotificationParams<TData>) {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -35,7 +35,7 @@ export class NotificationService {
     }
   }
 
-  static async createBulkNotifications(notifications: CreateNotificationParams[]) {
+  static async createBulkNotifications<TData = Record<string, unknown>>(notifications: CreateNotificationParams<TData>[]) {
     try {
       const { data, error } = await supabase
         .from('notifications')

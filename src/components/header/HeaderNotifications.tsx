@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSmartNotifications } from '@/hooks/useSmartNotifications';
-import { log } from '@/utils/logging';
+import { logger } from '@/services/logger';
 
 interface HeaderNotificationsProps {
   userId?: string;
@@ -38,7 +38,7 @@ export function HeaderNotifications({ userId, userType }: HeaderNotificationsPro
   const hasUrgentNotifications = urgent > 0;
 
   const handleNotificationClick = () => {
-    log.userAction('notifications_opened', userId);
+    logger.userAction('notifications_opened', userId || '');
     // La logique d'ouverture des notifications sera gérée ici
   };
 

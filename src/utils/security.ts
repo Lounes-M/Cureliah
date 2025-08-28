@@ -1,9 +1,7 @@
 // Use Web Crypto API for browser compatibility
 const crypto = globalThis.crypto;
 import { monitoring } from './monitoring';
-import Logger from './logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 // Security Event Types
 type SecurityEventType = 
@@ -197,7 +195,7 @@ class SecurityService {
       return { allowed: true };
       
     } catch (error) {
-      logger.error('Security check failed:', error, {}, 'Security', 'security_check');
+      logger.error('Security check failed:', error, { component: 'Security', action: 'security_check' });
       // Fail secure - deny access on error
       return { allowed: false, reason: 'Security check failed' };
     }
@@ -320,7 +318,7 @@ class SecurityService {
       return 'good';
       
     } catch (error) {
-      logger.error('Threat intelligence check failed:', error, {}, 'Security', 'threat_intelligence');
+      logger.error('Threat intelligence check failed:', error, { component: 'Security', action: 'threat_intelligence' });
       return 'good'; // Fail open for availability
     }
   }
@@ -362,11 +360,13 @@ class SecurityService {
         blocked: securityEvent.blocked,
         ip: securityEvent.ip,
         description: securityEvent.description,
-        ...securityEvent.metadata
+        ...securityEvent.metadata,
+        component: 'SecurityService',
+        action: 'security_event'
       });
 
       // Store security event
-      logger.info('Security Event:', securityEvent);
+      logger.info('Security Event:', { event: securityEvent, component: 'SecurityService', action: 'security_event_store' });
 
       // Send alerts for high/critical events
       if (securityEvent.severity === 'high' || securityEvent.severity === 'critical') {
@@ -379,7 +379,7 @@ class SecurityService {
       }
 
     } catch (error) {
-      logger.error('Failed to log security event:', error);
+      logger.error('Failed to log security event:', error as Error, { component: 'SecurityService', action: 'log_event_failed' });
     }
   }
 
@@ -429,7 +429,9 @@ class SecurityService {
       severity: event.severity,
       description: event.description,
       ip: event.ip,
-      timestamp: event.timestamp
+      timestamp: event.timestamp,
+      component: 'SecurityService',
+      action: 'security_alert'
     });
   }
 
