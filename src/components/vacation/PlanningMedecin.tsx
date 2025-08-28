@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client.browser";
-import { VacationPost, TimeSlot, Speciality } from "@/types/database";
-import { format, parseISO, addDays, addWeeks, addMonths } from "date-fns";
+import { Speciality } from "@/types/database";
+import { format, addDays, addWeeks, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import "@/styles/calendar.css";
+import "@/styles/planningMedecin.css";
 import Logger from '@/utils/logger';
 import {
   Dialog,
@@ -28,10 +30,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, User, Clock, Repeat, Trash2, Plus, MapPin, Euro, Stethoscope, Sparkles, Heart, Activity, Zap, X, Check } from "lucide-react";
+import {
+  Calendar,
+  User,
+  Clock,
+  Repeat,
+  Trash2,
+  Plus,
+  MapPin,
+  Stethoscope,
+  Sparkles,
+  Heart,
+  Activity,
+  Zap,
+  X,
+} from "lucide-react";
 import { SPECIALITIES } from "@/utils/specialities";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 
 interface PlanningMedecinProps {
@@ -56,6 +70,7 @@ interface TimeSlotEvent {
     type: string;
     isRecurring: boolean;
     vacationId: string;
+    recurrenceGroupId: string | null;
   };
 }
 
@@ -81,27 +96,28 @@ interface VacationPostData {
   requirements: string;
   status: "available" | "booked";
   act_type: "consultation" | "urgence" | "visite" | "teleconsultation";
-}
-
-interface TimeSlotData {
-  id: string;
-  type: "morning" | "afternoon" | "custom";
-  start_time: string | null;
-  end_time: string | null;
-  vacation_id: string;
-  vacation_posts: VacationPostData;
+  recurrence_group_id: string | null;
 }
 
 interface VacationFormData {
   title: string;
   description: string;
   speciality: Speciality;
-  start_time: string;
-  end_time: string;
   location: string;
   act_type: "consultation" | "urgence" | "visite" | "teleconsultation";
   rate: number;
   requirements: string;
+}
+
+type VacationPostsRelation = VacationPostData | VacationPostData[] | null;
+
+interface TimeSlotData {
+  id: string;
+  type: string;
+  start_time: string | null;
+  end_time: string | null;
+  vacation_id: string;
+  vacation_posts: VacationPostsRelation;
 }
 
 export const PlanningMedecin = ({
@@ -116,8 +132,6 @@ export const PlanningMedecin = ({
     title: "",
     description: "",
     speciality: "general_medicine",
-    start_time: "",
-    end_time: "",
     location: "",
     act_type: "consultation",
     rate: 0,
@@ -128,6 +142,7 @@ export const PlanningMedecin = ({
       type: "none",
       endType: "never",
     });
+  const calendarRef = useRef<HTMLDivElement>(null);
   const [selectedDate, setSelectedDate] = useState<{
     start: Date;
     end: Date;
@@ -138,147 +153,66 @@ export const PlanningMedecin = ({
   const [animateStats, setAnimateStats] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchTimeSlots();
-    setAnimateStats(true);
-  }, [doctorId]);
-
-  const fetchTimeSlots = async () => {
+  const fetchTimeSlots = useCallback(async () => {
     setIsLoading(true);
     try {
       logger.debug("Fetching time slots for doctor", { doctorId }, 'PlanningMedecin', 'fetch_time_slots');
 
-      const { data: vacationStructure, error: structureError } = await supabase
-        .from("vacation_posts")
-        .select("*")
-        .limit(1);
+      const { data: slots, error: slotsError } = await supabase
+        .from<TimeSlotData>("time_slots")
+        .select(
+          `
+          id,
+          type,
+          start_time,
+          end_time,
+          vacation_id,
+          vacation_posts!inner (
+            id,
+            title,
+            description,
+            speciality,
+            start_date,
+            end_date,
+            hourly_rate,
+            location,
+            requirements,
+            status,
+            act_type,
+            recurrence_group_id
+          )
+        `
+        )
+        .eq("vacation_posts.doctor_id", doctorId);
 
-      if (structureError) {
-        logger.error("Error fetching vacation structure", structureError, { doctorId }, 'PlanningMedecin', 'structure_error');
-      } else {
-        logger.debug("Vacation posts structure", { vacationStructure }, 'PlanningMedecin', 'structure_fetched');
+      if (slotsError) {
+        logger.error("Error fetching time slots", slotsError, { doctorId }, 'PlanningMedecin', 'slots_error');
+        throw slotsError;
       }
 
-      const { data: vacations, error: vacationsError } = await supabase
-        .from("vacation_posts")
-        .select("id")
-        .eq("doctor_id", doctorId);
-
-      if (vacationsError) {
-        logger.error("Error fetching vacations", vacationsError, { doctorId }, 'PlanningMedecin', 'vacations_error');
-        throw vacationsError;
-      }
-
-      logger.debug("Found vacations", { vacationsCount: vacations?.length || 0 }, 'PlanningMedecin', 'vacations_fetched');
-
-      if (!vacations || vacations.length === 0) {
-        logger.info("No vacations found", { doctorId }, 'PlanningMedecin', 'no_vacations');
+      if (!slots || slots.length === 0) {
+        logger.info("No time slots found", { doctorId }, 'PlanningMedecin', 'no_slots');
         setEvents([]);
         return;
       }
 
-      const BATCH_SIZE = 50;
-      const allSlots = [];
-
-      for (let i = 0; i < vacations.length; i += BATCH_SIZE) {
-        const batch = vacations.slice(i, i + BATCH_SIZE);
-        logger.debug(`Processing batch ${i / BATCH_SIZE + 1} of ${Math.ceil(
-          vacations.length / BATCH_SIZE
-        )}`, 
-        { 
-          batchNumber: i / BATCH_SIZE + 1, 
-          totalBatches: Math.ceil(vacations.length / BATCH_SIZE),
-          batchSize: batch.length 
-        }, 
-        'PlanningMedecin', 
-        'vacation_batch_processing'
-        );
-
-        const { data: slots, error: slotsError } = await supabase
-          .from("time_slots")
-          .select(
-            `
-            id,
-            type,
-            start_time,
-            end_time,
-            vacation_id,
-            vacation_posts (
-              id,
-              title,
-              description,
-              speciality,
-              start_date,
-              end_date,
-              hourly_rate,
-              location,
-              requirements,
-              status,
-              act_type
-            )
-          `
-          )
-          .in(
-            "vacation_id",
-            batch.map((v) => v.id)
-          );
-
-        if (slotsError) {
-          logger.error("Error fetching slots batch", slotsError, { 
-            batchNumber: i / BATCH_SIZE + 1,
-            doctorId 
-          }, 'PlanningMedecin', 'slots_batch_error');
-          throw slotsError;
-        }
-
-        if (slots) {
-          allSlots.push(...slots);
-        }
-      }
-
-      logger.info("Found total slots", { slotsCount: allSlots.length }, 'PlanningMedecin', 'total_slots_found');
+      logger.info("Found total slots", { slotsCount: slots.length }, 'PlanningMedecin', 'total_slots_found');
 
       const calendarEvents =
-        allSlots
+        slots
           .map((slot) => {
             const vacationPost = Array.isArray(slot.vacation_posts)
               ? (slot.vacation_posts[0] as VacationPostData)
               : (slot.vacation_posts as VacationPostData);
 
             if (!vacationPost) {
-              logger.warn("Slot without vacation_posts:", slot, {}, 'Auto', 'todo_replaced');
-              return null;
-            }
-
-            let startTime, endTime;
-
-            if (slot.type === "morning") {
-              startTime = "08:00:00";
-              endTime = "12:00:00";
-            } else if (slot.type === "afternoon") {
-              startTime = "14:00:00";
-              endTime = "18:00:00";
-            } else if (slot.type === "custom") {
-              if (!slot.start_time || !slot.end_time) {
-                logger.warn("Custom time slot has invalid dates:", slot, {}, 'Auto', 'todo_replaced');
-                return null;
-              }
-              startTime = slot.start_time;
-              endTime = slot.end_time;
-            } else {
-              logger.warn("Unknown time slot type:", slot, {}, 'Auto', 'todo_replaced');
+              logger.warn("Slot without vacation_posts", slot, 'PlanningMedecin', 'missing_vacation');
               return null;
             }
 
             try {
               const startDate = new Date(vacationPost.start_date);
               const endDate = new Date(vacationPost.end_date);
-
-              const [startHours, startMinutes] = startTime.split(":");
-              const [endHours, endMinutes] = endTime.split(":");
-
-              startDate.setHours(parseInt(startHours), parseInt(startMinutes));
-              endDate.setHours(parseInt(endHours), parseInt(endMinutes));
 
               return {
                 id: slot.id,
@@ -294,26 +228,22 @@ export const PlanningMedecin = ({
                   description: vacationPost.description || "",
                   requirements: vacationPost.requirements || "",
                   type: slot.type,
-                  isRecurring: false,
+                  isRecurring: Boolean(vacationPost.recurrence_group_id),
                   vacationId: vacationPost.id,
+                  recurrenceGroupId: vacationPost.recurrence_group_id,
                 },
-                backgroundColor:
-                  vacationPost.status === "booked" ? "#10b981" : "#8b5cf6",
-                borderColor:
-                  vacationPost.status === "booked" ? "#059669" : "#7c3aed",
-                textColor: "#ffffff",
               };
             } catch (error) {
-              logger.error("Error processing slot:", error, slot, {}, 'Auto', 'todo_replaced');
+              logger.error("Error processing slot", error as Error, slot, 'PlanningMedecin', 'process_slot');
               return null;
             }
           })
           .filter(Boolean) || [];
 
-      logger.info("Processed calendar events:", calendarEvents, {}, 'Auto', 'todo_replaced');
+      logger.info("Processed calendar events", calendarEvents, 'PlanningMedecin', 'calendar_events_processed');
       setEvents(calendarEvents);
     } catch (error) {
-      logger.error("Error fetching time slots:", error, {}, 'Auto', 'todo_replaced');
+      logger.error("Error fetching time slots", error as Error, undefined, 'PlanningMedecin', 'fetch_time_slots');
       toast({
         title: "❌ Erreur",
         description: "Impossible de charger les créneaux",
@@ -322,9 +252,14 @@ export const PlanningMedecin = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [doctorId, logger, toast]);
 
-  const handleDateSelect = (selectInfo: any) => {
+  useEffect(() => {
+    fetchTimeSlots();
+    setAnimateStats(true);
+  }, [fetchTimeSlots]);
+
+  const handleDateSelect = (selectInfo: DateSelectArg) => {
     setSelectedDate({
       start: selectInfo.start,
       end: selectInfo.end,
@@ -333,8 +268,6 @@ export const PlanningMedecin = ({
       title: "",
       description: "",
       speciality: "general_medicine",
-      start_time: format(selectInfo.start, "yyyy-MM-dd'T'HH:mm:ss"),
-      end_time: format(selectInfo.end, "yyyy-MM-dd'T'HH:mm:ss"),
       location: "",
       act_type: "consultation",
       rate: 0,
@@ -343,16 +276,16 @@ export const PlanningMedecin = ({
     setShowCreateDialog(true);
   };
 
-  const handleEventClick = (clickInfo: any) => {
+  const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
-    logger.info("Event clicked:", event, {}, 'Auto', 'todo_replaced');
-    logger.info("Event extended props:", event.extendedProps, {}, 'Auto', 'todo_replaced');
+    logger.info("Event clicked", event, 'PlanningMedecin', 'event_clicked');
+    logger.info("Event extended props", event.extendedProps, 'PlanningMedecin', 'event_props');
     setSelectedEvent({
       id: event.id,
       title: event.title,
-      start: event.start,
-      end: event.end,
-      extendedProps: event.extendedProps,
+      start: event.start!,
+      end: event.end!,
+      extendedProps: event.extendedProps as TimeSlotEvent["extendedProps"],
     });
     setShowDeleteDialog(true);
   };
@@ -364,85 +297,76 @@ export const PlanningMedecin = ({
       setIsLoading(true);
       setShowCreateDialog(false);
 
+      const duration = selectedDate.end.getTime() - selectedDate.start.getTime();
       const dates: { start: Date; end: Date }[] = [];
 
       if (recurrenceSettings.type === "none") {
         dates.push(selectedDate);
+      } else if (recurrenceSettings.endType === "count") {
+        const n = Math.max(1, recurrenceSettings.count ?? 1);
+        let cur = new Date(selectedDate.start);
+        for (let i = 0; i < n; i++) {
+          dates.push({
+            start: new Date(cur),
+            end: new Date(cur.getTime() + duration),
+          });
+          if (recurrenceSettings.type === "daily") cur = addDays(cur, 1);
+          if (recurrenceSettings.type === "weekly") cur = addWeeks(cur, 1);
+          if (recurrenceSettings.type === "monthly") cur = addMonths(cur, 1);
+        }
       } else {
-        let currentDate = new Date(selectedDate.start);
-        const endDate =
+        const hardStop =
           recurrenceSettings.endType === "date"
             ? new Date(recurrenceSettings.endDate!)
-            : recurrenceSettings.endType === "count"
-            ? addDays(
-                currentDate,
-                recurrenceSettings.count! *
-                  (recurrenceSettings.type === "daily"
-                    ? 1
-                    : recurrenceSettings.type === "weekly"
-                    ? 7
-                    : 30)
-              )
-            : addMonths(currentDate, 12);
-
-        while (currentDate <= endDate) {
+            : addMonths(selectedDate.start, 12);
+        let cur = new Date(selectedDate.start);
+        while (cur <= hardStop) {
           dates.push({
-            start: new Date(currentDate),
-            end: new Date(
-              currentDate.getTime() +
-                (selectedDate.end.getTime() - selectedDate.start.getTime())
-            ),
+            start: new Date(cur),
+            end: new Date(cur.getTime() + duration),
           });
-
-          switch (recurrenceSettings.type) {
-            case "daily":
-              currentDate = addDays(currentDate, 1);
-              break;
-            case "weekly":
-              currentDate = addWeeks(currentDate, 1);
-              break;
-            case "monthly":
-              currentDate = addMonths(currentDate, 1);
-              break;
-          }
+          if (recurrenceSettings.type === "daily") cur = addDays(cur, 1);
+          if (recurrenceSettings.type === "weekly") cur = addWeeks(cur, 1);
+          if (recurrenceSettings.type === "monthly") cur = addMonths(cur, 1);
         }
       }
 
-      let createdCount = 0;
-      const createdVacations = [];
+      const groupId = crypto.randomUUID();
 
-      for (const date of dates) {
-        const { data: vacation, error: vacationError } = await supabase
-          .from("vacation_posts")
-          .insert([
-            {
-              doctor_id: doctorId,
-              title: selectedSlot.title || "Disponibilité",
-              description:
-                selectedSlot.description || "Disponibilité récurrente",
-              speciality: selectedSlot.speciality,
-              start_date: format(date.start, "yyyy-MM-dd'T'HH:mm:ss"),
-              end_date: format(date.end, "yyyy-MM-dd'T'HH:mm:ss"),
-              hourly_rate: selectedSlot.rate || 0,
-              location: selectedSlot.location || "",
-              requirements: selectedSlot.requirements || "",
-              status: "available",
-              act_type: selectedSlot.act_type,
-            },
-          ])
-          .select()
-          .single();
+      const vacationsPayload = dates.map((date) => ({
+        doctor_id: doctorId,
+        title: selectedSlot.title || "Disponibilité",
+        description: selectedSlot.description || "Disponibilité récurrente",
+        speciality: selectedSlot.speciality,
+        start_date: new Date(date.start).toISOString(),
+        end_date: new Date(date.end).toISOString(),
+        hourly_rate: selectedSlot.rate || 0,
+        location: selectedSlot.location || "",
+        requirements: selectedSlot.requirements || "",
+        status: "available",
+        act_type: selectedSlot.act_type,
+        recurrence_group_id: groupId,
+      }));
 
-        if (vacationError) throw vacationError;
-        if (vacation) createdVacations.push(vacation);
+      const { data: insertedVacations, error: vacationError } = await supabase
+        .from("vacation_posts")
+        .insert(vacationsPayload)
+        .select();
 
-        const startTime = date.start;
-        const endTime = date.end;
+      if (vacationError) throw vacationError;
+
+      const timeSlotPayload = (insertedVacations || []).map((vacation, idx) => {
+        const startTime = dates[idx].start;
+        const endTime = dates[idx].end;
         let slotType: "morning" | "afternoon" | "custom" = "custom";
 
-        if (startTime.getHours() === 8 && endTime.getHours() === 12) {
+        const startMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+        const endMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+        const within = (target: number, value: number) =>
+          Math.abs(value - target) <= 60;
+        if (within(8 * 60, startMinutes) && within(12 * 60, endMinutes)) {
           slotType = "morning";
-        } else if (startTime.getHours() === 14 && endTime.getHours() === 18) {
+        } else if (within(14 * 60, startMinutes) && within(18 * 60, endMinutes)) {
           slotType = "afternoon";
         }
 
@@ -450,29 +374,36 @@ export const PlanningMedecin = ({
         let endTimeStr = null;
 
         if (slotType === "custom") {
-          startTimeStr = startTime.toTimeString().slice(0, 8);
-          endTimeStr = endTime.toTimeString().slice(0, 8);
+          startTimeStr = format(startTime, "HH:mm:ss");
+          endTimeStr = format(endTime, "HH:mm:ss");
         }
 
-        const { error: slotError } = await supabase.from("time_slots").insert([
-          {
-            vacation_id: vacation.id,
-            type: slotType,
-            start_time: startTimeStr,
-            end_time: endTimeStr,
-          },
-        ]);
+        return {
+          vacation_id: vacation.id,
+          type: slotType,
+          start_time: startTimeStr,
+          end_time: endTimeStr,
+        };
+      });
 
-        if (slotError) throw slotError;
-        createdCount++;
+      const { error: slotError } = await supabase
+        .from("time_slots")
+        .insert(timeSlotPayload);
+
+      if (slotError) {
+        await supabase
+          .from("vacation_posts")
+          .delete()
+          .in("id", (insertedVacations || []).map((v) => v.id));
+        throw slotError;
       }
+
+      const createdCount = insertedVacations?.length || 0;
 
       setSelectedSlot({
         title: "",
         description: "",
         speciality: "general_medicine",
-        start_time: "",
-        end_time: "",
         location: "",
         act_type: "consultation",
         rate: 0,
@@ -495,12 +426,9 @@ export const PlanningMedecin = ({
         description: `${createdCount} créneau${createdCount > 1 ? 'x' : ''} créé${createdCount > 1 ? 's' : ''} avec succès`,
       });
 
-      const planningElement = document.querySelector(".fc-view-harness");
-      if (planningElement) {
-        planningElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      calendarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
-      logger.error("Error creating time slots:", error, {}, 'Auto', 'todo_replaced');
+      logger.error("Error creating time slots", error as Error, undefined, 'PlanningMedecin', 'create_time_slots');
       toast({
         title: "❌ Erreur",
         description: "Impossible de créer les disponibilités",
@@ -518,74 +446,109 @@ export const PlanningMedecin = ({
       setIsLoading(true);
 
       if (deleteAll) {
-        const { data: currentVacation, error: vacationError } = await supabase
-          .from("vacation_posts")
-          .select("*")
-          .eq("id", selectedEvent.extendedProps.vacationId)
-          .single();
+        if (selectedEvent.extendedProps.recurrenceGroupId) {
+          const { data: vacations, error: groupError } = await supabase
+            .from("vacation_posts")
+            .select("id")
+            .eq("recurrence_group_id", selectedEvent.extendedProps.recurrenceGroupId)
+            .eq("doctor_id", doctorId);
 
-        if (vacationError) throw vacationError;
+          if (groupError) throw groupError;
 
-        if (currentVacation) {
-          const { data: similarSlots, error: slotsError } = await supabase
-            .from("time_slots")
-            .select(
-              `
-              id,
-              type,
-              start_time,
-              end_time,
-              vacation_posts (
+          const vacationIds = (vacations || []).map((v) => v.id);
+
+          if (vacationIds.length > 0) {
+            const { error: slotDeleteError } = await supabase
+              .from("time_slots")
+              .delete()
+              .in("vacation_id", vacationIds);
+
+            if (slotDeleteError) throw slotDeleteError;
+
+            const { error: deleteError } = await supabase
+              .from("vacation_posts")
+              .delete()
+              .in("id", vacationIds);
+
+            if (deleteError) throw deleteError;
+          }
+        } else {
+          const { data: currentVacation, error: vacationError } = await supabase
+            .from("vacation_posts")
+            .select("*")
+            .eq("id", selectedEvent.extendedProps.vacationId)
+            .single();
+
+          if (vacationError) throw vacationError;
+
+          if (currentVacation) {
+            let query = supabase
+              .from("time_slots")
+              .select(
+                `
                 id,
-                title,
-                speciality,
-                act_type
+                type,
+                start_time,
+                end_time,
+                vacation_posts!inner (
+                  id,
+                  doctor_id,
+                  title,
+                  speciality,
+                  act_type
+                )
+              `
               )
-            `
-            )
-            .eq("type", selectedEvent.extendedProps.type)
-            .eq(
-              "start_time",
-              selectedEvent.extendedProps.type === "custom"
-                ? format(selectedEvent.start, "HH:mm:ss")
-                : null
-            )
-            .eq(
-              "end_time",
-              selectedEvent.extendedProps.type === "custom"
-                ? format(selectedEvent.end, "HH:mm:ss")
-                : null
-            );
+              .eq("type", selectedEvent.extendedProps.type)
+              .eq("vacation_posts.doctor_id", doctorId);
 
-          if (slotsError) throw slotsError;
+            if (selectedEvent.extendedProps.type === "custom") {
+              query = query
+                .eq("start_time", format(selectedEvent.start, "HH:mm:ss"))
+                .eq("end_time", format(selectedEvent.end, "HH:mm:ss"));
+            } else {
+              query = query.is("start_time", null).is("end_time", null);
+            }
 
-          if (similarSlots) {
-            const vacationIds = similarSlots
-              .filter((slot) => {
-                const vacation = Array.isArray(slot.vacation_posts)
-                  ? slot.vacation_posts[0]
-                  : slot.vacation_posts;
-                return (
-                  vacation &&
-                  vacation.title === currentVacation.title &&
-                  vacation.speciality === currentVacation.speciality &&
-                  vacation.act_type === currentVacation.act_type
-                );
-              })
-              .map((slot) => {
-                const vacation = Array.isArray(slot.vacation_posts)
-                  ? slot.vacation_posts[0]
-                  : slot.vacation_posts;
-                return vacation.id;
-              });
+            const { data: similarSlots, error: slotsError } = await query;
 
-            if (vacationIds.length > 0) {
-              const { error: deleteError } = await supabase
-                .from("vacation_posts")
-                .delete()
-                .in("id", vacationIds);
+            if (slotsError) throw slotsError;
 
-              if (deleteError) throw deleteError;
+            if (similarSlots) {
+              const vacationIds = similarSlots
+                .filter((slot) => {
+                  const vacation = Array.isArray(slot.vacation_posts)
+                    ? slot.vacation_posts[0]
+                    : slot.vacation_posts;
+                  return (
+                    vacation &&
+                    vacation.title === currentVacation.title &&
+                    vacation.speciality === currentVacation.speciality &&
+                    vacation.act_type === currentVacation.act_type
+                  );
+                })
+                .map((slot) => {
+                  const vacation = Array.isArray(slot.vacation_posts)
+                    ? slot.vacation_posts[0]
+                    : slot.vacation_posts;
+                  return vacation.id;
+                });
+
+              if (vacationIds.length > 0) {
+                const { error: slotDeleteError } = await supabase
+                  .from("time_slots")
+                  .delete()
+                  .in("vacation_id", vacationIds);
+
+                if (slotDeleteError) throw slotDeleteError;
+
+                const { error: deleteError } = await supabase
+                  .from("vacation_posts")
+                  .delete()
+                  .in("id", vacationIds);
+
+                if (deleteError) throw deleteError;
+              }
             }
           }
         }
@@ -628,9 +591,9 @@ export const PlanningMedecin = ({
         onSlotUpdated();
       }
 
-      fetchTimeSlots();
+      await fetchTimeSlots();
     } catch (error) {
-      logger.error("Error deleting time slot:", error, {}, 'Auto', 'todo_replaced');
+      logger.error("Error deleting time slot", error as Error, undefined, 'PlanningMedecin', 'delete_time_slot');
       toast({
         title: "❌ Erreur",
         description: "Impossible de supprimer le créneau",
@@ -710,209 +673,7 @@ export const PlanningMedecin = ({
 
       {/* Calendrier principal avec styles personnalisés */}
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
-        <style>{`
-          .fc {
-            background: transparent;
-          }
-          
-          .fc-header-toolbar {
-            padding: 1.5rem 2rem 1rem 2rem !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            border-radius: 1.5rem 1.5rem 0 0 !important;
-            margin-bottom: 0 !important;
-          }
-          
-          .fc-toolbar-chunk {
-            display: flex;
-            align-items: center;
-          }
-          
-          .fc-button {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: white !important;
-            border-radius: 12px !important;
-            padding: 8px 16px !important;
-            font-weight: 600 !important;
-            transition: all 0.3s ease !important;
-            backdrop-filter: blur(10px) !important;
-          }
-          
-          .fc-button:hover {
-            background: rgba(255, 255, 255, 0.3) !important;
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-          }
-          
-          .fc-button:focus {
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
-          }
-          
-          .fc-button-active {
-            background: rgba(255, 255, 255, 0.4) !important;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-          }
-          
-          .fc-toolbar-title {
-            color: white !important;
-            font-size: 1.75rem !important;
-            font-weight: 700 !important;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-          }
-          
-          .fc-view-harness {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
-            border-radius: 0 0 1.5rem 1.5rem !important;
-          }
-          
-          .fc-timegrid-slot {
-            background: transparent !important;
-            border-color: rgba(148, 163, 184, 0.2) !important;
-          }
-          
-          .fc-timegrid-slot:hover {
-            background: rgba(139, 92, 246, 0.05) !important;
-          }
-          
-          .fc-timegrid-axis {
-            background: rgba(255, 255, 255, 0.8) !important;
-            border-color: rgba(148, 163, 184, 0.2) !important;
-          }
-          
-          .fc-timegrid-slot-label {
-            color: #64748b !important;
-            font-weight: 600 !important;
-            font-size: 0.875rem !important;
-          }
-          
-          .fc-col-header {
-            background: rgba(255, 255, 255, 0.9) !important;
-            backdrop-filter: blur(10px) !important;
-            border-color: rgba(148, 163, 184, 0.2) !important;
-          }
-          
-          .fc-col-header-cell {
-            padding: 1rem 0.5rem !important;
-          }
-          
-          .fc-col-header-cell-cushion {
-            color: #475569 !important;
-            font-weight: 700 !important;
-            font-size: 0.95rem !important;
-            text-transform: capitalize !important;
-          }
-          
-          .fc-daygrid-day-top {
-            color: #64748b !important;
-            font-weight: 600 !important;
-          }
-          
-          .fc-timegrid-col {
-            border-color: rgba(148, 163, 184, 0.2) !important;
-          }
-          
-          .fc-timegrid-now-indicator-line {
-            border-color: #ef4444 !important;
-            border-width: 2px !important;
-            box-shadow: 0 0 8px rgba(239, 68, 68, 0.3) !important;
-          }
-          
-          .fc-timegrid-now-indicator-arrow {
-            border-top-color: #ef4444 !important;
-            border-bottom-color: #ef4444 !important;
-          }
-          
-          .fc-scrollgrid {
-            border-color: rgba(148, 163, 184, 0.2) !important;
-            border-radius: 0 0 1.5rem 1.5rem !important;
-            overflow: hidden !important;
-          }
-          
-          .fc-scrollgrid-section-header {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px) !important;
-          }
-          
-          .fc-v-event {
-            border-radius: 12px !important;
-            border: none !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-            transition: all 0.3s ease !important;
-          }
-          
-          .fc-v-event:hover {
-            transform: scale(1.02) !important;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-          }
-          
-          .fc-highlight {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
-            border-radius: 8px !important;
-            border: 2px dashed rgba(139, 92, 246, 0.3) !important;
-          }
-          
-          .fc-select-mirror {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
-            border-radius: 12px !important;
-            border: 2px solid rgba(139, 92, 246, 0.5) !important;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
-          }
-          
-          .fc-today {
-            background: rgba(255, 248, 113, 0.1) !important;
-          }
-          
-          .fc-day-past {
-            background: rgba(148, 163, 184, 0.05) !important;
-          }
-          
-          .fc-day-future {
-            background: rgba(59, 130, 246, 0.02) !important;
-          }
-          
-          .fc-more-link {
-            background: rgba(139, 92, 246, 0.1) !important;
-            color: #7c3aed !important;
-            border-radius: 8px !important;
-            padding: 2px 8px !important;
-            font-weight: 600 !important;
-          }
-          
-          .fc-popover {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px) !important;
-            border: 1px solid rgba(148, 163, 184, 0.2) !important;
-            border-radius: 16px !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-          }
-          
-          .fc-scroller {
-            overflow-x: hidden !important;
-          }
-          
-          .fc-timegrid-divider {
-            background: rgba(148, 163, 184, 0.1) !important;
-          }
-          
-          /* Animation pour le chargement */
-          .fc-view-harness.loading {
-            position: relative;
-          }
-          
-          .fc-view-harness.loading::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 1000;
-            border-radius: 0 0 1.5rem 1.5rem;
-          }
-        `}</style>
-        
-        <div className="h-[800px] p-0">
+        <div ref={calendarRef} className="h-[800px] p-0">
           {isLoading && (
             <div className="absolute inset-0 bg-white/50 backdrop-blur-sm rounded-3xl flex items-center justify-center z-50">
               <div className="flex items-center gap-4 bg-white/90 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/20">
@@ -939,13 +700,12 @@ export const PlanningMedecin = ({
             select={handleDateSelect}
             eventClick={handleEventClick}
             height="100%"
-            slotMinTime="00:00:00"
+            slotMinTime="08:00:00"
             slotMaxTime="24:00:00"
             allDaySlot={false}
             slotDuration="00:30:00"
             expandRows={true}
             stickyHeaderDates={true}
-            stickyFooterScrollbar={true}
             eventContent={(eventInfo) => (
               <div
                 className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer ${
@@ -998,21 +758,12 @@ export const PlanningMedecin = ({
               month: "long",
             }}
             nowIndicator={true}
-            selectConstraint="businessHours"
             selectOverlap={false}
             eventOverlap={false}
-            eventConstraint="businessHours"
-            businessHours={{
-              daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
-              startTime: "00:00",
-              endTime: "24:00",
-            }}
             scrollTime="08:00:00"
             scrollTimeReset={false}
             handleWindowResize={true}
             windowResizeDelay={100}
-            contentHeight="auto"
-            aspectRatio={1.8}
             buttonText={{
               today: "Aujourd'hui",
               week: "Semaine",
