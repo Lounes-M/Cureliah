@@ -1,0 +1,199 @@
+.fc {
+  background: transparent;
+}
+
+.fc-header-toolbar {
+  padding: 1.5rem 2rem 1rem 2rem !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 1.5rem 1.5rem 0 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.fc-toolbar-chunk {
+  display: flex;
+  align-items: center;
+}
+
+.fc-button {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  border-radius: 12px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.fc-button:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.fc-button:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+}
+
+.fc-button-active {
+  background: rgba(255, 255, 255, 0.4) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fc-toolbar-title {
+  color: white !important;
+  font-size: 1.75rem !important;
+  font-weight: 700 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.fc-view-harness {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-radius: 0 0 1.5rem 1.5rem !important;
+}
+
+.fc-timegrid-slot {
+  background: transparent !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fc-timegrid-slot:hover {
+  background: rgba(139, 92, 246, 0.05) !important;
+}
+
+.fc-timegrid-axis {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fc-timegrid-slot-label {
+  color: #64748b !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
+
+.fc-col-header {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fc-col-header-cell {
+  padding: 1rem 0.5rem !important;
+}
+
+.fc-col-header-cell-cushion {
+  color: #475569 !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  text-transform: capitalize !important;
+}
+
+.fc-daygrid-day-top {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.fc-timegrid-col {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+.fc-timegrid-now-indicator-line {
+  border-color: #ef4444 !important;
+  border-width: 2px !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3) !important;
+}
+
+.fc-timegrid-now-indicator-arrow {
+  border-top-color: #ef4444 !important;
+  border-bottom-color: #ef4444 !important;
+}
+
+.fc-scrollgrid {
+  border-color: rgba(148, 163, 184, 0.2) !important;
+  border-radius: 0 0 1.5rem 1.5rem !important;
+  overflow: hidden !important;
+}
+
+.fc-scrollgrid-section-header {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.fc-v-event {
+  border-radius: 12px !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.fc-v-event:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.fc-highlight {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%) !important;
+  border-radius: 8px !important;
+  border: 2px dashed rgba(139, 92, 246, 0.3) !important;
+}
+
+.fc-select-mirror {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%) !important;
+  border-radius: 12px !important;
+  border: 2px solid rgba(139, 92, 246, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2) !important;
+}
+
+.fc-today {
+  background: rgba(255, 248, 113, 0.1) !important;
+}
+
+.fc-day-past {
+  background: rgba(148, 163, 184, 0.05) !important;
+}
+
+.fc-day-future {
+  background: rgba(59, 130, 246, 0.02) !important;
+}
+
+.fc-more-link {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: #7c3aed !important;
+  border-radius: 8px !important;
+  padding: 2px 8px !important;
+  font-weight: 600 !important;
+}
+
+.fc-popover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.fc-scroller {
+  overflow-x: hidden !important;
+}
+
+.fc-timegrid-divider {
+  background: rgba(148, 163, 184, 0.1) !important;
+}
+
+/* Animation pour le chargement */
+.fc-view-harness.loading {
+  position: relative;
+}
+
+.fc-view-harness.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1000;
+  border-radius: 0 0 1.5rem 1.5rem;
+}
