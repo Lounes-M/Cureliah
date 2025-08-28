@@ -299,7 +299,7 @@ class PremiumService {
       }
 
       // Générer une clé API sécurisée
-      const generatedKey = `ck_${Math.random().toString(36).substr(2, 32)}`
+      const generatedKey = `ck_${crypto.randomUUID()}`
 
       // Insérer la nouvelle clé dans la base de données
       const { data, error } = await supabase

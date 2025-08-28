@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client.browser';
-import Logger, { ErrorHandler } from '@/utils/logger';
+import { logger } from '@/services/logger';
+import { ErrorHandler } from '@/utils/errorHandler';
 
 export interface Document {
   id: string;
@@ -21,8 +22,7 @@ export const uploadDocument = async (
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
     const filePath = `documents/${fileName}`;
 
-    const logger = Logger.getInstance();
-    logger.debug('Uploading document', { filePath, fileType: file.type, fileSize: file.size }, 'Documents', 'upload_start');
+    logger.debug('Uploading document', { filePath, fileType: file.type, fileSize: file.size, component: 'Documents', action: 'upload_start' });
 
     // Upload file to Supabase Storage
     const { error: uploadError } = await supabase.storage
@@ -30,7 +30,7 @@ export const uploadDocument = async (
       .upload(filePath, file);
 
     if (uploadError) {
-      ErrorHandler.handleError(uploadError, { filePath, fileType: file.type }, 'Documents', 'storage_upload_error');
+      ErrorHandler.handleError(uploadError, { filePath, fileType: file.type, component: 'Documents', action: 'storage_upload_error' });
       throw uploadError;
     }
 
@@ -39,7 +39,7 @@ export const uploadDocument = async (
       .from('documents')
       .getPublicUrl(filePath);
 
-    logger.debug('Creating document record', { userId, name: file.name, type: file.type }, 'Documents', 'db_insert_start');
+    logger.debug('Creating document record', { userId, name: file.name, type: file.type, component: 'Documents', action: 'db_insert_start' });
 
     // Create document record
     const { data: document, error: dbError } = await supabase
@@ -58,7 +58,7 @@ export const uploadDocument = async (
       .single();
 
     if (dbError) {
-      ErrorHandler.handleError(dbError, { userId, fileName: file.name }, 'Documents', 'db_insert_error');
+      ErrorHandler.handleError(dbError, { userId, fileName: file.name, component: 'Documents', action: 'db_insert_error' });
       throw dbError;
     }
 
@@ -71,8 +71,7 @@ export const uploadDocument = async (
 
 export const getDocuments = async (userId: string) => {
   try {
-    const logger = Logger.getInstance();
-    logger.debug('Fetching documents for user', { userId }, 'Documents', 'fetch_start');
+    logger.debug('Fetching documents for user', { userId, component: 'Documents', action: 'fetch_start' });
     
     const { data, error } = await supabase
       .from('documents')
@@ -81,11 +80,11 @@ export const getDocuments = async (userId: string) => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      ErrorHandler.handleError(error, { userId }, 'Documents', 'db_select_error');
+      ErrorHandler.handleError(error, { userId, component: 'Documents', action: 'db_select_error' });
       throw error;
     }
 
-    logger.debug('Documents fetched successfully', { count: data?.length, userId }, 'Documents', 'fetch_success');
+    logger.debug('Documents fetched successfully', { count: data?.length, userId, component: 'Documents', action: 'fetch_success' });
     return data;
   } catch (error) {
     ErrorHandler.handleUnexpectedError(error as Error, { userId });
@@ -95,8 +94,7 @@ export const getDocuments = async (userId: string) => {
 
 export const deleteDocument = async (documentId: string) => {
   try {
-    const logger = Logger.getInstance();
-    logger.debug('Deleting document', { documentId }, 'Documents', 'delete_start');
+    logger.debug('Deleting document', { documentId, component: 'Documents', action: 'delete_start' });
 
     // Get document details
     const { data: document, error: fetchError } = await supabase
@@ -106,7 +104,7 @@ export const deleteDocument = async (documentId: string) => {
       .single();
 
     if (fetchError) {
-      ErrorHandler.handleError(fetchError, { documentId }, 'Documents', 'document_fetch_error');
+      ErrorHandler.handleError(fetchError, { documentId, component: 'Documents', action: 'document_fetch_error' });
       throw fetchError;
     }
 
@@ -117,7 +115,7 @@ export const deleteDocument = async (documentId: string) => {
       .remove([`${document.user_id}/${filePath}`]);
 
     if (storageError) {
-      ErrorHandler.handleError(storageError, { documentId, filePath }, 'Documents', 'storage_delete_error');
+      ErrorHandler.handleError(storageError, { documentId, filePath, component: 'Documents', action: 'storage_delete_error' });
       throw storageError;
     }
 
@@ -128,11 +126,11 @@ export const deleteDocument = async (documentId: string) => {
       .eq('id', documentId);
 
     if (dbError) {
-      ErrorHandler.handleError(dbError, { documentId }, 'Documents', 'db_delete_error');
+      ErrorHandler.handleError(dbError, { documentId, component: 'Documents', action: 'db_delete_error' });
       throw dbError;
     }
 
-    logger.info('Document deleted successfully', { documentId }, 'Documents', 'delete_success');
+    logger.info('Document deleted successfully', { documentId, component: 'Documents', action: 'delete_success' });
   } catch (error) {
     ErrorHandler.handleUnexpectedError(error as Error, { documentId });
     throw error;

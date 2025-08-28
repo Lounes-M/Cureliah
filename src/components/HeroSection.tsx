@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { navigateToVacationSearch } from "@/utils/navigation";
 
 const HeroSection = () => {
   const [loading, setLoading] = useState(false);
@@ -36,8 +37,8 @@ const HeroSection = () => {
     if (!isVisible) return;
 
     const animateStats = () => {
-      const doctorsTarget = 150; // More realistic number for early platform
-      const timeTarget = 5; // More realistic response time
+      const doctorsTarget = 150;
+      const timeTarget = 5;
 
       let doctorsCount = 0;
       let timeCount = 0;
@@ -127,14 +128,14 @@ const HeroSection = () => {
     
     // More realistic availability patterns
     const availableDays = [
-      { day: currentDay + 2, rate: "80€", specialty: "Médecin généraliste", urgent: false },
-      { day: currentDay + 3, rate: "95€", specialty: "Médecin d'urgence", urgent: true },
-      { day: currentDay + 5, rate: "110€", specialty: "Spécialiste", urgent: false },
-      { day: currentDay + 7, rate: "85€", specialty: "Médecin généraliste", urgent: false },
-      { day: currentDay + 9, rate: "120€", specialty: "Consultant expert", urgent: true },
-      { day: currentDay + 12, rate: "90€", specialty: "Médecin référent", urgent: false },
-      { day: currentDay + 14, rate: "100€", specialty: "Spécialiste", urgent: false },
-      { day: currentDay + 16, rate: "105€", specialty: "Médecin consultant", urgent: false },
+      { day: currentDay + 2, specialty: "Médecin généraliste", urgent: false },
+      { day: currentDay + 3, specialty: "Médecin d'urgence", urgent: true },
+      { day: currentDay + 5, specialty: "Spécialiste", urgent: false },
+      { day: currentDay + 7, specialty: "Médecin généraliste", urgent: false },
+      { day: currentDay + 9, specialty: "Consultant expert", urgent: true },
+      { day: currentDay + 12, specialty: "Médecin référent", urgent: false },
+      { day: currentDay + 14, specialty: "Spécialiste", urgent: false },
+      { day: currentDay + 16, specialty: "Médecin consultant", urgent: false },
     ].filter(day => day.day <= 31); // Keep only valid days
 
     return Array.from({ length: 35 }, (_, i) => {
@@ -389,15 +390,14 @@ const HeroSection = () => {
                       onKeyDown={(e) => {
                         if (item.isAvailable && (e.key === 'Enter' || e.key === ' ')) {
                           e.preventDefault();
-                          // Simulate booking action or navigate to booking
-                          // TODO: Replace with actual booking navigation
+                          navigateToVacationSearch(navigate);
                         }
                       }}
                       role={item.isAvailable ? "button" : undefined}
                       tabIndex={item.isAvailable ? 0 : -1}
                       aria-label={
                         item.isAvailable
-                          ? `${item.day} novembre - ${item.specialty} - ${item.rate}`
+                          ? `${item.day} novembre - ${item.specialty}`
                           : undefined
                       }
                     >
@@ -417,7 +417,7 @@ const HeroSection = () => {
                         {calendarData[hoveredDay].specialty}
                       </div>
                       <div className="text-emerald-400 font-bold">
-                        {calendarData[hoveredDay].rate}/vacation
+                        <span>Tarif selon établissement</span>
                       </div>
                       {calendarData[hoveredDay].urgent && (
                         <div className="text-red-400 text-xs">🔴 Urgent</div>

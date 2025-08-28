@@ -7,19 +7,16 @@ import { ABTestProvider } from "@/utils/businessIntelligence";
 import AppRoutes from "@/routes";
 import ScrollToTop from "@/components/ScrollToTop";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { monitoring } from "@/utils/monitoring";
+import MonitoringService, { useMonitoring } from "@/services/monitoring";
 import { SecurityService } from "@/utils/security";
 import PWAInstallPrompt, { registerServiceWorker } from "@/components/PWAInstallPrompt";
 import { useRealtime } from "@/utils/realtime";
-import { useMonitoring } from "@/services/monitoring";
 import { PromoBanner } from "@/components/PromoBanner";
 import { usePromoBanner } from "@/hooks/usePromoBanner";
 import { performanceMonitor } from "@/utils/performanceMonitor";
 import VideoIntroPopup from "@/components/VideoIntroPopup";
 import { useEffect, useState } from "react";
-import Logger from '@/utils/logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 const queryClient = new QueryClient();
 
@@ -41,7 +38,7 @@ interface UserWithTimestamp {
 }
 
 // Initialize monitoring and security for production
-monitoring.initialize();
+const monitoring = MonitoringService.getInstance();
 const securityService = SecurityService.getInstance();
 
 // Enhanced App Content with advanced features
@@ -60,14 +57,6 @@ const EnhancedAppContent = () => {
   const { connectionState } = useRealtime(user?.id);
 
   useEffect(() => {
-    // Initialize advanced monitoring
-    monitoring.trackWebVitals();
-    monitoring.monitorResourceLoading();
-    monitoring.monitorMemoryUsage();
-    monitoring.monitorNetworkConditions();
-    monitoring.monitorLongTasks();
-    monitoring.monitorBundleSize();
-
     // Initialize performance monitoring
     performanceMonitor.markPerformance('app-init');
     logger.info('Application initialized with monitoring', { 
@@ -91,26 +80,11 @@ const EnhancedAppContent = () => {
       // Track user login for security
       securityService.recordSuccessfulLogin('127.0.0.1', user.id);
 
-      // Enhanced user activity tracking
-      monitoring.trackUserActivity({
-        page: 'app_load',
-        action: 'user_authenticated',
-        timestamp: Date.now(),
-        userId: user.id,
-        metadata: {
-          userType: user.user_metadata?.user_type,
-          connectionState,
-          sessionId: crypto.randomUUID()
-        }
-      });
+      // Placeholder for future monitoring of user activity
     }
 
     // Performance marks
-    monitoring.mark('app_content_initialized');
-    
-    return () => {
-      monitoring.measure('app_content_initialization_time', 'app_start', 'app_content_initialized');
-    };
+    return () => {};
   }, [user, connectionState]);
 
   return (
@@ -126,14 +100,14 @@ const EnhancedAppContent = () => {
       )}
       <AppRoutes />
       <Toaster />
-      <PWAInstallPrompt 
+      <PWAInstallPrompt
         onInstall={() => {
           logger.info('PWA installed successfully', { userId: user?.id }, 'App', 'pwa_installed');
-          monitoring.trackEvent('pwa_installed', { userId: user?.id });
+          monitoring.reportPerformance({ name: 'pwa_installed', value: Date.now(), timestamp: Date.now(), url: window.location.href, userId: user?.id });
         }}
         onDismiss={() => {
           logger.info('PWA install dismissed', { userId: user?.id }, 'App', 'pwa_install_dismissed');
-          monitoring.trackEvent('pwa_install_dismissed', { userId: user?.id });
+          monitoring.reportPerformance({ name: 'pwa_install_dismissed', value: Date.now(), timestamp: Date.now(), url: window.location.href, userId: user?.id });
         }}
       />
     </ABTestProvider>
@@ -142,26 +116,19 @@ const EnhancedAppContent = () => {
 
 function App() {
   useEffect(() => {
-    // Performance mark for app start
-    monitoring.mark('app_start');
-    
     // Register service worker for PWA functionality
     registerServiceWorker().then((registration) => {
       if (registration) {
         logger.info('PWA Service Worker registered successfully', { registration }, 'App', 'sw_registered');
-        monitoring.trackEvent('pwa_service_worker_registered');
-        
+
         // Subscribe to push notifications if supported
         if ('PushManager' in window) {
           logger.info('Push notifications supported', {}, 'App', 'push_supported');
-          monitoring.trackEvent('push_notifications_supported');
         }
       }
     }).catch((error) => {
       logger.error('Service Worker registration failed', error, {}, 'App', 'sw_registration_failed');
-      monitoring.logError(new Error('Service Worker registration failed'), {
-        error: error.message
-      });
+      monitoring.captureException(new Error('Service Worker registration failed'));
     });
   }, []);
 

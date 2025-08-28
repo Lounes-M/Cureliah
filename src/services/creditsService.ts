@@ -182,9 +182,16 @@ export class CreditsService {
     ];
   }
 
-  static calculateUrgentRequestCost(urgencyLevel: string, priorityBoost: boolean, featured: boolean): number {
-    // Coût de base pour toutes les demandes urgentes
+  static calculateUrgentRequestCost(
+    urgencyLevel: 'medium' | 'high' | 'critical' | 'emergency',
+    priorityBoost: boolean,
+    featured: boolean
+  ): number {
+    // Coût de base selon le niveau d'urgence
     let baseCost = 5;
+    if (urgencyLevel === 'high') baseCost = 7;
+    if (urgencyLevel === 'critical') baseCost = 9;
+    if (urgencyLevel === 'emergency') baseCost = 12;
 
     // Options supplémentaires
     if (priorityBoost) baseCost += 2;

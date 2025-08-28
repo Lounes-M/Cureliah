@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { logger } from '@/services/logger';
 
 // Types pour le monitoring
 interface ErrorReport {
@@ -50,6 +51,11 @@ class MonitoringService {
   private setupGlobalErrorHandling() {
     // Gestion des erreurs JavaScript
     window.addEventListener('error', (event) => {
+      logger.error('Global error captured', event.error, {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+      });
       this.reportError({
         message: event.message,
         stack: event.error?.stack,
@@ -70,9 +76,11 @@ class MonitoringService {
 
     // Gestion des promesses rejetées
     window.addEventListener('unhandledrejection', (event) => {
+      const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+      logger.error('Unhandled promise rejection', error, { type: 'unhandledrejection' });
       this.reportError({
         message: `Unhandled Promise Rejection: ${event.reason}`,
-        stack: event.reason?.stack,
+        stack: error.stack,
         userAgent: navigator.userAgent,
         url: window.location.href,
         timestamp: Date.now(),
@@ -194,7 +202,7 @@ class MonitoringService {
     try {
       // En développement, logger dans la console
       if (import.meta.env.DEV) {
-        console.error('🚨 Error Report:', error);
+        logger.error('Error Report', error);
         return;
       }
 
@@ -207,7 +215,7 @@ class MonitoringService {
         body: JSON.stringify(error),
       });
     } catch (e) {
-      console.error('Failed to report error:', e);
+      logger.error('Failed to report error', e as Error);
     }
   }
 
@@ -215,7 +223,7 @@ class MonitoringService {
     try {
       // En développement, logger dans la console
       if (import.meta.env.DEV) {
-        console.info('📊 Performance Metric:', metric);
+        logger.info('Performance Metric', { metric });
         return;
       }
 
@@ -228,7 +236,7 @@ class MonitoringService {
         body: JSON.stringify(metric),
       });
     } catch (e) {
-      console.error('Failed to report performance metric:', e);
+      logger.error('Failed to report performance metric', e as Error);
     }
   }
 

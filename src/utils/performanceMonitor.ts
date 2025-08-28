@@ -3,9 +3,7 @@
  * Collecte des métriques Web Vitals et des performances applicatives
  */
 
-import Logger from './logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 export interface PerformanceMetrics {
   // Core Web Vitals
@@ -71,7 +69,7 @@ class PerformanceMonitor {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1] as PerformanceEntry;
         this.metrics.lcp = lastEntry.startTime;
-        logger.debug('LCP measured', { lcp: lastEntry.startTime }, 'PerformanceMonitor', 'web_vitals');
+        logger.debug('LCP measured', { lcp: lastEntry.startTime, component: 'PerformanceMonitor', action: 'web_vitals' });
       });
 
       if ('PerformanceObserver' in window) {
@@ -85,7 +83,7 @@ class PerformanceMonitor {
         entries.forEach((entry: any) => {
           const fid = entry.processingStart - entry.startTime;
           this.metrics.fid = fid;
-          logger.debug('FID measured', { fid }, 'PerformanceMonitor', 'web_vitals');
+          logger.debug('FID measured', { fid, component: 'PerformanceMonitor', action: 'web_vitals' });
         });
       });
 
@@ -110,7 +108,7 @@ class PerformanceMonitor {
           }
         }
         this.metrics.cls = clsValue;
-        logger.debug('CLS measured', { cls: clsValue }, 'PerformanceMonitor', 'web_vitals');
+        logger.debug('CLS measured', { cls: clsValue, component: 'PerformanceMonitor', action: 'web_vitals' });
       });
 
       if ('PerformanceObserver' in window) {
@@ -124,7 +122,7 @@ class PerformanceMonitor {
         entries.forEach((entry) => {
           if (entry.name === 'first-contentful-paint') {
             this.metrics.fcp = entry.startTime;
-            logger.debug('FCP measured', { fcp: entry.startTime }, 'PerformanceMonitor', 'web_vitals');
+            logger.debug('FCP measured', { fcp: entry.startTime, component: 'PerformanceMonitor', action: 'web_vitals' });
           }
         });
       });
@@ -135,7 +133,7 @@ class PerformanceMonitor {
       }
 
     } catch (error) {
-      logger.error('Error setting up Web Vitals observers', error as Error, {}, 'PerformanceMonitor', 'observer_setup_error');
+      logger.error('Error setting up Web Vitals observers', error as Error, { component: 'PerformanceMonitor', action: 'observer_setup_error' });
     }
   }
 
@@ -164,8 +162,10 @@ class PerformanceMonitor {
     logger.info('Navigation timing collected', {
       ttfb,
       loadTime: this.metrics.loadTime,
-      renderTime: this.metrics.renderTime
-    }, 'PerformanceMonitor', 'navigation_timing');
+      renderTime: this.metrics.renderTime,
+      component: 'PerformanceMonitor',
+      action: 'navigation_timing'
+    });
   }
 
   private monitorMemoryUsage(): void {
@@ -178,7 +178,7 @@ class PerformanceMonitor {
         limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024 * 100) / 100, // MB
       };
 
-      logger.debug('Memory usage collected', this.metrics.memoryUsage, 'PerformanceMonitor', 'memory_usage');
+      logger.debug('Memory usage collected', { ...this.metrics.memoryUsage, component: 'PerformanceMonitor', action: 'memory_usage' });
     }
   }
 
@@ -201,7 +201,7 @@ class PerformanceMonitor {
   public markPerformance(name: string): void {
     if (window.performance && window.performance.mark) {
       window.performance.mark(name);
-      logger.debug('Performance mark', { name, timestamp: Date.now() }, 'PerformanceMonitor', 'custom_mark');
+      logger.debug('Performance mark', { name, timestamp: Date.now(), component: 'PerformanceMonitor', action: 'custom_mark' });
     }
   }
 
@@ -212,20 +212,24 @@ class PerformanceMonitor {
         const measure = window.performance.getEntriesByName(name, 'measure')[0];
         const duration = measure ? measure.duration : 0;
         
-        logger.debug('Performance measurement', { 
-          name, 
-          startMark, 
-          endMark, 
-          duration 
-        }, 'PerformanceMonitor', 'custom_measure');
+        logger.debug('Performance measurement', {
+          name,
+          startMark,
+          endMark,
+          duration,
+          component: 'PerformanceMonitor',
+          action: 'custom_measure'
+        });
         
         return duration;
       } catch (error) {
-        logger.error('Error measuring performance', error as Error, { 
-          name, 
-          startMark, 
-          endMark 
-        }, 'PerformanceMonitor', 'measure_error');
+        logger.error('Error measuring performance', error as Error, {
+          name,
+          startMark,
+          endMark,
+          component: 'PerformanceMonitor',
+          action: 'measure_error'
+        });
         return null;
       }
     }
@@ -252,15 +256,17 @@ class PerformanceMonitor {
       cachedResources: resources.filter(r => r.transferSize === 0),
     };
 
-    logger.info('Resource performance analysis', analysis, 'PerformanceMonitor', 'resource_analysis');
+    logger.info('Resource performance analysis', { analysis, component: 'PerformanceMonitor', action: 'resource_analysis' });
 
     // Warn about slow resources
     analysis.slowResources.forEach(resource => {
       logger.warn('Slow resource detected', {
         name: resource.name,
         duration: resource.duration,
-        size: resource.transferSize
-      }, 'PerformanceMonitor', 'slow_resource');
+        size: resource.transferSize,
+        component: 'PerformanceMonitor',
+        action: 'slow_resource'
+      });
     });
   }
 
@@ -276,7 +282,7 @@ class PerformanceMonitor {
       recommendations: this.generateRecommendations(),
     };
 
-    logger.info('Performance report generated', report, 'PerformanceMonitor', 'report_generated');
+    logger.info('Performance report generated', { report, component: 'PerformanceMonitor', action: 'report_generated' });
     return report;
   }
 
@@ -312,7 +318,7 @@ class PerformanceMonitor {
       try {
         observer.disconnect();
       } catch (error) {
-        logger.error('Error disconnecting performance observer', error as Error, {}, 'PerformanceMonitor', 'cleanup_error');
+        logger.error('Error disconnecting performance observer', error as Error, { component: 'PerformanceMonitor', action: 'cleanup_error' });
       }
     });
     this.observers = [];

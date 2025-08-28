@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, MapPin, Euro, Building2, MessageCircle, ChevronDown, ChevronUp, Filter, Clock, Phone, Mail, User, Globe, MapIcon } from 'lucide-react';
+import { Calendar, MapPin, Building2, MessageCircle, ChevronDown, ChevronUp, Filter, Clock, Phone, Mail, User, Globe, MapIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client.browser';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -59,14 +59,12 @@ interface BookingWithDetails {
   booking_date: string;
   start_date: string;
   end_date: string;
-  total_amount: number;
   message: string;
   urgency: 'low' | 'medium' | 'high';
   contact_phone: string;
   duration_hours: number;
   created_at: string;
   establishment_id: string;
-  payment_status?: string;
   vacation_post: VacationPost;
   establishment_info: EstablishmentInfo | null;
 }
@@ -89,37 +87,6 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
     city: '',
     status: status || 'all'
   });
-
-  // Fonctions utilitaires pour les badges de paiement
-  const getPaymentStatusColor = (paymentStatus: string | undefined, bookingStatus: string) => {
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return 'bg-green-100 text-green-800 border-green-200';
-      case 'failed': return 'bg-red-100 text-red-800 border-red-200';
-      case 'pending':
-      default: return 'bg-orange-100 text-orange-800 border-orange-200';
-    }
-  };
-
-  const getPaymentStatusText = (paymentStatus: string | undefined, bookingStatus: string) => {
-    if (bookingStatus !== 'confirmed' && bookingStatus !== 'completed') {
-      return '';
-    }
-    
-    switch (paymentStatus) {
-      case 'paid': return '✅ Payé';
-      case 'failed': return '❌ Échec paiement';
-      case 'pending':
-      default: return '⏳ En attente';
-    }
-  };
-
-  const shouldShowPaymentBadge = (paymentStatus: string | undefined, bookingStatus: string) => {
-    return ['confirmed', 'completed'].includes(bookingStatus);
-  };
 
   // Fonction pour basculer l'état étendu d'une carte
   const toggleCardExpansion = (bookingId: string) => {
@@ -477,11 +444,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                     </CardTitle>
                     <CardDescription className="flex items-center gap-2 mt-1">
                       {getStatusBadge(booking.status)}
-                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-                        <Badge className={getPaymentStatusColor(booking.payment_status, booking.status) + ' border'}>
-                          {getPaymentStatusText(booking.payment_status, booking.status)}
-                        </Badge>
-                      )}
+                      {/* Les paiements sont gérés directement entre établissements et médecins */}
                     </CardDescription>
                   </div>
                   <div className="text-right">
@@ -490,11 +453,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                       {getStatusBadge(booking.status)}
                       
                       {/* Badge de statut de paiement */}
-                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-                        <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border font-medium text-xs`}>
-                          {getPaymentStatusText(booking.payment_status, booking.status)}
-                        </Badge>
-                      )}
+                      {/* Les paiements ne sont plus traités sur la plateforme */}
                     </div>
                     <p className="text-sm text-gray-500 mt-2">
                       Créée le {formatDate(booking.created_at)}
@@ -520,10 +479,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                         <MapPin className="w-4 h-4 mr-2 text-red-500" />
                         <span>{booking.vacation_post?.location}</span>
                       </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Euro className="w-4 h-4 mr-2 text-yellow-500" />
-                        <span className="font-medium">{booking.total_amount}€</span>
-                      </div>
+                      {/* Les montants ne sont plus gérés par la plateforme */}
                     </div>
 
                     {/* Contact et actions */}
@@ -574,16 +530,7 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                               Marquer comme terminé
                             </Button>
 
-                            {/* Paiement */}
-                            {booking.status === 'confirmed' && booking.payment_status !== 'paid' && (
-                              <Button
-                                size="sm"
-                                className="bg-medical-green hover:bg-medical-green-dark"
-                                onClick={() => window.open(`/payment/${booking.id}`, '_blank')}
-                              >
-                                Régler cette réservation
-                              </Button>
-                            )}
+                            {/* Le paiement des vacations est géré en dehors de Cureliah */}
                           </>
                         )}
                         <Button
@@ -707,65 +654,13 @@ const BookingManagement = ({ status }: BookingManagementProps) => {
                           
                           <div className="p-3 bg-yellow-50 rounded-lg">
                             <div className="flex items-center text-sm font-medium text-yellow-900 mb-1">
-                              <Euro className="w-4 h-4 mr-2" />
-                              Rémunération prévue
+                              Tarif fixé directement entre vous et l'établissement
                             </div>
-                            <p className="text-sm text-yellow-800 font-semibold">
-                              {booking.total_amount}€ pour {booking.duration_hours}h
-                              <span className="text-xs text-yellow-600 ml-2">
-                                <a
-                                  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
-                                  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
-                                >
-                                  Tarif: voir règlementation
-                                </a>
-<a
-  href="https://sante.gouv.fr/actualites/actualites-du-ministere/article/interim-medical-entree-en-vigueur-de-la-loi-rist-ce-lundi-3-avril"
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{background:'#fffbe6',color:'#ad8b00',padding:'4px 8px',borderRadius:'4px',fontWeight:'bold',textDecoration:'underline',cursor:'pointer',position:'relative'}}
-  title="Les tarifs des vacations sont déterminés directement par l’établissement de santé. Cureliah n’intervient pas dans leur fixation ni dans les paiements. Cliquez pour plus d'infos."
->
-  Tarif: voir règlementation
-</a>
-                              </span>
-                            </p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Informations sur le paiement si applicable */}
-                      {shouldShowPaymentBadge(booking.payment_status, booking.status) && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                          <h5 className="font-medium text-gray-800 mb-2 flex items-center gap-2">
-                            <Euro className="w-4 h-4 text-medical-green-light" />
-                            Statut du paiement
-                          </h5>
-                          <div className="flex items-center gap-2">
-                            <Badge className={`${getPaymentStatusColor(booking.payment_status, booking.status)} border`}>
-                              {getPaymentStatusText(booking.payment_status, booking.status)}
-                            </Badge>
-                            {booking.payment_status === 'paid' && (
-                              <span className="text-sm text-gray-600">
-                                • Paiement reçu avec succès
-                              </span>
-                            )}
-                            {booking.payment_status === 'pending' && (
-                              <span className="text-sm text-gray-600">
-                                • En attente du paiement par l'établissement
-                              </span>
-                            )}
-                            {booking.payment_status === 'failed' && (
-                              <span className="text-sm text-gray-600">
-                                • Problème de paiement - Contactez l'établissement
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      {/* Les informations de paiement ne sont plus affichées */}
                     </div>
                   )}
                 </CardContent>

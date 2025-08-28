@@ -2,9 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, ChevronDown, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import Logger from '@/utils/logger';
-
-const logger = Logger.getInstance();
+import { logger } from '@/services/logger';
 
 interface LazyLoadContainerProps<T> {
   items: T[];
@@ -83,11 +81,13 @@ export function LazyLoadContainer<T>({
         await loadMore();
       }
     } catch (error) {
-      logger.error('Error loading more items', error as Error, { 
-        hasMore, 
-        currentPage, 
-        itemsLength: items.length 
-      }, 'LazyLoadContainer', 'load_more_error');
+      logger.error('Error loading more items', error as Error, {
+        hasMore,
+        currentPage,
+        itemsLength: items.length,
+        component: 'LazyLoadContainer',
+        action: 'load_more_error'
+      });
     } finally {
       setLoadingMore(false);
     }

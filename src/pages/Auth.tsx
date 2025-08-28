@@ -333,7 +333,7 @@ const SocialButton = ({
 
       if (error) throw error;
     } catch (error: any) {
-      Logger.getInstance().error(`OAuth connection error`, error, { provider }, 'Auth', 'oauth_error');
+      logger.error(`OAuth connection error`, error, { provider, component: 'Auth', action: 'oauth_error' });
       toast({
         title: "Erreur de connexion",
         description: `Impossible de se connecter avec ${provider}`,

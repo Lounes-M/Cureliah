@@ -31,8 +31,6 @@ interface BookingStats {
   pending: number;
   completed: number;
   cancelled: number;
-  totalRevenue: number;
-  monthlyRevenue: number;
   averageRating: number;
 }
 
@@ -62,13 +60,13 @@ const MyBookings = () => {
         // Pour les médecins : récupérer les bookings directement
         query = supabase
           .from("bookings")
-          .select("status, total_amount, created_at, payment_status")
+          .select("status, created_at")
           .eq("doctor_id", user.id);
       } else {
         // Pour les établissements : récupérer les bookings directement
         query = supabase
           .from("bookings")
-          .select("status, total_amount, created_at, payment_status")
+          .select("status, created_at")
           .eq("establishment_id", user.id);
       }
 
@@ -96,25 +94,6 @@ const MyBookings = () => {
       const cancelled =
         bookings?.filter((b) => b.status === "cancelled" || b.status === "rejected").length || 0;
 
-      // ✅ MODIFICATION : Calcul des revenus seulement pour les vacations PAYÉES
-      const totalRevenue =
-        bookings
-          ?.filter((b) => 
-            (b.status === "completed" || b.status === "confirmed") &&
-            b.payment_status === "paid"  // 🎯 Seulement si payé !
-          )
-          .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
-
-      const monthlyRevenue =
-        bookings
-          ?.filter(
-            (b) =>
-              (b.status === "completed" || b.status === "confirmed") &&
-              b.payment_status === "paid" &&  // 🎯 Seulement si payé !
-              new Date(b.created_at) >= startOfMonth
-          )
-          .reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
-
       // Récupérer la note moyenne (pour les médecins)
       let averageRating = 0;
       if (profile?.user_type === "doctor") {
@@ -136,8 +115,6 @@ const MyBookings = () => {
         pending,
         completed,
         cancelled,
-        totalRevenue,
-        monthlyRevenue,
         averageRating,
       });
     } catch (error) {

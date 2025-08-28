@@ -52,7 +52,7 @@ export function useConversations() {
     }
 
     try {
-      console.log('🔍 [useConversations] Fetching conversations for user:', {
+      logger.debug('[useConversations] Fetching conversations for user', {
         userId: user.id,
         userType: profile?.user_type,
         email: user.email

@@ -6,9 +6,6 @@ import { Calendar, MapPin, User, Clock, MessageCircle } from 'lucide-react';
 import { getSpecialityInfo } from '@/utils/specialities';
 import { VacationWithDoctor } from '@/hooks/useEstablishmentSearch';
 import { TimeSlot } from '@/types/database';
-import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client.browser';
-import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorProfileModal } from './DoctorProfileModal';
 import { logger } from "@/services/logger";
@@ -20,7 +17,6 @@ interface EstablishmentVacationCardProps {
 
 export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: EstablishmentVacationCardProps) => {
   const specialityInfo = getSpecialityInfo(vacation.speciality || '');
-  const { user } = useAuth();
   const [showDoctorProfile, setShowDoctorProfile] = useState(false);
 
   logger.info('Vacation data:', vacation);
@@ -154,41 +150,6 @@ export const EstablishmentVacationCard = ({ vacation, onBookingRequest }: Establ
               <Button variant="outline" onClick={onBookingRequest}>
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Réserver
-              </Button>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  if (!user) return;
-                  try {
-                    const { error } = await supabase
-                      .from('vacation_bookings')
-                      .insert({
-                        vacation_post_id: vacation.id,
-                        doctor_id: vacation.doctor_id,
-                        establishment_id: user.id,
-                        status: 'pending',
-                        payment_status: 'pending',
-                        message: 'Réservation de test',
-                        total_amount: vacation.hourly_rate * 8 * 7, // 8 heures par jour pendant 7 jours
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                      });
-                    if (error) throw error;
-                    toast({
-                      title: "Réservation de test créée !",
-                      description: "Une réservation de test a été créée avec succès.",
-                    });
-                  } catch (error: any) {
-                    logger.error('Error creating test booking:', error);
-                    toast({
-                      title: "Erreur",
-                      description: error.message || "Une erreur est survenue",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-              >
-                Créer une réservation de test
               </Button>
             </div>
           </div>

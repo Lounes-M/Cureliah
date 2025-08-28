@@ -26,10 +26,10 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { 
 import { logger } from "@/services/logger";
-  TrendingUp, 
-  TrendingDown, 
+import {
+  TrendingUp,
+  TrendingDown,
   Users, 
   Building2, 
   Calendar as CalendarIcon,

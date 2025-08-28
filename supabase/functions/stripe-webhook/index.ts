@@ -39,11 +39,10 @@ serve(async (req) => {
     
     // Gestion des paiements de réservations et achats de crédits
     if (event.type === "checkout.session.completed" && object.mode === "payment") {
-      const bookingId = object.metadata?.bookingId;
       const creditAmount = object.metadata?.creditAmount;
       const userId = object.metadata?.userId;
       const paymentIntentId = object.payment_intent;
-      
+
       // Traitement des achats de crédits
       if (creditAmount && userId) {
         console.log("[stripe-webhook] Processing credit purchase:", creditAmount, "for user:", userId);
@@ -85,72 +84,7 @@ serve(async (req) => {
         }
       }
       
-      // Traitement des réservations (code existant)
-      if (bookingId) {
-        console.log("[stripe-webhook] Processing booking payment:", bookingId);
-        
-        // Mettre à jour le statut de la réservation
-        const { error: bookingError } = await supabase
-          .from("vacation_bookings")
-          .update({
-            payment_status: "completed",
-            status: "confirmed",
-            stripe_payment_intent_id: paymentIntentId,
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", bookingId);
-          
-        if (bookingError) {
-          console.error("[stripe-webhook] Booking update error:", bookingError.message);
-        } else {
-          console.log("[stripe-webhook] Booking payment completed:", bookingId);
-          
-          // Créer une notification pour le médecin
-          const { data: booking } = await supabase
-            .from("vacation_bookings")
-            .select("doctor_id, establishment_profiles(name)")
-            .eq("id", bookingId)
-            .single();
-            
-          if (booking) {
-            await supabase
-              .from("notifications")
-              .insert({
-                user_id: booking.doctor_id,
-                title: "Paiement reçu !",
-                message: `Le paiement de ${booking.establishment_profiles?.name || 'l\'établissement'} a été confirmé.`,
-                type: "payment",
-                data: { booking_id: bookingId }
-              });
-          }
-        }
-        
-        return new Response("ok", { status: 200 });
-      }
-    }
-    
-    // Gestion des échecs de paiement
-    if (event.type === "payment_intent.payment_failed") {
-      const paymentIntent = object;
-      const bookingId = paymentIntent.metadata?.bookingId;
-      
-      if (bookingId) {
-        console.log("[stripe-webhook] Processing failed payment:", bookingId);
-        
-        const { error } = await supabase
-          .from("vacation_bookings")
-          .update({
-            payment_status: "failed",
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", bookingId);
-          
-        if (error) {
-          console.error("[stripe-webhook] Failed payment update error:", error.message);
-        }
-        
-        return new Response("ok", { status: 200 });
-      }
+      // Aucun traitement de réservation : les paiements de vacations sont gérés hors plateforme
     }
 
     // Gestion des abonnements (code existant)

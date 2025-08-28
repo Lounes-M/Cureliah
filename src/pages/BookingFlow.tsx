@@ -16,7 +16,6 @@ interface VacationData {
   end_date: string;
   location: string;
   description?: string;
-  price?: number;
   doctor_id: string;
   doctor_name?: string;
   doctor_speciality?: string;
@@ -95,8 +94,6 @@ export default function BookingFlow() {
             emergency_contact: bookingData.emergency_contact,
             special_requirements: bookingData.special_requirements,
             status: 'pending',
-            payment_status: 'pending',
-            total_amount: vacation.price || 0,
             start_date: vacation.start_date,
             end_date: vacation.end_date
           }
@@ -121,8 +118,8 @@ export default function BookingFlow() {
           }
         ]);
 
-      // 3. Rediriger vers le paiement
-      navigate(`/payment/${newBooking.id}`);
+      // 3. Afficher l'étape de confirmation
+      setBookingStep(3);
       
     } catch (err) {
       logger.error('Erreur lors de la réservation', err as Error, { vacationId: id, userId: user?.id }, 'BookingFlow', 'booking_error');
@@ -221,12 +218,10 @@ export default function BookingFlow() {
                       <MapPin className="h-4 w-4 text-gray-500" />
                       <span>{vacation.location}</span>
                     </div>
-                    {vacation.price && (
-                      <div className="flex items-center space-x-2">
-                        <CreditCard className="h-4 w-4 text-gray-500" />
-                        <span className="font-semibold">{vacation.price}€</span>
-                      </div>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      <CreditCard className="h-4 w-4 text-gray-500" />
+                      <span className="font-semibold text-gray-600">Tarif fixé par l'établissement</span>
+                    </div>
                   </div>
                 </div>
                 

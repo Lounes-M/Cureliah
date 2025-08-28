@@ -98,7 +98,7 @@ export const ABTestProvider: React.FC<ABTestProviderProps> = ({
   // Fonction de tracking des événements
   const trackEvent = (eventName: string, properties?: Record<string, any>) => {
     // En production, envoyer vers votre service d'analytics
-    console.log(`[A/B Test] Event: ${eventName}`, {
+    logger.debug(`[A/B Test] Event: ${eventName}`, {
       userId,
       userSegment,
       variants,

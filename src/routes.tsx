@@ -49,7 +49,6 @@ const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
 const AccountActivation = lazy(() => import("@/pages/AccountActivation"));
 const LegalPage = lazy(() => import("@/pages/LegalPage"));
 const Contact = lazy(() => import("@/pages/Contact"));
-const PaymentCheckout = lazy(() => import("./pages/PaymentCheckout"));
 const Subscribe = lazy(() => import("./pages/Subscribe"));
 const SetupProfile = lazy(() => import("./pages/SetupProfile"));
 const CreditsPage = lazy(() => import("./pages/CreditsPage"));
@@ -127,7 +126,7 @@ const useProfileComplete = (user) => {
               result.data.last_name &&
               result.data.speciality
             );
-            console.log("👨‍⚕️ Doctor profile check:", {
+            logger.debug("Doctor profile check", {
               first_name: !!result.data.first_name,
               last_name: !!result.data.last_name,
               speciality: !!result.data.speciality,
@@ -136,7 +135,7 @@ const useProfileComplete = (user) => {
             setIsComplete(isProfileComplete);
           } else if (user.user_type === "establishment") {
             const isProfileComplete = !!result.data.name;
-            console.log("🏥 Establishment profile check:", {
+            logger.debug("Establishment profile check", {
               name: !!result.data.name,
               isComplete: isProfileComplete,
             });
@@ -500,15 +499,6 @@ export default function AppRoutes() {
         </React.Suspense>}
       />
 
-      {/* Page de paiement dédiée */}
-      <Route
-        path="/payment/:bookingId"
-        element={
-          <ProtectedRoute>
-            <PaymentCheckout />
-          </ProtectedRoute>
-        }
-      />
 
       {/* Page d'abonnement */}
       <Route

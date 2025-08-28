@@ -10,7 +10,7 @@ import { format, addDays, addWeeks, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import "@/styles/calendar.css";
 import "@/styles/planningMedecin.css";
-import Logger from '@/utils/logger';
+import { logger } from '@/services/logger';
 import {
   Dialog,
   DialogContent,
@@ -125,7 +125,6 @@ export const PlanningMedecin = ({
   onSlotCreated,
   onSlotUpdated,
 }: PlanningMedecinProps) => {
-  const logger = Logger.getInstance();
   const [events, setEvents] = useState<TimeSlotEvent[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<VacationFormData>({
@@ -156,7 +155,7 @@ export const PlanningMedecin = ({
   const fetchTimeSlots = useCallback(async () => {
     setIsLoading(true);
     try {
-      logger.debug("Fetching time slots for doctor", { doctorId }, 'PlanningMedecin', 'fetch_time_slots');
+      logger.debug("Fetching time slots for doctor", { doctorId, component: 'PlanningMedecin', action: 'fetch_time_slots' });
 
       const { data: slots, error: slotsError } = await supabase
         .from<TimeSlotData>("time_slots")
@@ -186,17 +185,17 @@ export const PlanningMedecin = ({
         .eq("vacation_posts.doctor_id", doctorId);
 
       if (slotsError) {
-        logger.error("Error fetching time slots", slotsError, { doctorId }, 'PlanningMedecin', 'slots_error');
+        logger.error("Error fetching time slots", slotsError, { doctorId, component: 'PlanningMedecin', action: 'slots_error' });
         throw slotsError;
       }
 
       if (!slots || slots.length === 0) {
-        logger.info("No time slots found", { doctorId }, 'PlanningMedecin', 'no_slots');
+        logger.info("No time slots found", { doctorId, component: 'PlanningMedecin', action: 'no_slots' });
         setEvents([]);
         return;
       }
 
-      logger.info("Found total slots", { slotsCount: slots.length }, 'PlanningMedecin', 'total_slots_found');
+      logger.info("Found total slots", { slotsCount: slots.length, component: 'PlanningMedecin', action: 'total_slots_found' });
 
       const calendarEvents =
         slots
@@ -206,7 +205,7 @@ export const PlanningMedecin = ({
               : (slot.vacation_posts as VacationPostData);
 
             if (!vacationPost) {
-              logger.warn("Slot without vacation_posts", slot, 'PlanningMedecin', 'missing_vacation');
+              logger.warn("Slot without vacation_posts", { ...slot, component: 'PlanningMedecin', action: 'missing_vacation' });
               return null;
             }
 
@@ -234,16 +233,16 @@ export const PlanningMedecin = ({
                 },
               };
             } catch (error) {
-              logger.error("Error processing slot", error as Error, slot, 'PlanningMedecin', 'process_slot');
+              logger.error("Error processing slot", error as Error, { ...slot, component: 'PlanningMedecin', action: 'process_slot' });
               return null;
             }
           })
           .filter(Boolean) || [];
 
-      logger.info("Processed calendar events", calendarEvents, 'PlanningMedecin', 'calendar_events_processed');
+      logger.info("Processed calendar events", { events: calendarEvents, component: 'PlanningMedecin', action: 'calendar_events_processed' });
       setEvents(calendarEvents);
     } catch (error) {
-      logger.error("Error fetching time slots", error as Error, undefined, 'PlanningMedecin', 'fetch_time_slots');
+      logger.error("Error fetching time slots", error as Error, { component: 'PlanningMedecin', action: 'fetch_time_slots' });
       toast({
         title: "❌ Erreur",
         description: "Impossible de charger les créneaux",
@@ -278,8 +277,8 @@ export const PlanningMedecin = ({
 
   const handleEventClick = (clickInfo: EventClickArg) => {
     const event = clickInfo.event;
-    logger.info("Event clicked", event, 'PlanningMedecin', 'event_clicked');
-    logger.info("Event extended props", event.extendedProps, 'PlanningMedecin', 'event_props');
+    logger.info("Event clicked", { event, component: 'PlanningMedecin', action: 'event_clicked' });
+    logger.info("Event extended props", { props: event.extendedProps, component: 'PlanningMedecin', action: 'event_props' });
     setSelectedEvent({
       id: event.id,
       title: event.title,
@@ -428,7 +427,7 @@ export const PlanningMedecin = ({
 
       calendarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
-      logger.error("Error creating time slots", error as Error, undefined, 'PlanningMedecin', 'create_time_slots');
+      logger.error("Error creating time slots", error as Error, { component: 'PlanningMedecin', action: 'create_time_slots' });
       toast({
         title: "❌ Erreur",
         description: "Impossible de créer les disponibilités",
@@ -593,7 +592,7 @@ export const PlanningMedecin = ({
 
       await fetchTimeSlots();
     } catch (error) {
-      logger.error("Error deleting time slot", error as Error, undefined, 'PlanningMedecin', 'delete_time_slot');
+      logger.error("Error deleting time slot", error as Error, { component: 'PlanningMedecin', action: 'delete_time_slot' });
       toast({
         title: "❌ Erreur",
         description: "Impossible de supprimer le créneau",

@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client.browser';
+import { logger } from '@/services/logger';
 
 interface CacheEntry<T = any> {
   data: T;
@@ -67,7 +68,7 @@ class MonitoringCache {
     } catch (error) {
       // En cas d'erreur, retourner les données cachées si disponibles
       if (entry) {
-        console.warn('Using stale cache data due to fetch error:', error);
+        logger.warn('Using stale cache data due to fetch error', { error });
         return entry.data as T;
       }
       throw error;
@@ -216,9 +217,9 @@ class MonitoringCache {
 
     try {
       await Promise.all(promises);
-      console.log('Monitoring data preloaded successfully');
+      logger.info('Monitoring data preloaded successfully');
     } catch (error) {
-      console.warn('Failed to preload some monitoring data:', error);
+      logger.warn('Failed to preload some monitoring data', { error });
     }
   }
 

@@ -11,7 +11,7 @@ import { MobileHeader } from './header/MobileHeader';
 import { NavigationItems, NAVIGATION_CONFIG } from './header/HeaderNavigation';
 import { UserMenu } from './header/HeaderUserMenu';
 import { HeaderNotifications } from './header/HeaderNotifications';
-import { log } from '@/utils/logging';
+import { logger } from '@/services/logger';
 
 // Import statique du logo (optimisation bundler)
 import logoUrl from '/logo.png';
@@ -22,11 +22,11 @@ export default function Header() {
   // Gestion de la déconnexion
   const handleSignOut = async () => {
     try {
-      log.userAction('sign_out_initiated', user?.id);
+      logger.userAction('sign_out_initiated', user?.id || '');
       await signOut();
-      log.userAction('sign_out_completed', user?.id);
+      logger.userAction('sign_out_completed', user?.id || '');
     } catch (error) {
-      log.error('Sign out failed', error, { userId: user?.id });
+      logger.error('Sign out failed', error as Error, { userId: user?.id });
     }
   };
 
