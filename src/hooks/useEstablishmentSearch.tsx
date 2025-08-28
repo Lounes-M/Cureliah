@@ -120,159 +120,120 @@ export const useEstablishmentSearch = () => {
     applyFilters();
   }, [vacations, searchTerm, filters]);
 
-  const fetchVacations = async () => {
-    try {
-      setLoading(true);
-      // Récupérer les vacations disponibles
-      const { data: vacationsData, error: vacationsError } = await supabase
-        .from('vacation_posts')
-        .select(`
-          *,
-          doctor:doctor_profiles!vacation_posts_doctor_id_fkey (
-            id,
-            license_number,
-            experience_years,
-            bio,
-            avatar_url,
-            is_verified,
-            created_at,
-            updated_at,
-            speciality,
-            availability,
-            education,
-            languages,
-            sub_specialties,
-            profiles!doctor_profiles_id_fkey (
+    const fetchVacations = async () => {
+      try {
+        setLoading(true);
+        // Récupérer les vacations disponibles
+        const { data: vacationsData, error: vacationsError } = await supabase
+          .from('vacation_posts')
+          .select(`
+            *,
+            doctor:doctor_profiles!vacation_posts_doctor_id_fkey (
               id,
-              first_name,
-              last_name,
-              email,
-              phone,
-              user_type,
-              is_active,
+              license_number,
+              experience_years,
+              bio,
+              avatar_url,
+              is_verified,
               created_at,
-              updated_at
+              updated_at,
+              speciality,
+              availability,
+              education,
+              languages,
+              sub_specialties,
+              profiles!doctor_profiles_id_fkey (
+                id,
+                first_name,
+                last_name,
+                email,
+                phone,
+                user_type,
+                is_active,
+                created_at,
+                updated_at
+              )
             )
-          )
-        `)
-        .gte('end_date', new Date().toISOString())
-        .order('created_at', { ascending: false });
+          `)
+          .gte('end_date', new Date().toISOString())
+          .order('created_at', { ascending: false });
 
-      if (vacationsError) {
-        throw vacationsError;
-      }
+        if (vacationsError) {
+          throw vacationsError;
+        }
 
-      if (!vacationsData || vacationsData.length === 0) {
+        if (!vacationsData || vacationsData.length === 0) {
+          setVacations([]);
+          setFilteredVacations([]);
+          return;
+        }
+
+        // Transformer les données
+        const vacationsWithDoctors = vacationsData.map(vacation => {
+          // Flatten doctor profile info
+          const doctor = vacation.doctor;
+          const doctorProfile = doctor?.profiles || {};
+          return {
+            ...vacation,
+            doctor_info: doctor ? {
+              id: doctor.id,
+              first_name: doctorProfile.first_name || '',
+              last_name: doctorProfile.last_name || '',
+              email: doctorProfile.email,
+              phone: doctorProfile.phone,
+              experience_years: doctor.experience_years,
+              avatar_url: doctor.avatar_url,
+              bio: doctor.bio,
+              availability: doctor.availability,
+              sub_specialties: doctor.sub_specialties,
+              is_verified: doctor.is_verified,
+              is_active: doctorProfile.is_active,
+              user_type: doctorProfile.user_type,
+            } : null,
+            doctor: doctor ? {
+              id: doctor.id,
+              first_name: doctorProfile.first_name || '',
+              last_name: doctorProfile.last_name || '',
+              email: doctorProfile.email,
+              phone: doctorProfile.phone,
+              experience_years: doctor.experience_years,
+              avatar_url: doctor.avatar_url,
+              bio: doctor.bio,
+              availability: doctor.availability,
+              sub_specialties: doctor.sub_specialties,
+              is_verified: doctor.is_verified,
+              is_active: doctorProfile.is_active,
+              user_type: doctorProfile.user_type,
+            } : null
+          };
+        });
+
+        setVacations(vacationsWithDoctors);
+        setFilteredVacations(vacationsWithDoctors);
+      } catch (error) {
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors du chargement des vacations",
+          variant: "destructive"
+        });
         setVacations([]);
         setFilteredVacations([]);
-        return;
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // Transformer les données
-      const vacationsWithDoctors = vacationsData.map(vacation => {
-        // Flatten doctor profile info
-        const doctor = vacation.doctor;
-        const doctorProfile = doctor?.profiles || {};
-        return {
-          ...vacation,
-          doctor_info: doctor ? {
-            id: doctor.id,
-            first_name: doctorProfile.first_name || '',
-            last_name: doctorProfile.last_name || '',
-            email: doctorProfile.email,
-            phone: doctorProfile.phone,
-            experience_years: doctor.experience_years,
-            avatar_url: doctor.avatar_url,
-            bio: doctor.bio,
-            availability: doctor.availability,
-            sub_specialties: doctor.sub_specialties,
-            is_verified: doctor.is_verified,
-            is_active: doctorProfile.is_active,
-            user_type: doctorProfile.user_type,
-          } : null,
-          doctor: doctor ? {
-            id: doctor.id,
-            first_name: doctorProfile.first_name || '',
-            last_name: doctorProfile.last_name || '',
-            email: doctorProfile.email,
-            phone: doctorProfile.phone,
-            experience_years: doctor.experience_years,
-            avatar_url: doctor.avatar_url,
-            bio: doctor.bio,
-            availability: doctor.availability,
-            sub_specialties: doctor.sub_specialties,
-            is_verified: doctor.is_verified,
-            is_active: doctorProfile.is_active,
-            user_type: doctorProfile.user_type,
-          } : null
-        };
-      });
-
-      setVacations(vacationsWithDoctors);
-      setFilteredVacations(vacationsWithDoctors);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors du chargement des vacations",
-        variant: "destructive"
-      });
-      setVacations([]);
-      setFilteredVacations([]);
-    } finally {
-      setLoading(false);
-
-  const applyFilters = () => {
-    let filtered = [...vacations];
-    // Filtre par terme de recherche
-    if (searchTerm) {
-      filtered = filtered.filter(vacation =>
-        vacation.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (vacation.location?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (vacation.speciality?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (`${vacation.doctor_info?.first_name} ${vacation.doctor_info?.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    // Filtres avancés
-    if (filters.location) {
-      filtered = filtered.filter(vacation =>
-        vacation.location?.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-
-    if (filters.speciality) {
-      filtered = filtered.filter(vacation =>
-        vacation.speciality === filters.speciality
-      );
-    }
-
-    if (filters.startDate) {
-      filtered = filtered.filter(vacation =>
-        new Date(vacation.start_date) >= new Date(filters.startDate)
-      );
-    }
-
-    if (filters.endDate) {
-      filtered = filtered.filter(vacation =>
-        new Date(vacation.end_date) <= new Date(filters.endDate)
-      );
-    }
-
-    // Removed minRate and maxRate filters for compliance
-
-    setFilteredVacations(filtered);
+    return {
+      vacations,
+      filteredVacations,
+      loading,
+      searchTerm,
+      setSearchTerm,
+      showFilters,
+      setShowFilters,
+      filters,
+      setFilters,
+      fetchVacations,
+      applyFilters
+    };
   };
-
-  return {
-    vacations,
-    filteredVacations,
-    loading,
-    searchTerm,
-    setSearchTerm,
-    showFilters,
-    setShowFilters,
-    filters,
-    setFilters,
-    fetchVacations
-  };
-};

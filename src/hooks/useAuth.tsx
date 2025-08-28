@@ -406,8 +406,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             case 'SIGNED_OUT':
               logger.info('[useAuth] Processing sign-out');
               setUser(null);
-              setSubscriptionStatus(null);
-              setSubscriptionPlan(null);
               setLoading(false);
               setInitialLoad(false);
               // Nettoyer le cache de vérification d'abonnement
@@ -618,39 +616,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [user, fetchUserProfile, supabase, toast]
   );
-
-  // Récupération du statut d'abonnement pour les médecins avec retry automatique
-  useEffect(() => {
-    const fetchSubscription = async (retryCount = 0) => {
-      if (!user?.id || user.user_type !== 'doctor') {
-        setSubscriptionStatus(null);
-        setSubscriptionPlan(null);
-        return;
-      }
-      
-      setSubscriptionLoading(true);
-      
-      try {
-        // Vérifier et renouveler la session avant l'appel
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          logger.warn('[useAuth] Session error, attempting to refresh:', sessionError.message);
-          
-          // Tenter de renouveler la session
-          const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
-          
-          if (refreshError || !refreshedSession) {
-            logger.error('[useAuth] Session refresh failed:', refreshError?.message);
-            // Session expirée - déconnecter l'utilisateur
-            await signOut();
-            return;
-          }
-          
-          logger.info('[useAuth] Session refreshed successfully');
-        }
-        
-        if (!session?.access_token) {
 
   const isAdmin = useCallback(() => {
     return user?.user_type === "admin";
