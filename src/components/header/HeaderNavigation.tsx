@@ -167,15 +167,15 @@ export const NAVIGATION_CONFIG: Record<string, NavigationItem[]> = {
       requiresAuth: true
     },
     {
-      label: "Mon Planning",
-      href: "/calendar", 
+      label: "Mon calendrier",
+      href: "/doctor/manage-vacations",
       icon: Calendar,
       requiresAuth: true,
       userTypes: ['doctor']
     },
     {
-      label: "Mes Réservations",
-      href: "/my-bookings",
+      label: "Mes réservations",
+      href: "/doctor/manage-vacations",
       icon: BookOpen,
       requiresAuth: true,
       userTypes: ['doctor']

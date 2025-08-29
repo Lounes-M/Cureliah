@@ -524,14 +524,14 @@ const DoctorDashboard = () => {
       description: "Vue calendrier de mes vacations",
       icon: Calendar,
       color: "bg-gradient-to-r from-green-500 to-green-600",
-      action: () => navigate("/doctor/calendar"),
+      action: () => navigate("/doctor/manage-vacations"),
     },
     {
       title: "Mes réservations",
       description: "Consulter les réservations actives",
       icon: Users,
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
-      action: () => navigate("/doctor/bookings"),
+      action: () => navigate("/doctor/manage-vacations"),
     },
     {
       title: "Messages patients",

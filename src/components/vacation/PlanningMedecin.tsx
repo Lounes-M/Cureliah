@@ -1,6 +1,4 @@
-import '@fullcalendar/common/main.css';
-import '@fullcalendar/timegrid/main.css';
-import '@fullcalendar/daygrid/main.css';
+// Styles FullCalendar v6 : à importer via CDN dans index.html
 import { useState, useEffect, useCallback, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";

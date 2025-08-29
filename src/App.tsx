@@ -89,7 +89,8 @@ const EnhancedAppContent = () => {
 
   return (
     <ABTestProvider userId={user?.id || ''} userSegment={userSegment?.userType || 'establishment'}>
-      <VideoIntroPopup />
+      {/* Ne pas afficher la vidéo si connecté */}
+      {!user && <VideoIntroPopup />}
       {/* Promo Banner - Affiché en haut pour maximum de visibilité */}
       {showPromoBanner && (
         <PromoBanner 

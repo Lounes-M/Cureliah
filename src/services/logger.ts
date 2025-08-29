@@ -172,7 +172,10 @@ class Logger {
 }
 
 // Export singleton instance
-export const logger = new Logger();
+if (!globalThis.__cureliah_logger) {
+  globalThis.__cureliah_logger = new Logger();
+}
+export const logger = globalThis.__cureliah_logger;
 
 // Export types for use in other files
 export type { LogContext };
